@@ -4,8 +4,7 @@
 #include "Logger.h"
 #include "StrFunc.h"
 #include <omp.h>
-#include <unordered_map>
-#include <unordered_set>
+#include <set>
 #include <fstream>
 #include <bitset>
 #include <Eigen/Dense>
@@ -14,24 +13,6 @@
 #include <numeric>
 
 using namespace Eigen;
-
-
-struct ItemCojo {
-    ItemCojo() = default;
-    ItemCojo(double freq, double b, double se, double p, double N)
-         : freq(freq), b(b), se(se), p(p), N(N) {}
-
-    double freq, b, se, p, N; 
-};
-
-
-struct ItemBim{
-    ItemBim() = default;
-    ItemBim(string A1, string A2, bool swap): A1(A1), A2(A2), swap(swap) {}
-
-    string A1, A2;
-    bool swap;
-};
 
 
 class taCOJO {
@@ -43,19 +24,36 @@ public:
 
 // Step 1: read files and prepare matrices and vectors for calculation
 public:
-    void read_cojofile(string cojoFile, bool isFirst);
-    void read_bimfile(string bimFile, bool isFirst);
-    int read_famfile(string famFile);
-    void read_bedfile(string bedFile, int indi_num, bool isFirst, 
-        vector<string> &bimSNP, unordered_map<string, vector<double>> &bedData);
-    double generate_sumstat_matrix(ArrayXXd &sumstat, unordered_map<string, ItemCojo> &cojoData);
+    void read_sumstat(string cojoFile, bool isFirst);
+    double read_PLINK(string PLINKfile, bool isFirst, vector<vector<double>> &gene, vector<string> &included_SNP_PLINK);
+    void generate_sumstat_and_X();
     double median(const ArrayXd &vector);
+    double calc_Vp(ArrayXXd &sumstat);
 
-private: // memory all freed after Step 1
-    unordered_map<string, ItemCojo> cojoData1, cojoData2;    
-    unordered_map<string, vector<double>> bedData1, bedData2;
-    vector<string> bimSNP1, bimSNP2;
-    unordered_set<string> commonSNP;
+private:
+    // common SNPs across 4 files
+    vector<string> commonSNP;
+    
+    // rough results for common SNPs of two cojofiles, trade space for time
+    map<string, int> commonSNP_index;
+    vector<string> A1_ref, A2_ref;
+    vector<int> SNP_pos_ref;
+
+    // cohort 1, memory freed after reading complete
+    map<string, int> SNP_index_cohort1;
+    vector<string> SNP_cohort1, A1_cohort1, A2_cohort1;
+    vector<double> freq1, b1, se1, p1, N1;
+
+    vector<vector<double>> gene_cohort1;
+    vector<string> included_SNP_PLINK_cohort1;
+    
+    // cohort 2, memory freed after reading complete
+    map<string, int> SNP_index_cohort2;
+    vector<string> SNP_cohort2, A1_cohort2, A2_cohort2;
+    vector<double> freq2, b2, se2, p2, N2;
+
+    vector<vector<double>> gene_cohort2;
+    vector<string> included_SNP_PLINK_cohort2;
 
 // Step 2: main loop
 public:
@@ -84,8 +82,6 @@ public:
 
 public: // all necessary data and results during the loop
     int indi_num1, indi_num2, commonSNP_num, max_SNP_index;
-    vector<string> commonSNP_ordered;
-    unordered_map<string, ItemBim> bimData;
     vector<int> candidate_SNP, backward_removed_SNP, screened_SNP, excluded_SNP;
     
     // bed matrix

@@ -236,7 +236,7 @@ void taCOJO::adjust_SNP_according_to_backward_selection()
             remove_column(X1_candidate, i);
             remove_column(X2_candidate, i);    
 
-            LOGGER.w(1, "Previous candidate SNP removed", commonSNP_ordered[candidate_SNP[i]]);
+            LOGGER.w(1, "Previous candidate SNP removed", commonSNP[candidate_SNP[i]]);
             backward_removed_SNP.push_back(candidate_SNP[i]);
             candidate_SNP.erase(candidate_SNP.begin()+i);
         }
@@ -281,17 +281,15 @@ void taCOJO::save_results(string filepath)
         
     jmaCOJO << endl;
 
-    ItemBim temp_item;
+    // ItemBim temp_item;
     string SNP_name;
     int index = 0;
-    vector<pair<string, int>> SNP_order_pair;
+    map<string, int> SNP_order_pair;
  
     // Inserting element in pair vector
     // to keep track of previous indexes
     for (auto iter = candidate_SNP.begin(); iter != candidate_SNP.end(); iter++, index++) 
-        SNP_order_pair.push_back(make_pair(commonSNP_ordered[*iter], index));
-       
-    stable_sort(SNP_order_pair.begin(), SNP_order_pair.end());
+        SNP_order_pair.insert(make_pair(commonSNP[*iter], index));
     
     ArrayXd temp_row;
     ArrayXd bJx = output_b_cohort1, bJy = output_b_cohort2;
@@ -307,8 +305,7 @@ void taCOJO::save_results(string filepath)
     for (auto iter = SNP_order_pair.begin(); iter != SNP_order_pair.end(); iter++) {
         SNP_name = iter->first;
         index = iter->second;
-        temp_item = bimData[SNP_name]; 
-        jmaCOJO << SNP_name << "\t" << temp_item.A1 << "\t" << temp_item.A2 << "\t";
+        jmaCOJO << SNP_name << "\t" << A1_ref[commonSNP_index[SNP_name]] << "\t" << A2_ref[commonSNP_index[SNP_name]] << "\t";
 
         // cols 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
         temp_row = sumstat1_candidate.row(index);
@@ -323,7 +320,7 @@ void taCOJO::save_results(string filepath)
         
         jmaCOJO << bJma(index) << "\t" << seJma(index) << "\t" << zJma(index) << "\t" << pJma(index) << endl;
     }
-    
+
     LOGGER.i(0, "Results saved into [" + filepath + "]", "Finished");
     jmaCOJO.close();
 }
@@ -344,7 +341,7 @@ void taCOJO::main_loop()
     if (sumstat_merge(max_SNP_index, 3) > threshold)
         LOGGER.e(0, "Input data has no significant SNPs.");
 
-    LOGGER.i(0, "First SNP", commonSNP_ordered[max_SNP_index]);
+    LOGGER.i(0, "First SNP", commonSNP[max_SNP_index]);
     cout << "--------------------------------" << endl;
 
     ArrayXd conditional_beta1, conditional_beta2;
@@ -374,7 +371,7 @@ void taCOJO::main_loop()
                 break;
             }
 
-            string temp_SNP_name = commonSNP_ordered[screened_SNP[max_SNP_index]];
+            string temp_SNP_name = commonSNP[screened_SNP[max_SNP_index]];
 
             // calculate joint effects
             append_row(sumstat1_candidate, sumstat1_screened.row(max_SNP_index));

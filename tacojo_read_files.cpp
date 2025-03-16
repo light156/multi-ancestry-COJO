@@ -1,72 +1,7 @@
 #include "trans_ancestry_cojo.h"
 
 
-void taCOJO::read_bimfile(string bimFile, bool isFirst) 
-{
-    // Read bim file: recombination rate is defined between SNP i and SNP i-1
-    int ibuf = 0;
-    string A1_buf = "0", A2_buf = "0";
-    double dbuf = 0.0;
-    string snp_buf;
-    ifstream Bim(bimFile.c_str());
-
-    if (!Bim) LOGGER.e(0, "cannot open the file [" + bimFile + "] to read");
-    LOGGER << "Reading PLINK BIM file from [" + bimFile + "]..." << endl;
-
-    int snp_num = 0;
-    string A1, A2;
-    unordered_set<string> commonSNP_buf;
-    unordered_map<string, ItemBim>::iterator item_iter;
-
-    while (Bim) {
-        Bim >> ibuf;
-        if (Bim.eof()) break;
-        Bim >> snp_buf;
-        Bim >> dbuf;
-        Bim >> ibuf;
-        Bim >> A1_buf;
-        StrFunc::to_upper(A1_buf);
-        Bim >> A2_buf;
-        StrFunc::to_upper(A2_buf);
-
-        if (isFirst) {
-            bimSNP1.push_back(snp_buf);
-
-            commonSNP_buf.insert(snp_buf);
-            if (snp_num == commonSNP_buf.size())
-                LOGGER.e(0, "Duplicate SNP " + snp_buf + " found in the file [" + bimFile + "]");
-
-            ItemBim newItem = ItemBim(A1_buf, A2_buf, false);
-            bimData.insert(pair<string, ItemBim>(snp_buf, newItem));
-            snp_num++;
-        } else {
-            bimSNP2.push_back(snp_buf);
-            
-            if((item_iter = bimData.find(snp_buf)) != bimData.end()) {
-                A1 = item_iter->second.A1;
-                A2 = item_iter->second.A2;
-
-                if ((A1_buf == A1 && A2_buf == A2) || (A1_buf == A2 && A2_buf == A1)) {
-                    commonSNP_buf.insert(snp_buf);
-                    if (snp_num == commonSNP_buf.size())
-                        LOGGER.e(0, "Duplicate SNP " + snp_buf + " found in the file [" + bimFile + "]");
-                    if (A1_buf == A2)
-                        item_iter->second.swap = true;
-
-                    snp_num++;
-                } 
-            }
-        }
-    }
-    Bim.close();
-
-    commonSNP.swap(commonSNP_buf);
-    unordered_set<string>().swap(commonSNP_buf);
-    LOGGER << commonSNP.size() << " SNPs included" << endl;
-}
-
-
-void taCOJO::read_cojofile(string cojoFile, bool isFirst) 
+void taCOJO::read_sumstat(string cojoFile, bool isFirst) 
 {    
     LOGGER << "Reading GWAS summary-level statistics from [" + cojoFile + "] ..." << endl;
     ifstream Meta(cojoFile.c_str());
@@ -80,9 +15,7 @@ void taCOJO::read_cojofile(string cojoFile, bool isFirst)
     getline(Meta, str_buf); // the header line
     if (StrFunc::split_string(str_buf, vs_buf) < 7) LOGGER.e(0, "format error in the input file [" + cojoFile + "]");
 
-    string A1, A2;
-    double freq_cohort1;
-    unordered_set<string> commonSNP_buf;
+    int SNP_num = 0;
 
     while (Meta) {
         getline(Meta, str_buf0);
@@ -108,64 +41,57 @@ void taCOJO::read_cojofile(string cojoFile, bool isFirst)
         if (N_buf < 10) LOGGER.e(0, "invalid sample size in line:\n\"" + str_buf0 + "\"");
         if (Meta.eof()) break;
         
-        if (commonSNP.find(snp_buf) != commonSNP.end()) {
-            A1 = bimData[snp_buf].A1;
-            A2 = bimData[snp_buf].A2;
-
-            if (isFirst) {
-                if (A1_buf == A1 && A2_buf == A2) {
-                    commonSNP_buf.insert(snp_buf);
-                    ItemCojo newItem = ItemCojo(freq_buf, b_buf, se_buf, p_buf, N_buf);
-                    cojoData1.insert(pair<string, ItemCojo>(snp_buf, newItem));
-                } else if (A1_buf == A2 && A2_buf == A1) {
-                    commonSNP_buf.insert(snp_buf);
-                    ItemCojo newItem = ItemCojo(1-freq_buf, -b_buf, se_buf, p_buf, N_buf);
-                    cojoData1.insert(pair<string, ItemCojo>(snp_buf, newItem));
-                }
-            } else {
-                freq_cohort1 = cojoData1[snp_buf].freq;
-
-                if (((freq_cohort1>=0.01)&&(freq_cohort1<=0.99)) || ((freq_buf>=0.01)&&(freq_buf<=0.99))) {
-                    if (A1_buf == A1 && A2_buf == A2) {
-                        commonSNP_buf.insert(snp_buf);
-                        ItemCojo newItem = ItemCojo(freq_buf, b_buf, se_buf, p_buf, N_buf);
-                        cojoData2.insert(pair<string, ItemCojo>(snp_buf, newItem));
-                    } else if (A1_buf == A2 && A2_buf == A1) {
-                        commonSNP_buf.insert(snp_buf);
-                        ItemCojo newItem = ItemCojo(1-freq_buf, -b_buf, se_buf, p_buf, N_buf);
-                        cojoData2.insert(pair<string, ItemCojo>(snp_buf, newItem));
-                    }
-                }
-            }
+        if (isFirst) {
+            SNP_index_cohort1.insert(pair<string, int> (snp_buf, SNP_num));
+            SNP_cohort1.push_back(snp_buf);
+            A1_cohort1.push_back(A1_buf);
+            A2_cohort1.push_back(A2_buf);
+            freq1.push_back(freq_buf);
+            b1.push_back(b_buf);
+            se1.push_back(se_buf);
+            p1.push_back(p_buf);
+            N1.push_back(N_buf);
+        } else {
+            SNP_index_cohort2.insert(pair<string, int> (snp_buf, SNP_num));
+            SNP_cohort2.push_back(snp_buf);
+            A1_cohort2.push_back(A1_buf);
+            A2_cohort2.push_back(A2_buf);
+            freq2.push_back(freq_buf);
+            b2.push_back(b_buf);
+            se2.push_back(se_buf);
+            p2.push_back(p_buf);
+            N2.push_back(N_buf);
         }
+        
+        SNP_num++;
     }
     Meta.close();
-    
-    commonSNP.swap(commonSNP_buf);
-    unordered_set<string>().swap(commonSNP_buf);
-    LOGGER << commonSNP.size() << " SNPs included" << endl;
+
+    if ((isFirst && SNP_index_cohort1.size()<SNP_num) || (!isFirst && SNP_index_cohort2.size()<SNP_num))
+        LOGGER.e(0, "Duplicate SNP in [" + cojoFile + "], please check");
+
+    LOGGER << SNP_num << " SNPs included" << endl << endl;;
 }
 
 
-int taCOJO::read_famfile(string famFile) 
-{
-    ifstream Fam(famFile.c_str());
-    if (!Fam) LOGGER.e(0, "cannot open the file [" + famFile + "] to read");
-    LOGGER << "Reading PLINK FAM file from [" + famFile + "]" << endl;
+double taCOJO::read_PLINK(string PLINKfile, bool isFirst, vector<vector<double>> &gene, vector<string> &included_SNP_PLINK) 
+{   
+    string famFile = PLINKfile+".fam", bimFile = PLINKfile+".bim", bedFile = PLINKfile+".bed";
 
-    int indi_num = 0;
+    // Step 1: read .fam to get individual number
+    ifstream Fam(famFile.c_str());
+    if (!Fam) LOGGER.e(0, "cannot open FAM file [" + famFile + "].fam to read");
+    LOGGER << "Reading PLINK FAM file from [" + famFile + "]..." << endl;
+
     string str_buf1, str_buf2, indi_id_buf;
-    unordered_set<string> indi_ids;
+    set<string> indi_ids;
+    int indi_num = 0;
 
     while (Fam) {
         Fam >> str_buf1;
         if (Fam.eof()) break;
         Fam >> str_buf2;
-
         indi_ids.insert(str_buf1+':'+str_buf2);
-        if (indi_num == indi_ids.size())
-            LOGGER.e(0, "Duplicate individual ID found: \"" + str_buf1 + "\t" + str_buf2 + "\".");
-
         Fam >> str_buf1;
         Fam >> str_buf1;
         Fam >> str_buf1;
@@ -174,58 +100,125 @@ int taCOJO::read_famfile(string famFile)
     }
     Fam.clear();
     Fam.close();
+    
+    if (indi_num != indi_ids.size())
+        LOGGER.e(0, "Duplicate individual ID in [" + famFile + "], please check");
+    
+    set<string>().swap(indi_ids);
 
-    unordered_set<string>().swap(indi_ids);
-    return indi_num;
-}
+    // Step 2: read .bim and .bed to get X matrix
+    ifstream Bim(bimFile.c_str());
+    if (!Bim) LOGGER.e(0, "cannot open BIM file [" + bimFile + "].bim to read");
+    LOGGER << "Reading PLINK BIM file from [" + bimFile + "]..." << endl;
 
+    fstream Bed(bedFile.c_str(), ios::in | ios::binary);
+    if (!Bed) LOGGER.e(0, "cannot open BED file [" + bedFile + "].bed to read");
+    LOGGER << "Reading PLINK BED file from [" + bedFile + "] in SNP-major format ..." << endl;
 
-void taCOJO::read_bedfile(string bedFile, int indi_num, bool isFirst, 
-    vector<string> &bimSNP, unordered_map<string, vector<double>> &bedData) 
-{       
-    // some code are adopted from PLINK with modifications
-    int i, k;
-    bool SNP1, SNP2;
-    double SNP12, SNP_sum, SNP_square_sum, not_NA_indi_num, SNP_avg, SNP_std;
-    vector<double> single_SNP_temp(indi_num);
-    string SNP_buf;
+    // Read bim file
+    int ibuf = 0;
+    string A1_buf = "0", A2_buf = "0";
+    double dbuf = 0.0;
 
     // Read bed file
+    int i, k;
     char ch[1];
     bitset<8> b;
-
-    fstream BIT(bedFile.c_str(), ios::in | ios::binary);
-    if (!BIT) LOGGER.e(0, "cannot open the file [" + bedFile + "] to read.");
-    LOGGER << "Reading PLINK BED file from [" + bedFile + "] in SNP-major format ..." << endl;
-    for (i = 0; i < 3; i++) {BIT.read(ch, 1);} // skip the first three bytes
+    for (i=0; i<3; i++) {Bed.read(ch, 1);} // skip the first three bytes
     
-    for (auto iter = bimSNP.begin(); iter != bimSNP.end(); iter++) {
-        SNP_buf = *iter;
-        if (commonSNP.find(SNP_buf) == commonSNP.end()) {
-            for (i = 0; i < indi_num; i += 4) BIT.read(ch, 1);
+    string SNP_buf;
+    int SNP_buf_index;
+    map<string, int>::iterator SNP_index_iter;
+
+    bool SNP1, SNP2, swap;
+    double SNP12, SNP_sum, SNP_square_sum, not_NA_indi_num, SNP_avg, SNP_std;
+    vector<double> single_SNP_X_buf(indi_num);
+
+    gene.resize(commonSNP.size());
+    
+    while (Bim) {
+        Bim >> ibuf;
+        if (Bim.eof()) break;
+        Bim >> SNP_buf;
+        Bim >> dbuf;
+        Bim >> ibuf;
+        Bim >> A1_buf;
+        StrFunc::to_upper(A1_buf);
+        Bim >> A2_buf;
+        StrFunc::to_upper(A2_buf);
+
+        if ((SNP_index_iter = commonSNP_index.find(SNP_buf)) == commonSNP_index.end()) {
+            for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
             continue;
         }
         
+        SNP_buf_index = SNP_index_iter->second;
         SNP_sum = 0;
         SNP_square_sum = 0;
         not_NA_indi_num = 0;
+        swap = false;
+
+        if (isFirst) {
+            A1_ref[SNP_buf_index] = A1_buf;
+            A2_ref[SNP_buf_index] = A2_buf;
+            SNP_pos_ref[SNP_buf_index] = ibuf;
+
+            if (abs(freq1[SNP_index_cohort1[SNP_buf]]-0.5) > 0.49 && abs(freq2[SNP_index_cohort2[SNP_buf]]-0.5) > 0.49) {
+                for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
+                continue;    
+            }
+
+            // check cohort 1 allele
+            if (A1_buf == A2_cohort1[SNP_index_cohort1[SNP_buf]] && A2_buf == A1_cohort1[SNP_index_cohort1[SNP_buf]]) {
+                freq1[SNP_index_cohort1[SNP_buf]] = 1-freq1[SNP_index_cohort1[SNP_buf]];
+                b1[SNP_index_cohort1[SNP_buf]] = -b1[SNP_index_cohort1[SNP_buf]];
+            } else if (A1_buf != A1_cohort1[SNP_index_cohort1[SNP_buf]] || A2_buf != A2_cohort1[SNP_index_cohort1[SNP_buf]]) {
+                LOGGER.w(1, "SNP A1 and A2 different in sumstat file 1, please check", SNP_buf);
+                for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
+                continue;
+            }
+
+            // check cohort 2 allele
+            if (A1_buf == A2_cohort2[SNP_index_cohort2[SNP_buf]] && A2_buf == A1_cohort2[SNP_index_cohort2[SNP_buf]]) {
+                freq2[SNP_index_cohort2[SNP_buf]] = 1-freq2[SNP_index_cohort2[SNP_buf]];
+                b2[SNP_index_cohort2[SNP_buf]] = -b2[SNP_index_cohort2[SNP_buf]];
+            } else if (A1_buf != A1_cohort2[SNP_index_cohort2[SNP_buf]] || A2_buf != A2_cohort2[SNP_index_cohort2[SNP_buf]]) {
+                LOGGER.w(1, "SNP A1 and A2 different in sumstat file 2, please check", SNP_buf);
+                for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
+                continue;
+            }
+        } else {
+            // check SNP position in the second bim file
+            if (ibuf != SNP_pos_ref[SNP_buf_index]) {
+                LOGGER.w(1, "SNP position different in two BIM files, please check", SNP_buf);
+                for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
+                continue;
+            }
+
+            // check allele in the second bim file
+            if (A2_buf == A1_ref[SNP_buf_index] && A1_buf == A2_ref[SNP_buf_index])
+                swap = true;
+            else if (A1_buf != A1_ref[SNP_buf_index] || A2_buf != A2_ref[SNP_buf_index]) {
+                LOGGER.w(1, "SNP A1 and A2 different in two BIM files, please check", SNP_buf);
+                for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
+                continue;
+            }
+        }
 
         // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
         for (i = 0; i < indi_num;) {
-            BIT.read(ch, 1);
-            if (!BIT) LOGGER.e(0, "problem with the BED file ... has the FAM/BIM file been changed?");
+            Bed.read(ch, 1);
+            if (!Bed) LOGGER.e(0, "problem with the BED file ... has the FAM/BIM file been changed?");
             b = ch[0];
             k = 0;
             while (k < 7 && i < indi_num) {
                 SNP2 = (!b[k++]);
                 SNP1 = (!b[k++]);
-                if (SNP1 && !SNP2) single_SNP_temp[i] = 10;
+                if (SNP1 && !SNP2) 
+                    single_SNP_X_buf[i] = 10;
                 else {
-                    SNP12 = SNP1+SNP2;
-                    if (!isFirst && bimData[SNP_buf].swap) 
-                        SNP12 = 2-SNP12;
-
-                    single_SNP_temp[i] = SNP12;
+                    SNP12 = swap ? 2-SNP1-SNP2 : SNP1+SNP2;
+                    single_SNP_X_buf[i] = SNP12;
                     SNP_sum += SNP12;
                     SNP_square_sum += SNP12*SNP12;
                     not_NA_indi_num++;
@@ -233,10 +226,9 @@ void taCOJO::read_bedfile(string bedFile, int indi_num, bool isFirst,
                 i++;
             }
         }
-
+        
         if (not_NA_indi_num == 0) {
-            LOGGER.w(1, "all values are NA for SNP " + SNP_buf + " in bedfile " + bedFile);
-            commonSNP.erase(SNP_buf);
+            LOGGER.w(1, "all values are NA in bedfile " + bedFile, SNP_buf);
             continue;
         }
 
@@ -244,27 +236,94 @@ void taCOJO::read_bedfile(string bedFile, int indi_num, bool isFirst,
         SNP_std = sqrt((SNP_square_sum-SNP_avg*SNP_avg*not_NA_indi_num)/(indi_num-1));
 
         if (SNP_std < 1e-5) {
-            LOGGER.w(1, "all genotypes are identical for SNP " + SNP_buf + " in bedfile " + bedFile);
-            commonSNP.erase(SNP_buf);
+            LOGGER.w(1, "all genotypes are identical in bedfile " + bedFile, SNP_buf);
             continue;
         }
-
+        
         // fill NA with 0
+        gene[SNP_buf_index].resize(indi_num);
+
         # pragma omp parallel for 
         for (i = 0; i < indi_num; i++) {
-            if (single_SNP_temp[i] > 5) 
-                single_SNP_temp[i] = 0;
-            else
-                single_SNP_temp[i] = (single_SNP_temp[i]-SNP_avg)/SNP_std;
+            gene[SNP_buf_index][i] = (single_SNP_X_buf[i] > 5) ? 0 : (single_SNP_X_buf[i]-SNP_avg)/SNP_std;
         }
 
-        bedData.insert(pair<string, vector<double>>(SNP_buf, single_SNP_temp));
+        included_SNP_PLINK.push_back(SNP_buf);
     }
-    BIT.clear();
-    BIT.close();
 
-    vector<double>().swap(single_SNP_temp);
-    vector<string>().swap(bimSNP);
+    Bim.clear();
+    Bim.close();
+    Bed.clear();
+    Bed.close();
+
+    vector<double>().swap(single_SNP_X_buf);
+
+    sort(included_SNP_PLINK.begin(), included_SNP_PLINK.end());
+    if (adjacent_find(included_SNP_PLINK.begin(), included_SNP_PLINK.end()) != included_SNP_PLINK.end())
+        LOGGER.e(0, "Duplicate SNP in PLINK file [" + PLINKfile + "], please check");
+    
+    LOGGER << indi_num << " individuals and " << included_SNP_PLINK.size() << " SNPs included" << endl << endl;
+    return indi_num;
+}
+
+
+void taCOJO::generate_sumstat_and_X() 
+{   
+    // initialize X matrices
+    // row: individual, column: SNP
+    
+    X1.resize(indi_num1, commonSNP_num);
+    X2.resize(indi_num2, commonSNP_num);
+
+    # pragma omp parallel for 
+    for (int i = 0; i < commonSNP_num; i++) {
+        int index = commonSNP_index[commonSNP[i]];
+        X1.col(i) = Map<ArrayXd>(gene_cohort1[index].data(), indi_num1);
+        X2.col(i) = Map<ArrayXd>(gene_cohort2[index].data(), indi_num2);
+    }
+    
+    vector<vector<double>>().swap(gene_cohort1);
+    vector<vector<double>>().swap(gene_cohort2);
+    
+    // initialize sumstat matrices
+    // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
+
+    sumstat1.resize(commonSNP_num, 7);
+    sumstat2.resize(commonSNP_num, 7);
+
+    # pragma omp parallel for 
+    for (int i = 0; i < commonSNP_num; i++) {
+        int index = commonSNP_index[commonSNP[i]];
+
+        int cohort1_index = SNP_index_cohort1[commonSNP[i]];
+        sumstat1(i, 0) = b1[cohort1_index];
+        sumstat1(i, 1) = se1[cohort1_index] * se1[cohort1_index];
+        sumstat1(i, 2) = p1[cohort1_index];
+        sumstat1(i, 3) = freq1[cohort1_index];
+        sumstat1(i, 4) = N1[cohort1_index];
+
+        int cohort2_index = SNP_index_cohort2[commonSNP[i]];
+        sumstat2(i, 0) = b2[cohort2_index];
+        sumstat2(i, 1) = se2[cohort2_index] * se2[cohort2_index];
+        sumstat2(i, 2) = p2[cohort2_index];
+        sumstat2(i, 3) = freq2[cohort2_index];
+        sumstat2(i, 4) = N2[cohort2_index];
+    }
+
+    map<string, int>().swap(SNP_index_cohort1);
+    map<string, int>().swap(SNP_index_cohort2);
+    
+    vector<double>().swap(freq1);
+    vector<double>().swap(b1);
+    vector<double>().swap(se1);
+    vector<double>().swap(p1);
+    vector<double>().swap(N1);
+
+    vector<double>().swap(freq2);
+    vector<double>().swap(b2);
+    vector<double>().swap(se2);
+    vector<double>().swap(p2);
+    vector<double>().swap(N2);
 }
 
 
@@ -288,22 +347,8 @@ double taCOJO::median(const ArrayXd &eigen_vector)
 }
 
 
-double taCOJO::generate_sumstat_matrix(ArrayXXd &sumstat, unordered_map<string, ItemCojo> &cojoData) 
-{   
-    sumstat.resize(commonSNP_num, 7);
-    // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
-
-    # pragma omp parallel for 
-    for (int i = 0; i < commonSNP_num; i++) {
-        ItemCojo item = cojoData[commonSNP_ordered[i]];
-
-        sumstat(i, 0) = item.b;
-        sumstat(i, 1) = item.se*item.se;
-        sumstat(i, 2) = item.p;
-        sumstat(i, 3) = item.freq;
-        sumstat(i, 4) = item.N;
-    };
-    
+double taCOJO::calc_Vp(ArrayXXd &sumstat) 
+{
     sumstat.col(5) = sumstat.col(3) * (1-sumstat.col(3)) * 2;
     ArrayXd Vp_gcta_list = sumstat.col(5) * sumstat.col(4) * (sumstat.col(1) + square(sumstat.col(0))/(sumstat.col(4)-1));
     double Vp = median(Vp_gcta_list);
@@ -312,31 +357,60 @@ double taCOJO::generate_sumstat_matrix(ArrayXXd &sumstat, unordered_map<string, 
     sumstat.col(6) = sumstat.col(4) * sumstat.col(5);
 
     Vp_gcta_list = sumstat.col(6) * (sumstat.col(1) + square(sumstat.col(0))/(sumstat.col(4)-1));
-    Vp = median(Vp_gcta_list);
-    
-    unordered_map<string, ItemCojo>().swap(cojoData);
+    Vp = median(Vp_gcta_list);    
     return Vp;
 }
 
 
 void taCOJO::read_files(string cojoFile1, string cojoFile2, string PLINK1, string PLINK2) 
-{
-    // read cojo and PLINK files 
-    read_bimfile(PLINK1+".bim", true);
-    read_bimfile(PLINK2+".bim", false);
-    cout << endl;
+{   
+    // read cojofiles and get rough common SNPs
+    read_sumstat(cojoFile1, true);
+    read_sumstat(cojoFile2, false);
 
-    read_cojofile(cojoFile1, true);
-    read_cojofile(cojoFile2, false);
-    cout << endl;
+    sort(SNP_cohort1.begin(), SNP_cohort1.end());
+    sort(SNP_cohort2.begin(), SNP_cohort2.end());
+    set_intersection(SNP_cohort1.begin(), SNP_cohort1.end(), 
+        SNP_cohort2.begin(), SNP_cohort2.end(), back_inserter(commonSNP));
+        
+    vector<string>().swap(SNP_cohort1); 
+    vector<string>().swap(SNP_cohort2); 
 
-    indi_num1 = read_famfile(PLINK1+".fam");
-    read_bedfile(PLINK1+".bed", indi_num1, true, bimSNP1, bedData1);
-    cout << endl;
+    int i = 0;
+    for (auto iter = commonSNP.begin(); iter != commonSNP.end(); iter++, i++)
+        commonSNP_index.insert(commonSNP_index.end(), pair<string, int> (*iter, i));
 
-    indi_num2 = read_famfile(PLINK2+".fam");
-    read_bedfile(PLINK2+".bed", indi_num2, false, bimSNP2, bedData2);
-    cout << endl;
+    // set bim file 1 as reference, compare and get common SNPs across 4 files
+    A1_ref.resize(commonSNP.size());
+    A2_ref.resize(commonSNP.size());
+    SNP_pos_ref.resize(commonSNP.size());
+
+    indi_num1 = read_PLINK(PLINK1, true, gene_cohort1, included_SNP_PLINK_cohort1);
+    indi_num2 = read_PLINK(PLINK2, false, gene_cohort2, included_SNP_PLINK_cohort2);
+    
+    vector<string>().swap(A1_cohort1);
+    vector<string>().swap(A2_cohort1);
+    vector<string>().swap(A1_cohort2);
+    vector<string>().swap(A2_cohort2);
+
+    if (commonSNP.size() != included_SNP_PLINK_cohort1.size() || 
+        commonSNP.size() != included_SNP_PLINK_cohort2.size()) {
+
+        vector<string>().swap(commonSNP);
+        set_intersection(included_SNP_PLINK_cohort1.begin(), included_SNP_PLINK_cohort1.end(), 
+            included_SNP_PLINK_cohort2.begin(), included_SNP_PLINK_cohort2.end(), back_inserter(commonSNP));
+        
+        vector<int> SNP_pos_ref_temp;
+
+        for (auto iter = commonSNP.begin(); iter != commonSNP.end(); iter++)
+            SNP_pos_ref_temp.push_back(SNP_pos_ref[commonSNP_index[*iter]]);
+        
+        SNP_pos_ref_temp.swap(SNP_pos_ref);
+        vector<int>().swap(SNP_pos_ref_temp);        
+    }
+
+    vector<string>().swap(included_SNP_PLINK_cohort1); 
+    vector<string>().swap(included_SNP_PLINK_cohort2); 
 
     commonSNP_num = commonSNP.size();
     if (commonSNP_num==0)
@@ -346,37 +420,10 @@ void taCOJO::read_files(string cojoFile1, string cojoFile2, string PLINK1, strin
     LOGGER.i(0, "individuals in Cohort 1", to_string(indi_num1));
     LOGGER.i(0, "individuals in Cohort 2", to_string(indi_num2));
 
-    // clear unrelated SNPs from bim data
-    auto iter = bimData.begin();
-    while (iter != bimData.end()) {
-        if (commonSNP.find(iter->first) == commonSNP.end())
-            iter = bimData.erase(iter);
-        else
-            iter++;
-    }
-    
-    // assign SNP with fixed order (ID number)
-    for (auto iter = commonSNP.begin(); iter != commonSNP.end(); iter++) {
-        commonSNP_ordered.push_back(*iter);
-    } 
+    // initialize sumstat and X matrices, calculate Vp
+    generate_sumstat_and_X();
+    Vp1 = calc_Vp(sumstat1);
+    Vp2 = calc_Vp(sumstat2);
 
-    unordered_set<string>().swap(commonSNP);
-
-    // initialize X matrices
-    X1.resize(indi_num1, commonSNP_num);
-    X2.resize(indi_num2, commonSNP_num);
-
-    # pragma omp parallel for 
-    for (int i = 0; i < commonSNP_num; i++) {
-        X1.col(i) = Map<ArrayXd>(bedData1[commonSNP_ordered[i]].data(), indi_num1);
-        X2.col(i) = Map<ArrayXd>(bedData2[commonSNP_ordered[i]].data(), indi_num2);
-    };
-
-    unordered_map<string, vector<double>>().swap(bedData1);
-    unordered_map<string, vector<double>>().swap(bedData2);
-
-    // initialize sumstat matrices and calculate Vp
-    Vp1 = generate_sumstat_matrix(sumstat1, cojoData1);
-    Vp2 = generate_sumstat_matrix(sumstat2, cojoData2);
     cout << "Vp: " << Vp1 << " " << Vp2 << endl << endl;
 }
