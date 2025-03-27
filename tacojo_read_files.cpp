@@ -19,7 +19,7 @@ void Cohort::read_sumstat(string cojofile)
 
     vector<string> vs_buf;
     getline(Meta, str_buf); // the header line
-    if (StrFunc::split_string(str_buf, vs_buf) < 7) LOGGER.e(0, "format error in the input file [" + cojofile + "]");
+    if (split_string(str_buf, vs_buf) < 7) LOGGER.e(0, "format error in the input file [" + cojofile + "]");
 
     int SNP_num = 0;
 
@@ -28,8 +28,8 @@ void Cohort::read_sumstat(string cojofile)
         stringstream iss(str_buf0);
         iss >> snp_buf >> A1_buf >> A2_buf;
         
-        StrFunc::to_upper(A1_buf);
-        StrFunc::to_upper(A2_buf);
+        to_upper(A1_buf);
+        to_upper(A2_buf);
         iss >> str_buf;
         freq_buf = atof(str_buf.c_str());
         iss >> str_buf;
@@ -63,9 +63,9 @@ void Cohort::read_sumstat(string cojofile)
 
     if (SNP_index.size() < SNP_num)
         LOGGER.e(0, "Duplicate SNP in [" + cojofile + "], please check");
-
+    
+    sort(SNP.begin(), SNP.end());
     LOGGER << SNP_num << " SNPs included" << endl << endl;
-    SNP.sort();
 }
 
 
@@ -124,6 +124,8 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     
     map<string, int>::iterator iter;
     int ref_index, cohort_index;
+    
+    string A1_cohort, A2_cohort, A1_ref_buf, A2_ref_buf;
 
     bool SNP1, SNP2, swap;
     double SNP12, SNP_sum, SNP_square_sum, not_NA_indi_num, SNP_avg, SNP_std;
@@ -138,9 +140,9 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         Bim >> dbuf;
         Bim >> ibuf;
         Bim >> A1_buf;
-        StrFunc::to_upper(A1_buf);
         Bim >> A2_buf;
-        StrFunc::to_upper(A2_buf);
+        to_upper(A1_buf);
+        to_upper(A2_buf);
 
         if ((iter = sumstat_commonSNP_index.find(SNP_buf)) == sumstat_commonSNP_index.end()) {
             for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
@@ -155,17 +157,26 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         not_NA_indi_num = 0;
         swap = false;
 
+        A1_cohort = A1[cohort_index];
+        A2_cohort = A2[cohort_index];
+        
         if (is_ref_cohort) {
+            A1_ref_buf = A1_buf;
+            A2_ref_buf = A2_buf;
+
             // read bim 1 as ref
             A1_ref[ref_index] = A1_buf;
             A2_ref[ref_index] = A2_buf;
             SNP_pos_ref[ref_index] = ibuf;
-
         } else {
+            A1_ref_buf = A1_ref[ref_index];
+            A2_ref_buf = A2_ref[ref_index];
+
             // check allele in bim 2
-            if (A2_buf == A1_ref[ref_index] && A1_buf == A2_ref[ref_index])
+            if (A1_ref_buf == A1_buf || A2_ref_buf == A2_buf);
+            else if (A1_ref_buf == A2_buf && A2_ref_buf == A1_buf)
                 swap = true;
-            else if (A1_buf != A1_ref[ref_index] || A2_buf != A2_ref[ref_index]) {
+            else {
                 LOGGER.w(1, "A1 and A2 different between two BIM files, please check", SNP_buf);
                 for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
                 continue;
@@ -178,17 +189,18 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
                 continue;
             }
         }
-
+        
         // check allele in sumstat file
-        if (A1_ref[ref_index] == A2[cohort_index] && A2_ref[ref_index] == A1[cohort_index]) {
+        if (A1_ref_buf == A1_cohort || A2_ref_buf == A2_cohort);
+        else if (A1_ref_buf == A2_cohort && A2_ref_buf == A1_cohort) {
             freq[cohort_index] = 1-freq[cohort_index];
             b[cohort_index] = -b[cohort_index];
-        } else if (A1_ref[ref_index] != A1[cohort_index] || A2_ref[ref_index] != A2[cohort_index]) {
+        } else {
             LOGGER.w(1, "A1 and A2 different between [" + bimFile + "] and sumstat file, please check", SNP_buf);
             for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
             continue;
         }
-        
+
         // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
         for (i = 0; i < indi_num;) {
             Bed.read(ch, 1);
@@ -241,7 +253,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
 
     vector<double>().swap(single_SNP_buf);
 
-    included_SNP_PLINK.sort();
+    sort(included_SNP_PLINK.begin(), included_SNP_PLINK.end());
     if (adjacent_find(included_SNP_PLINK.begin(), included_SNP_PLINK.end()) != included_SNP_PLINK.end())
         LOGGER.e(0, "Duplicate SNP in PLINK file [" + PLINKfile + "], please check");
     
@@ -280,8 +292,8 @@ void Cohort::generate_sumstat_and_X()
     vector<double>().swap(p);
     vector<double>().swap(N);
     vector<vector<double>> genotype;
-    list<string>().swap(SNP);
-    list<string>().swap(included_SNP_PLINK);
+    vector<string>().swap(SNP);
+    vector<string>().swap(included_SNP_PLINK);
 
     // calculate Vp
     sumstat.col(5) = sumstat.col(3) * (1-sumstat.col(3)) * 2;
@@ -293,6 +305,18 @@ void Cohort::generate_sumstat_and_X()
 
     Vp_gcta_list = sumstat.col(6) * (sumstat.col(1) + square(sumstat.col(0))/(sumstat.col(4)-1));
     Vp = median(Vp_gcta_list);
+}
+
+
+void Cohort::calc_inner_product(const vector<int> &index_list, int single_index, int window_size) 
+{   
+    r_temp_vec.setZero(index_list.size());
+
+    # pragma omp parallel for 
+    for (int i = 0; i < index_list.size(); i++) {
+        if (abs(SNP_pos_ref[index_list[i]] - SNP_pos_ref[single_index]) <= window_size)
+            r_temp_vec(i) = (X.col(single_index).transpose() * X.col(index_list[i])).value() / (indi_num-1);
+    }
 }
 
 
@@ -359,4 +383,108 @@ double median(const ArrayXd &eigen_vector)
 
     vector<double>().swap(b);
     return b_median;
+}
+
+
+void to_upper(string &str)
+{
+	int i=0;
+	for(i=0; i<str.size(); i++){
+		if(str[i]>='a' && str[i]<='z') str[i]+='A'-'a';
+	}
+}
+
+
+int split_string(const string &str, vector<string> &vec_str, string separator)
+{
+	if(str.empty()) return 0;
+	vec_str.clear();
+
+	int i=0;
+	bool look=false;
+	string str_buf;
+	string symbol_pool="`1234567890-=~!@#$%^&*()_+qwertyuiop[]\\asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>? \t\n";
+	string::size_type pos;
+
+	for(i=0; i<separator.size(); i++){
+		pos=symbol_pool.find(separator[i]);
+		if( pos!=string::npos ) symbol_pool.erase(symbol_pool.begin()+pos);
+	}
+
+	for(i=0; i<str.size(); i++){
+		if( symbol_pool.find(str[i])!=string::npos ){
+			if(!look) look=true;
+			str_buf += str[i];
+		}
+		else{
+			if(look){
+				look=false;
+				vec_str.push_back(str_buf);
+				str_buf.erase(str_buf.begin(), str_buf.end());
+			}
+		}
+	}
+	if(look) vec_str.push_back(str_buf);
+
+	return vec_str.size();
+}
+
+
+void append_row(ArrayXXd &matrix, const ArrayXXd &vector)
+{   
+    int numRows = matrix.rows();
+    matrix.conservativeResize(numRows+1, NoChange);
+    matrix.row(numRows) = vector;
+}
+
+
+void append_row(MatrixXd &matrix, const MatrixXd &vector)
+{   
+    int numRows = matrix.rows();
+    matrix.conservativeResize(numRows+1, NoChange);
+    matrix.row(numRows) = vector;
+}
+
+
+void append_column(MatrixXd &matrix, const MatrixXd &vector)
+{
+    int numCols = matrix.cols();
+    matrix.conservativeResize(NoChange, numCols+1);
+    matrix.col(numCols) = vector;
+}
+
+
+void remove_row(ArrayXXd &matrix, int index)
+{   
+    // -1 indicates the last row
+    int numRows = matrix.rows()-1, numCols = matrix.cols();
+
+    if (index != -1 && index < numRows)
+        matrix.middleRows(index, numRows-index) = matrix.bottomRows(numRows-index).eval();
+
+    matrix.conservativeResize(numRows, NoChange);
+}
+
+
+void remove_row(MatrixXd &matrix, int index)
+{   
+    // -1 indicates the last row
+    int numRows = matrix.rows()-1, numCols = matrix.cols();
+
+    if (index != -1 && index < numRows)
+        matrix.middleRows(index, numRows-index) = matrix.bottomRows(numRows-index).eval();
+
+    matrix.conservativeResize(numRows, NoChange);
+}
+
+
+void remove_column(MatrixXd &matrix, int index)
+{   
+    // -1 indicates the last column
+    int numRows = matrix.rows(), numCols = matrix.cols()-1;
+
+    if (index != -1 && index < numCols)
+        matrix.middleCols(index, numCols-index) = matrix.rightCols(numCols-index).eval();
+
+    matrix.conservativeResize(NoChange, numCols);
 }
