@@ -252,6 +252,8 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     Bed.close();
 
     vector<double>().swap(single_SNP_buf);
+    vector<string>().swap(A1);
+    vector<string>().swap(A2);
 
     sort(included_SNP_PLINK.begin(), included_SNP_PLINK.end());
     if (adjacent_find(included_SNP_PLINK.begin(), included_SNP_PLINK.end()) != included_SNP_PLINK.end())
@@ -289,16 +291,12 @@ void Cohort::generate_sumstat_and_X()
 {   
     int commonSNP_num = commonSNP.size();
     
-    X.resize(indi_num, commonSNP_num);
     sumstat.resize(commonSNP_num, 7);
     // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
 
     # pragma omp parallel for 
     for (int i = 0; i < commonSNP_num; i++) {
-        int ref_index = sumstat_commonSNP_index[commonSNP[i]];
         int cohort_index = SNP_index[commonSNP[i]];
-
-        X.col(i) = Map<ArrayXd>(genotype[ref_index].data(), indi_num);
         sumstat(i, 0) = b[cohort_index];
         sumstat(i, 1) = se[cohort_index]*se[cohort_index];
         sumstat(i, 2) = p[cohort_index];
@@ -308,16 +306,22 @@ void Cohort::generate_sumstat_and_X()
 
     // release memory
     map<string, int>().swap(SNP_index);
-    vector<string>().swap(A1);
-    vector<string>().swap(A2);
     vector<double>().swap(freq);
     vector<double>().swap(b);
     vector<double>().swap(se);
     vector<double>().swap(p);
     vector<double>().swap(N);
+
+    X.resize(indi_num, commonSNP_num);
+
+    # pragma omp parallel for 
+    for (int i = 0; i < commonSNP_num; i++) {
+        int ref_index = sumstat_commonSNP_index[commonSNP[i]];
+        X.col(i) = Map<ArrayXd>(genotype[ref_index].data(), indi_num);
+    }
+
+    // release memory
     vector<vector<double>> genotype;
-    vector<string>().swap(SNP);
-    vector<string>().swap(included_SNP_PLINK);
 
     // calculate Vp
     sumstat.col(5) = sumstat.col(3) * (1-sumstat.col(3)) * 2;
@@ -352,6 +356,8 @@ void TransAncestryCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, 
         }
     }
 
+    vector<string>().swap(c1.SNP);
+    vector<string>().swap(c2.SNP);
     vector<string>().swap(Cohort::commonSNP);
 
     // set bim file 1 as reference, compare and get common SNPs across 4 files
@@ -375,6 +381,9 @@ void TransAncestryCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, 
     set_intersection(c1.included_SNP_PLINK.begin(), c1.included_SNP_PLINK.end(), 
         c2.included_SNP_PLINK.begin(), c2.included_SNP_PLINK.end(), back_inserter(Cohort::commonSNP));
     
+    vector<string>().swap(c1.included_SNP_PLINK);
+    vector<string>().swap(c2.included_SNP_PLINK);
+
     if (Cohort::commonSNP.size() == 0)
         LOGGER.e(0, "Input data has no common SNPs.");
 
@@ -410,6 +419,8 @@ void TransAncestryCOJO::read_files_one_cohort(string cojoFile1, string PLINK)
             temp_index++;
         }
     }
+
+    vector<string>().swap(c1.SNP);
 
     // set bim file 1 as reference, compare and get common SNPs across 4 files
     Cohort::A1_ref.resize(temp_index);

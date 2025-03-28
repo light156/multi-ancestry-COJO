@@ -19,8 +19,8 @@ void show_tips_and_exit()
     cout << "--no_fast_inv: use normal matrix inverse" << endl << endl;
     
     cout << "For example, both commands below will give the same result, as they use default option values:" << endl;
-    cout << "./main --s cojoFile_path PLINK_path result_save_path -colinear 0.9 -R2back -0.5 -iter_num 10000" << endl;
-    cout << "./main --s cojoFile_path PLINK_path result_save_path -R2 0 " << endl << endl;
+    cout << "./tcojo --s cojoFile_path PLINK_path result_save_path -colinear 0.9 -R2back -0.5 -iter_num 10000" << endl;
+    cout << "./tcojo --s cojoFile_path PLINK_path result_save_path -R2 0 " << endl << endl;
     exit(-1);
 }
 
