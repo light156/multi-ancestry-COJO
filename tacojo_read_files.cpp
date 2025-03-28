@@ -9,7 +9,7 @@ vector<int> Cohort::SNP_pos_ref;
 
 void Cohort::read_sumstat(string cojofile) 
 {  
-    LOGGER << "Reading GWAS summary-level statistics from [" + cojofile + "] ..." << endl;
+    LOGGER << endl << "Reading GWAS summary-level statistics from [" + cojofile + "] ..." << endl;
     ifstream Meta(cojofile.c_str());
     if (!Meta) LOGGER.e(0, "cannot open the file [" + cojofile + "] to read");
 
@@ -65,7 +65,7 @@ void Cohort::read_sumstat(string cojofile)
         LOGGER.e(0, "Duplicate SNP in [" + cojofile + "], please check");
     
     sort(SNP.begin(), SNP.end());
-    LOGGER << SNP_num << " SNPs included" << endl << endl;
+    LOGGER << SNP_num << " SNPs included" << endl;
 }
 
 
@@ -74,8 +74,8 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     // Step 1: read .fam to get individual number 
     string famFile = PLINKfile+".fam";
     ifstream Fam(famFile.c_str());
-    if (!Fam) LOGGER.e(0, "cannot open FAM file [" + famFile + "].fam to read");
-    LOGGER << "Reading PLINK FAM file from [" + famFile + "]..." << endl;
+    if (!Fam) LOGGER.e(0, "cannot open FAM file [" + famFile + "] to read");
+    LOGGER << endl << "Reading PLINK FAM file from [" + famFile + "]..." << endl;
 
     string str_buf1, str_buf2, indi_id_buf;
     set<string> indi_ids;
@@ -103,12 +103,12 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     // Step 2: read .bim and .bed to get X matrix
     string bimFile = PLINKfile+".bim";
     ifstream Bim(bimFile.c_str());
-    if (!Bim) LOGGER.e(0, "cannot open BIM file [" + bimFile + "].bim to read");
+    if (!Bim) LOGGER.e(0, "cannot open BIM file [" + bimFile + "] to read");
     LOGGER << "Reading PLINK BIM file from [" + bimFile + "]..." << endl;
 
     string bedFile = PLINKfile+".bed";
     fstream Bed(bedFile.c_str(), ios::in | ios::binary);
-    if (!Bed) LOGGER.e(0, "cannot open BED file [" + bedFile + "].bed to read");
+    if (!Bed) LOGGER.e(0, "cannot open BED file [" + bedFile + "] to read");
     LOGGER << "Reading PLINK BED file from [" + bedFile + "] in SNP-major format ..." << endl;
 
     // Read bim file
@@ -257,7 +257,31 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     if (adjacent_find(included_SNP_PLINK.begin(), included_SNP_PLINK.end()) != included_SNP_PLINK.end())
         LOGGER.e(0, "Duplicate SNP in PLINK file [" + PLINKfile + "], please check");
     
-    LOGGER << indi_num << " individuals and " << included_SNP_PLINK.size() << " SNPs included" << endl << endl;
+    LOGGER << indi_num << " individuals and " << included_SNP_PLINK.size() << " SNPs included" << endl;
+}
+
+
+void Cohort::finalize_ref_info() 
+{
+    vector<string> A1_ref_clean, A2_ref_clean;
+    vector<int> SNP_pos_ref_clean;
+    int temp_index;
+
+    for (auto iter = Cohort::commonSNP.begin(); iter != Cohort::commonSNP.end(); iter++) {
+        temp_index = Cohort::sumstat_commonSNP_index[*iter];
+        A1_ref_clean.push_back(Cohort::A1_ref[temp_index]);
+        A2_ref_clean.push_back(Cohort::A2_ref[temp_index]);
+        SNP_pos_ref_clean.push_back(Cohort::SNP_pos_ref[temp_index]);
+    }
+
+    A1_ref_clean.swap(Cohort::A1_ref);
+    A2_ref_clean.swap(Cohort::A2_ref);
+    SNP_pos_ref_clean.swap(Cohort::SNP_pos_ref);
+
+    vector<string>().swap(A1_ref_clean);
+    vector<string>().swap(A2_ref_clean);
+    vector<int>().swap(SNP_pos_ref_clean);
+    map<string, int>().swap(Cohort::sumstat_commonSNP_index);
 }
 
 
@@ -308,183 +332,110 @@ void Cohort::generate_sumstat_and_X()
 }
 
 
-void Cohort::calc_inner_product(const vector<int> &index_list, int single_index, int window_size) 
+void TransAncestryCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2) 
 {   
-    r_temp_vec.setZero(index_list.size());
+    clock_t tStart = clock();
 
-    # pragma omp parallel for 
-    for (int i = 0; i < index_list.size(); i++) {
-        if (abs(SNP_pos_ref[index_list[i]] - SNP_pos_ref[single_index]) <= window_size)
-            r_temp_vec(i) = (X.col(single_index).transpose() * X.col(index_list[i])).value() / (indi_num-1);
-    }
-}
-
-
-void Cohort::calc_conditional_effects() 
-{   
-    MatrixXd temp1, temp2;
-    ArrayXd temp3;
-
-    temp1 = sumstat_candidate.col(0) * sqrt(sumstat_candidate.col(5));
-    temp2.noalias() = R_inv_pre * temp1;
-    temp3 = r * temp2;
-    conditional_beta = sumstat_screened.col(0) - temp3 / sqrt(sumstat_screened.col(5));
-}
-
-
-bool Cohort::calc_joint_effects(const ArrayXXd &sumstat_temp, bool flag, double iter_colinear_threshold) 
-{      
-    if (flag && ((abs(R_inv_post.minCoeff()) > iter_colinear_threshold) || (abs(R_inv_post.maxCoeff()) > iter_colinear_threshold)))
-        return true;
-
-    VectorXd temp1 = sqrt(sumstat_temp.col(5)) * sumstat_temp.col(0);
-    ArrayXd temp2 = R_inv_post * temp1;
-    beta = temp2 / sqrt(sumstat_temp.col(5));
+    // read cojofiles and get rough common SNPs    
+    c1.read_sumstat(cojoFile1);
+    c2.read_sumstat(cojoFile2);
     
-    double sigma_J_squared = Vp - (sumstat_temp.col(0) * sumstat_temp.col(5) * beta).sum();
-                
-    beta_var = sigma_J_squared * R_inv_post.diagonal().array() / sumstat_temp.col(6) ;
+    set_intersection(c1.SNP.begin(), c1.SNP.end(), 
+        c2.SNP.begin(), c2.SNP.end(), back_inserter(Cohort::commonSNP));
+    
+    // exclude rare SNP
+    int temp_index = 0;
+    for (auto iter = Cohort::commonSNP.begin(); iter != Cohort::commonSNP.end(); iter++) {
+        if (abs(c1.freq[c1.SNP_index[*iter]]-0.5) <= 0.49 || abs(c2.freq[c2.SNP_index[*iter]]-0.5) <= 0.49) {
+            Cohort::sumstat_commonSNP_index.insert(Cohort::sumstat_commonSNP_index.end(), pair<string, int> (*iter, temp_index));
+            temp_index++;
+        }
+    }
 
-    if (flag && beta_var.minCoeff() <= 0)
-        return true;
+    vector<string>().swap(Cohort::commonSNP);
 
-    double Neff = median(sumstat_temp.col(4));
-    int M = sumstat_temp.rows();
-    R2 = 1 - sigma_J_squared * (Neff-1) / Vp / (Neff-M-1);
-    return false;
+    // set bim file 1 as reference, compare and get common SNPs across 4 files
+    Cohort::A1_ref.resize(temp_index);
+    Cohort::A2_ref.resize(temp_index);
+    Cohort::SNP_pos_ref.resize(temp_index);
+
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    tStart = clock();
+
+    c1.read_PLINK(PLINK1, true);
+
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    tStart = clock();
+
+    c2.read_PLINK(PLINK2, false);
+    
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    tStart = clock();
+
+    set_intersection(c1.included_SNP_PLINK.begin(), c1.included_SNP_PLINK.end(), 
+        c2.included_SNP_PLINK.begin(), c2.included_SNP_PLINK.end(), back_inserter(Cohort::commonSNP));
+    
+    if (Cohort::commonSNP.size() == 0)
+        LOGGER.e(0, "Input data has no common SNPs.");
+
+    LOGGER.i(0, "common SNPs included for two cohorts", to_string(Cohort::commonSNP.size()));
+    LOGGER.i(0, "individuals in Cohort 1", to_string(c1.indi_num));
+    LOGGER.i(0, "individuals in Cohort 2", to_string(c2.indi_num));
+
+    // initialize sumstat and X matrices, calculate Vp
+    c1.generate_sumstat_and_X();
+    c2.generate_sumstat_and_X();
+    LOGGER << endl << "Vp: " << c1.Vp << " " << c2.Vp << endl;
+
+    // clean ref A1, A2 and SNP position lists
+    Cohort::finalize_ref_info();
+    
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    LOGGER << "--------------------------------" << endl << endl;
 }
 
 
-void Cohort::calc_R_inv_fast() {
-    double temp_element = 1 / (1 - r_temp_vec.transpose() * R_inv_pre * r_temp_vec);
-    VectorXd temp_vector = R_inv_pre * r_temp_vec;
-
-    int dim = R_inv_pre.rows();
-    R_inv_post.resize(dim+1, dim+1);
-
-    R_inv_post.block(0, 0, dim, dim) = R_inv_pre + temp_element * temp_vector * temp_vector.transpose();
-    R_inv_post.block(0, dim, dim, 1) = -temp_element * temp_vector;
-    R_inv_post.block(dim, 0, 1, dim) = -temp_element * temp_vector.transpose();
-    R_inv_post(dim, dim) = temp_element;
-}
-
-
-double median(const ArrayXd &eigen_vector)
-{
-    int size = eigen_vector.size();
-    vector<double> b(eigen_vector.data(), eigen_vector.data() + size);
-    double b_median; 
-
-    sort(b.begin(), b.end());
-    if (size%2==1)
-        b_median = b[(size-1)/2];
-    else 
-        b_median = (b[size/2]+b[size/2-1])/2;
-
-    vector<double>().swap(b);
-    return b_median;
-}
-
-
-void to_upper(string &str)
-{
-	int i=0;
-	for(i=0; i<str.size(); i++){
-		if(str[i]>='a' && str[i]<='z') str[i]+='A'-'a';
-	}
-}
-
-
-int split_string(const string &str, vector<string> &vec_str, string separator)
-{
-	if(str.empty()) return 0;
-	vec_str.clear();
-
-	int i=0;
-	bool look=false;
-	string str_buf;
-	string symbol_pool="`1234567890-=~!@#$%^&*()_+qwertyuiop[]\\asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>? \t\n";
-	string::size_type pos;
-
-	for(i=0; i<separator.size(); i++){
-		pos=symbol_pool.find(separator[i]);
-		if( pos!=string::npos ) symbol_pool.erase(symbol_pool.begin()+pos);
-	}
-
-	for(i=0; i<str.size(); i++){
-		if( symbol_pool.find(str[i])!=string::npos ){
-			if(!look) look=true;
-			str_buf += str[i];
-		}
-		else{
-			if(look){
-				look=false;
-				vec_str.push_back(str_buf);
-				str_buf.erase(str_buf.begin(), str_buf.end());
-			}
-		}
-	}
-	if(look) vec_str.push_back(str_buf);
-
-	return vec_str.size();
-}
-
-
-void append_row(ArrayXXd &matrix, const ArrayXXd &vector)
+void TransAncestryCOJO::read_files_one_cohort(string cojoFile1, string PLINK) 
 {   
-    int numRows = matrix.rows();
-    matrix.conservativeResize(numRows+1, NoChange);
-    matrix.row(numRows) = vector;
-}
+    clock_t tStart = clock();
 
+    // read cojofiles and get rough common SNPs    
+    c1.read_sumstat(cojoFile1);
+    
+    // exclude rare SNP
+    int temp_index = 0;
+    for (auto iter = c1.SNP.begin(); iter != c1.SNP.end(); iter++) {
+        if (abs(c1.freq[c1.SNP_index[*iter]]-0.5) <= 0.49) {
+            Cohort::sumstat_commonSNP_index.insert(Cohort::sumstat_commonSNP_index.end(), pair<string, int> (*iter, temp_index));
+            temp_index++;
+        }
+    }
 
-void append_row(MatrixXd &matrix, const MatrixXd &vector)
-{   
-    int numRows = matrix.rows();
-    matrix.conservativeResize(numRows+1, NoChange);
-    matrix.row(numRows) = vector;
-}
+    // set bim file 1 as reference, compare and get common SNPs across 4 files
+    Cohort::A1_ref.resize(temp_index);
+    Cohort::A2_ref.resize(temp_index);
+    Cohort::SNP_pos_ref.resize(temp_index);
 
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    tStart = clock();
 
-void append_column(MatrixXd &matrix, const MatrixXd &vector)
-{
-    int numCols = matrix.cols();
-    matrix.conservativeResize(NoChange, numCols+1);
-    matrix.col(numCols) = vector;
-}
+    c1.read_PLINK(PLINK, true);
 
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    tStart = clock();
+    
+    c1.included_SNP_PLINK.swap(Cohort::commonSNP);
 
-void remove_row(ArrayXXd &matrix, int index)
-{   
-    // -1 indicates the last row
-    int numRows = matrix.rows()-1, numCols = matrix.cols();
+    if (Cohort::commonSNP.size() == 0)
+        LOGGER.e(0, "Input data has no SNPs.");
 
-    if (index != -1 && index < numRows)
-        matrix.middleRows(index, numRows-index) = matrix.bottomRows(numRows-index).eval();
+    // initialize sumstat and X matrices, calculate Vp
+    c1.generate_sumstat_and_X();
+    LOGGER << endl << "Vp: " << c1.Vp << endl;
 
-    matrix.conservativeResize(numRows, NoChange);
-}
+    // clean ref A1, A2 and SNP position lists
+    Cohort::finalize_ref_info();
 
-
-void remove_row(MatrixXd &matrix, int index)
-{   
-    // -1 indicates the last row
-    int numRows = matrix.rows()-1, numCols = matrix.cols();
-
-    if (index != -1 && index < numRows)
-        matrix.middleRows(index, numRows-index) = matrix.bottomRows(numRows-index).eval();
-
-    matrix.conservativeResize(numRows, NoChange);
-}
-
-
-void remove_column(MatrixXd &matrix, int index)
-{   
-    // -1 indicates the last column
-    int numRows = matrix.rows(), numCols = matrix.cols()-1;
-
-    if (index != -1 && index < numCols)
-        matrix.middleCols(index, numCols-index) = matrix.rightCols(numCols-index).eval();
-
-    matrix.conservativeResize(NoChange, numCols);
+    LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    LOGGER << "--------------------------------" << endl << endl;
 }
