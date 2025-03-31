@@ -1,4 +1,4 @@
-#include "trans_ancestry_cojo.h"
+#include "tcojo.h"
 
 
 double median(const ArrayXd &eigen_vector)

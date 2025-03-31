@@ -29,28 +29,30 @@ void remove_row(MatrixXd &matrix, int index=-1);
 void remove_column(MatrixXd &matrix, int index=-1);
 
 
-class Cohort {
-    
-public:    
-    static map<string, int> sumstat_commonSNP_index;
-    static vector<string> commonSNP;
-    static vector<string> A1_ref, A2_ref;
-    static vector<int> SNP_pos_ref;
-    static void finalize_ref_info();
-
+class Cohort 
+{    
 public:
+    void skim_cojo(string cojofile);
+    void skim_PLINK(string PLINKfile);
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
-    void generate_sumstat_and_X();
-
+    
+    void get_vector_from_bed_matrix(int index, VectorXd &vec);
     void calc_inner_product(const vector<int> &index_list, int single_index, int window_size);
     void calc_conditional_effects();
-    bool calc_joint_effects(const ArrayXXd &sumstat, bool flag, double iter_colinear_threshold=0);
+    bool calc_joint_effects(const ArrayXXd &sumstat_temp, bool flag, double iter_colinear_threshold=0);    
+    void calc_Vp(ArrayXXd &sumstat_temp);
     void calc_R_inv(bool if_fast_inv);
     void save_temp_model(bool if_fast_inv);
     
-    MatrixXd X;
-    ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward;
+    vector<string> SNP_cojo, SNP_PLINK;
+
+    // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
+    ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward_new_model;
+
+    // X matrix
+    vector<bool> X_A1, X_A2;
+    vector<double> X_avg, X_std;
     
     MatrixXd r, R_inv_pre, R_inv_post, R_pre, R_post;
     VectorXd r_temp_vec;
@@ -62,38 +64,39 @@ public:
     double Vp, R2, previous_R2;
     int indi_num;
 
-public:
-    map<string, int> SNP_index;
-    vector<string> A1, A2;
-    vector<double> freq, b, se, p, N;
-    vector<vector<double>> genotype;
-    vector<string> SNP, included_SNP_PLINK;
 };
 
 
-class TransAncestryCOJO {
+class TCOJO
+{
+public:
+    static long commonSNP_total_num;
+    static map<string, int> commonSNP_index_map;
+    static vector<int> final_commonSNP_index;
+    static vector<string> final_commonSNP;
+
+    static vector<string> A1_ref, A2_ref;
+    static vector<int> SNP_pos_ref;
 
 public:
-    bool initialize_hyperparameters(int argc, char** argv);
-    
     void read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2);
-    void read_files_one_cohort(string cojoFile1, string PLINK);
-
-    void inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
-        const ArrayXd &se2_cohort1, const ArrayXd &se2_cohort2, ArrayXXd &merge);
+    void read_files_one_cohort(string cojoFile, string PLINK);
 
     void initialize_matrices(Cohort &c);
     void initialize_MDISA(Cohort &c);
+    void inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
+        const ArrayXd &se2_cohort1, const ArrayXd &se2_cohort2, ArrayXXd &merge);
     void remove_new_colinear_SNP(bool cohort1_only=false, bool cohort2_only=false);
-    
     void initialize_backward_selection(Cohort &c, const ArrayXd &pJ);
     void adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool cohort1_only=false, bool cohort2_only=false);
 
     void main_loop(string savename);
-    void save_results_main_loop(string filepath);
-
     void MDISA(Cohort &c);
+
+    void initialize_hyperparameters(int argc, char** argv);
+    void save_results_main_loop(string filepath);
     void save_results_DISA(Cohort &c, string filepath);
+    void show_tips_and_exit();
 
 public:
     Cohort c1, c2;
@@ -115,7 +118,7 @@ public:
     double R2_incremental_threshold = 0.0;
     double R2_incremental_threshold_backwards = -0.5;
     
-    int window_size = 1500000;
+    long window_size = 1500000;
     int max_iter_num = 10000;
 
     bool if_fast_inv = true;
