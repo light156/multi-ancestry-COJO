@@ -297,6 +297,22 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
 }
 
 
+void Cohort::get_vector_from_bed_matrix(int index)
+{   
+    X_temp_vec.setZero(indi_num);
+
+    int real_index = TCOJO::final_commonSNP_index[index];
+    X_temp_vec_pos_ref = TCOJO::SNP_pos_ref[real_index];
+
+    #pragma omp parallel for
+    for (int i = 0; i < indi_num; i++) {
+        bool A1 = X_A1[real_index * indi_num + i], A2 = X_A2[real_index * indi_num + i];
+        if (!A1 || A2) 
+            X_temp_vec(i) = (double(A1) + double(A2) - X_avg[real_index]) / X_std[real_index];
+    }
+}
+
+
 void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
 {   
     vec.setZero(indi_num);
@@ -313,8 +329,10 @@ void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
 
 void Cohort::calc_Vp(ArrayXXd &s) 
 {   
-    // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
+    vector<string>().swap(SNP_cojo);
+    vector<string>().swap(SNP_PLINK);
 
+    // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     s.col(5) = s.col(3) * (1-s.col(3)) * 2;
     ArrayXd Vp_gcta_list = s.col(5) * s.col(4) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
     Vp = median(Vp_gcta_list);
@@ -374,8 +392,7 @@ void TCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoF
     SNP_pos_ref.resize(temp_index);
     commonSNP_total_num = temp_index;
 
-    LOGGER << endl;
-    LOGGER.i(0, "common SNPs included for two cohorts", to_string(temp_index));
+    LOGGER.i(0, "common SNPs included", to_string(temp_index));
 
     // set bim file 1 as reference
     c1.read_PLINK(PLINK1, true);

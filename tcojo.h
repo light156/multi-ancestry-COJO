@@ -37,13 +37,15 @@ public:
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
     
-    void get_vector_from_bed_matrix(int index, VectorXd &vec);
-    void calc_inner_product(const vector<int> &index_list, int single_index, int window_size);
+    void get_vector_from_bed_matrix(int index);
+    void get_vector_from_bed_matrix(int index, VectorXd &X_vec);
+
     void calc_conditional_effects();
     bool calc_joint_effects(const ArrayXXd &sumstat_temp, bool flag, double iter_colinear_threshold=0);    
     void calc_Vp(ArrayXXd &sumstat_temp);
     void calc_R_inv(bool if_fast_inv);
-    void save_temp_model(bool if_fast_inv);
+
+    void save_temp_model();
     
     vector<string> SNP_cojo, SNP_PLINK;
 
@@ -54,16 +56,18 @@ public:
     vector<bool> X_A1, X_A2;
     vector<double> X_avg, X_std;
     
+    // necessary information during calculation
+    MatrixXd X_candidate;
     MatrixXd r, R_inv_pre, R_inv_post, R_pre, R_post;
-    VectorXd r_temp_vec;
     ArrayXd conditional_beta, beta, beta_var;
+    VectorXd X_temp_vec, r_temp_vec;
+    int X_temp_vec_pos_ref;
 
     // final output
     ArrayXd output_b, output_se2;
     
     double Vp, R2, previous_R2;
     int indi_num;
-
 };
 
 
@@ -84,10 +88,14 @@ public:
 
     void initialize_matrices(Cohort &c);
     void initialize_MDISA(Cohort &c);
+    void initialize_backward_selection(Cohort &c, const ArrayXd &pJ);
+    void calc_inner_product(Cohort &c, const vector<int> &index_list);
+    void calc_inner_product(Cohort &c, const MatrixXd &X, const vector<int> &index_list);
+
     void inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
         const ArrayXd &se2_cohort1, const ArrayXd &se2_cohort2, ArrayXXd &merge);
+    
     void remove_new_colinear_SNP(bool cohort1_only=false, bool cohort2_only=false);
-    void initialize_backward_selection(Cohort &c, const ArrayXd &pJ);
     void adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool cohort1_only=false, bool cohort2_only=false);
 
     void main_loop(string savename);
