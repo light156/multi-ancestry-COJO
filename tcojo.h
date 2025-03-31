@@ -37,9 +37,7 @@ public:
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
     
-    void get_vector_from_bed_matrix(int index);
-    void get_vector_from_bed_matrix(int index, VectorXd &X_vec);
-
+    void get_vector_from_bed_matrix(int index, VectorXd &vec);
     void calc_conditional_effects();
     bool calc_joint_effects(const ArrayXXd &sumstat_temp, bool flag, double iter_colinear_threshold=0);    
     void calc_Vp(ArrayXXd &sumstat_temp);
@@ -51,17 +49,17 @@ public:
 
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward_new_model;
+    
 
     // X matrix
     vector<bool> X_A1, X_A2;
     vector<double> X_avg, X_std;
+    vector<VectorXd> X_candidate, X_backward_new_model;
     
     // necessary information during calculation
-    MatrixXd X_candidate;
     MatrixXd r, R_inv_pre, R_inv_post, R_pre, R_post;
     ArrayXd conditional_beta, beta, beta_var;
     VectorXd X_temp_vec, r_temp_vec;
-    int X_temp_vec_pos_ref;
 
     // final output
     ArrayXd output_b, output_se2;
@@ -89,12 +87,13 @@ public:
     void initialize_matrices(Cohort &c);
     void initialize_MDISA(Cohort &c);
     void initialize_backward_selection(Cohort &c, const ArrayXd &pJ);
-    void calc_inner_product(Cohort &c, const vector<int> &index_list);
-    void calc_inner_product(Cohort &c, const MatrixXd &X, const vector<int> &index_list);
 
     void inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
         const ArrayXd &se2_cohort1, const ArrayXd &se2_cohort2, ArrayXXd &merge);
     
+    void calc_inner_product_with_candidate(Cohort &c, int single_index);
+    void calc_inner_product_with_screened(Cohort &c, int single_index);
+
     void remove_new_colinear_SNP(bool cohort1_only=false, bool cohort2_only=false);
     void adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool cohort1_only=false, bool cohort2_only=false);
 
@@ -111,6 +110,7 @@ public:
 
     int max_SNP_index;
     int fixed_candidate_SNP_num=0;
+
     vector<int> candidate_SNP, screened_SNP, excluded_SNP, backward_removed_SNP;
 
     // merge: 0:b, 1:se2, 2:Zabs, 3:p

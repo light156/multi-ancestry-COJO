@@ -51,12 +51,10 @@ void TCOJO::main_loop(string savename)
             // calculate joint effects Cohort 1
             append_row(c1.sumstat_candidate, c1.sumstat_screened.row(max_SNP_index));
 
-            c1.get_vector_from_bed_matrix(screened_SNP[max_SNP_index]);
-            calc_inner_product(c1, c1.X_candidate, candidate_SNP);
-
+            calc_inner_product_with_candidate(c1, screened_SNP[max_SNP_index]);
             c1.calc_R_inv(if_fast_inv);
-            NA_flag = c1.calc_joint_effects(c1.sumstat_candidate, true, iter_colinear_threshold);
 
+            NA_flag = c1.calc_joint_effects(c1.sumstat_candidate, true, iter_colinear_threshold);
             if (NA_flag) {
                 // LOGGER.w(1, "NA produced, potentially due to colinearity", max_SNP_name);
                 remove_row(c1.sumstat_candidate);
@@ -66,13 +64,11 @@ void TCOJO::main_loop(string savename)
 
             // calculate joint effects Cohort 2
             append_row(c2.sumstat_candidate, c2.sumstat_screened.row(max_SNP_index));
-            
-            c2.get_vector_from_bed_matrix(screened_SNP[max_SNP_index]);
-            calc_inner_product(c2, c2.X_candidate, candidate_SNP);
 
+            calc_inner_product_with_candidate(c2, screened_SNP[max_SNP_index]);
             c2.calc_R_inv(if_fast_inv);
-            NA_flag = c2.calc_joint_effects(c2.sumstat_candidate, true, iter_colinear_threshold);
 
+            NA_flag = c2.calc_joint_effects(c2.sumstat_candidate, true, iter_colinear_threshold);
             if (NA_flag) {
                 // LOGGER.w(1, "NA produced, potentially due to colinearity", max_SNP_name);
                 remove_row(c1.sumstat_candidate);
@@ -95,13 +91,13 @@ void TCOJO::main_loop(string savename)
             // include new candidate SNP
             candidate_SNP.push_back(screened_SNP[max_SNP_index]);
 
-            calc_inner_product(c1, screened_SNP);
+            c1.X_candidate.push_back(c1.X_temp_vec);
+            calc_inner_product_with_screened(c1, screened_SNP[max_SNP_index]);
             append_column(c1.r, c1.r_temp_vec);
-            append_column(c1.X_candidate, c1.X_temp_vec);
             
-            calc_inner_product(c2, screened_SNP);
+            c2.X_candidate.push_back(c2.X_temp_vec);
+            calc_inner_product_with_screened(c2, screened_SNP[max_SNP_index]);
             append_column(c2.r, c2.r_temp_vec);
-            append_column(c2.X_candidate, c2.X_temp_vec);
             
             if (sumstat_new_model_joint.col(3).maxCoeff() <= threshold) {
                 LOGGER.i(0, "All checks passed", max_SNP_name);
@@ -137,13 +133,13 @@ void TCOJO::main_loop(string savename)
                 LOGGER.w(1, "Backward selection, adjusted R2 lower than threshold", max_SNP_name);
                 candidate_SNP.pop_back();
 
-                remove_column(c1.r);
-                remove_column(c1.X_candidate);
                 remove_row(c1.sumstat_candidate);
+                c1.X_candidate.pop_back();
+                remove_column(c1.r);
 
-                remove_column(c2.r);
-                remove_column(c2.X_candidate);
                 remove_row(c2.sumstat_candidate);
+                c2.X_candidate.pop_back();
+                remove_column(c2.r);
                 
                 sumstat_merge(max_SNP_index, 2) = -1;
                 continue;
@@ -241,7 +237,6 @@ void TCOJO::MDISA(Cohort &c)
 
         // calculate conditional effects
         c.calc_conditional_effects();
-
         Zabs_temp = abs(c.conditional_beta / sqrt(c.sumstat_screened.col(1)));
         p_temp = erfc(Zabs_temp / sqrt(2));
     
@@ -260,12 +255,10 @@ void TCOJO::MDISA(Cohort &c)
             // calculate joint effects
             append_row(c.sumstat_candidate, c.sumstat_screened.row(max_SNP_index));
 
-            c.get_vector_from_bed_matrix(screened_SNP[max_SNP_index]);
-            calc_inner_product(c, c.X_candidate, candidate_SNP);
-
+            calc_inner_product_with_candidate(c, screened_SNP[max_SNP_index]);
             c.calc_R_inv(if_fast_inv);
-            NA_flag = c.calc_joint_effects(c.sumstat_candidate, true, iter_colinear_threshold);
 
+            NA_flag = c.calc_joint_effects(c.sumstat_candidate, true, iter_colinear_threshold);
             if (NA_flag) {
                 // LOGGER.w(1, "NA produced, potentially due to colinearity", max_SNP_name);
                 remove_row(c.sumstat_candidate);
@@ -286,9 +279,9 @@ void TCOJO::MDISA(Cohort &c)
             // include new candidate SNP
             candidate_SNP.push_back(screened_SNP[max_SNP_index]);
 
-            calc_inner_product(c, screened_SNP);
+            c.X_candidate.push_back(c.X_temp_vec);
+            calc_inner_product_with_screened(c, screened_SNP[max_SNP_index]);
             append_column(c.r, c.r_temp_vec);
-            append_column(c.X_candidate, c.X_temp_vec);
             
             if (pJ.bottomRows(candidate_SNP.size()-fixed_candidate_SNP_num).maxCoeff() <= threshold) {
                 LOGGER.i(0, "All checks passed", max_SNP_name);
@@ -316,9 +309,9 @@ void TCOJO::MDISA(Cohort &c)
                 LOGGER.w(1, "Backward selection, adjusted R2 lower than threshold", max_SNP_name);
                 candidate_SNP.pop_back();
 
-                remove_column(c.r);
-                remove_column(c.X_candidate);
                 remove_row(c.sumstat_candidate);
+                c.X_candidate.pop_back();
+                remove_column(c.r);
 
                 Zabs_temp(max_SNP_index) = -1;
                 continue;

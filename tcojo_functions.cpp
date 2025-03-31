@@ -1,29 +1,35 @@
 #include "tcojo.h"
 
 
-void TCOJO::calc_inner_product(Cohort &c, const vector<int> &index_list)
+void TCOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
 {   
-    c.r_temp_vec.setZero(index_list.size());
+    c.get_vector_from_bed_matrix(single_index, c.X_temp_vec);
+    int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
 
-    #pragma omp parallel for 
-    for (int j = 0; j < index_list.size(); j++) {
-        if (abs(SNP_pos_ref[final_commonSNP_index[index_list[j]]] - c.X_temp_vec_pos_ref) <= window_size) {
-            VectorXd vec_in_list(c.indi_num);
-            c.get_vector_from_bed_matrix(index_list[j], vec_in_list);
-            c.r_temp_vec(j) = (c.X_temp_vec.transpose() * vec_in_list).value() / (c.indi_num-1);
-        }
+    c.r_temp_vec.setZero(candidate_SNP.size());
+    
+    #pragma omp parallel for
+    for (int j = 0; j < candidate_SNP.size(); j++) {
+        if (abs(SNP_pos_ref[final_commonSNP_index[candidate_SNP[j]]] - X_temp_vec_pos_ref) <= window_size) {
+            c.r_temp_vec(j) = (c.X_temp_vec.transpose() * c.X_candidate[j]).value() / (c.indi_num-1);
+        }       
     }
 }
 
 
-void TCOJO::calc_inner_product(Cohort &c, const MatrixXd &X, const vector<int> &index_list)
-{
-    c.r_temp_vec.setZero(index_list.size());
+// must be called after get_vector_from_bed_matrix()
+void TCOJO::calc_inner_product_with_screened(Cohort &c, int single_index)
+{   
+    int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
+    c.r_temp_vec.setZero(screened_SNP.size());
 
     #pragma omp parallel for 
-    for (int j = 0; j < index_list.size(); j++) {
-        if (abs(SNP_pos_ref[final_commonSNP_index[index_list[j]]] - c.X_temp_vec_pos_ref) <= window_size)
-            c.r_temp_vec(j) = (c.X_temp_vec.transpose() * X.col(j)).value() / (c.indi_num-1);
+    for (int j = 0; j < screened_SNP.size(); j++) {
+        if (abs(SNP_pos_ref[final_commonSNP_index[screened_SNP[j]]] - X_temp_vec_pos_ref) <= window_size) {
+            VectorXd vec_in_list(c.indi_num);
+            c.get_vector_from_bed_matrix(screened_SNP[j], vec_in_list);
+            c.r_temp_vec(j) = (c.X_temp_vec.transpose() * vec_in_list).value() / (c.indi_num-1);
+        }       
     }
 }
 
@@ -84,7 +90,7 @@ void Cohort::calc_R_inv(bool if_fast_inv) {
         R_post.block(dim, 0, 1, dim) = r_temp_vec.transpose();
         R_post(dim, dim) = 1;
 
-        R_inv_post.noalias() = R_post.inverse();
+        R_inv_post.noalias() = R_post.ldlt().solve(MatrixXd::Identity(dim+1, dim+1));
     }
 }
 
@@ -92,8 +98,8 @@ void Cohort::calc_R_inv(bool if_fast_inv) {
 void Cohort::save_temp_model() 
 {   
     // just saved both anyway to avoid complexity
-    R_inv_pre = R_inv_post; // only used for if_fast_inv == true
-    R_pre = R_post; // only used for if_fast_inv == false
+    R_inv_pre = R_inv_post;     // only used for if_fast_inv == true
+    R_pre = R_post;             // only used for if_fast_inv == false
 
     previous_R2 = R2;
     output_b = beta;
@@ -117,11 +123,11 @@ void TCOJO::inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2,
 void TCOJO::initialize_matrices(Cohort &c) 
 {   
     c.sumstat_candidate = c.sumstat_screened.row(max_SNP_index);
+    
+    c.get_vector_from_bed_matrix(max_SNP_index, c.X_temp_vec);
+    c.X_candidate.push_back(c.X_temp_vec);
 
-    c.get_vector_from_bed_matrix(max_SNP_index);
-    c.X_candidate = c.X_temp_vec;
-
-    calc_inner_product(c, screened_SNP);
+    calc_inner_product_with_screened(c, max_SNP_index);
     c.r = c.r_temp_vec;
     
     c.R_inv_pre = MatrixXd::Identity(1,1);
@@ -136,26 +142,22 @@ void TCOJO::initialize_matrices(Cohort &c)
 void TCOJO::initialize_MDISA(Cohort &c) 
 {   
     for (int i = excluded_SNP.size()-1; i >= 0; i--) {
-        c.get_vector_from_bed_matrix(excluded_SNP[i]);
-        calc_inner_product(c, c.X_candidate, candidate_SNP); 
+        calc_inner_product_with_candidate(c, excluded_SNP[i]); 
         
         if (c.r_temp_vec.cwiseAbs().maxCoeff() < colinear_threshold_sqrt) {
             append_row(c.sumstat_screened, c.sumstat.row(excluded_SNP[i]));
             append_row(c.r, c.r_temp_vec.transpose());
-            
             screened_SNP.push_back(excluded_SNP[i]); 
             excluded_SNP.erase(excluded_SNP.begin()+i);
         }
     }
 
     for (int i = backward_removed_SNP.size()-1; i >= 0; i--) {
-        c.get_vector_from_bed_matrix(backward_removed_SNP[i]);
-        calc_inner_product(c, c.X_candidate, candidate_SNP);
+        calc_inner_product_with_candidate(c, backward_removed_SNP[i]);
         
         if (c.r_temp_vec.cwiseAbs().maxCoeff() < colinear_threshold_sqrt) {
             append_row(c.sumstat_screened, c.sumstat.row(backward_removed_SNP[i])); 
             append_row(c.r, c.r_temp_vec.transpose());
-
             screened_SNP.push_back(backward_removed_SNP[i]);
         } else {
             excluded_SNP.push_back(backward_removed_SNP[i]); 
@@ -163,46 +165,44 @@ void TCOJO::initialize_MDISA(Cohort &c)
     }
 
     vector<int>().swap(backward_removed_SNP);
-    c.R_inv_post = c.R_inv_pre;
-    c.R_post = c.R_pre;
 }
 
 
 void TCOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
 {   
     c.sumstat_backward_new_model = c.sumstat_candidate;
+    c.X_backward_new_model = c.X_candidate;
 
     for (int i = candidate_SNP.size()-1; i >= fixed_candidate_SNP_num; i--) {
-        if (pJ(i) > threshold) 
+        if (pJ(i) > threshold) {
             remove_row(c.sumstat_backward_new_model, i);
+            c.X_backward_new_model.erase(c.X_backward_new_model.begin()+i);
+        }
     }
 
-    MatrixXd X_backward = c.X_candidate;
+    int total_num = c.X_backward_new_model.size();
+    c.R_post = MatrixXd::Identity(total_num, total_num);
 
     vector<int> SNP_pos_backward;
-    int total_num = 0;
-    
     for (int i = 0; i < candidate_SNP.size(); i++) {
-        if (i < fixed_candidate_SNP_num || pJ(i) <= threshold) {
+        if (i < fixed_candidate_SNP_num || pJ(i) <= threshold)
             SNP_pos_backward.push_back(SNP_pos_ref[final_commonSNP_index[candidate_SNP[i]]]);
-            total_num++;
-        } else
-            remove_column(X_backward, total_num);
     }
-
-    c.R_post = MatrixXd::Identity(total_num, total_num);
 
     #pragma omp parallel for 
     for (int i = 1; i < total_num; i++)
         for (int j = 0; j < i; j++)
             if (abs(SNP_pos_backward[i] - SNP_pos_backward[j]) <= window_size) {
-                c.R_post(i, j) = (X_backward.col(i).transpose() * X_backward.col(j)).value() / (c.indi_num-1);
+                c.R_post(i, j) = (c.X_backward_new_model[i].transpose() * c.X_backward_new_model[j]).value() / (c.indi_num-1);
                 c.R_post(j, i) = c.R_post(i, j);
             } 
-
+    
     vector<int>().swap(SNP_pos_backward);
-        
-    c.R_inv_post.noalias() = c.R_post.inverse();
+    
+    if (if_fast_inv)
+        c.R_inv_post.noalias() = c.R_post.inverse();
+    else
+        c.R_inv_post.noalias() = c.R_post.ldlt().solve(MatrixXd::Identity(total_num, total_num));
 }
 
 
@@ -234,28 +234,26 @@ void TCOJO::adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool c
     if (!cohort2_only) {
         remove_row(c1.sumstat_screened, max_SNP_index);
         remove_row(c1.r, max_SNP_index);
+        c1.sumstat_backward_new_model.swap(c1.sumstat_candidate);
+        c1.X_backward_new_model.swap(c1.X_candidate);
     }
 
     if (!cohort1_only) {
         remove_row(c2.sumstat_screened, max_SNP_index);
         remove_row(c2.r, max_SNP_index);
+        c2.sumstat_backward_new_model.swap(c2.sumstat_candidate);
+        c2.X_backward_new_model.swap(c2.X_candidate);
     }
 
     screened_SNP.erase(screened_SNP.begin()+max_SNP_index);
 
     for (int i = candidate_SNP.size()-1; i >= fixed_candidate_SNP_num; i--) {
         if (pJ(i) > threshold) {
-            if (!cohort2_only) {
-                remove_row(c1.sumstat_candidate, i);
+            if (!cohort2_only) 
                 remove_column(c1.r, i);
-                remove_column(c1.X_candidate, i);
-            }
-
-            if (!cohort1_only) {
-                remove_row(c2.sumstat_candidate, i);
+            
+            if (!cohort1_only)
                 remove_column(c2.r, i);
-                remove_column(c2.X_candidate, i);
-            }
 
             LOGGER.w(1, "Previous candidate SNP removed", final_commonSNP[candidate_SNP[i]]);
             backward_removed_SNP.push_back(candidate_SNP[i]);
@@ -264,15 +262,11 @@ void TCOJO::adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool c
     }
     
     for (int i = excluded_SNP.size()-1; i >= 0; i--) {
-        if (!cohort2_only) {
-            c1.get_vector_from_bed_matrix(excluded_SNP[i]);
-            calc_inner_product(c1, c1.X_candidate, candidate_SNP);
-        }
+        if (!cohort2_only)
+            calc_inner_product_with_candidate(c1, excluded_SNP[i]);
     
-        if (!cohort1_only) {
-            c2.get_vector_from_bed_matrix(excluded_SNP[i]);
-            calc_inner_product(c2, c2.X_candidate, candidate_SNP); 
-        }
+        if (!cohort1_only)
+            calc_inner_product_with_candidate(c2, excluded_SNP[i]);
         
         if ((cohort2_only || c1.r_temp_vec.cwiseAbs().maxCoeff() < colinear_threshold_sqrt) && 
             (cohort1_only || c2.r_temp_vec.cwiseAbs().maxCoeff() < colinear_threshold_sqrt)) {
