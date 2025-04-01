@@ -3,16 +3,8 @@
 
 int main(int argc, char** argv) 
 {
-    /*
-    #pragma omp parallel for
-    for (int i = 0; i < 100; i++) 
-    {
-        cout << "Thread " << omp_get_thread_num() << endl;
-    }
-    exit(0);
-    */
-
-    double tStart = clock();
+    // double tStart = clock();
+    double tStart = omp_get_wtime();
 
     TCOJO tcojo;
     LOGGER << setprecision(12);
@@ -41,7 +33,8 @@ int main(int argc, char** argv)
     else 
         tcojo.show_tips_and_exit();
         
-    LOGGER << "Total running time: " << fixed << setprecision(2) << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    // LOGGER << "Total running time: " << fixed << setprecision(2) << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
+    LOGGER << "Total running time: " << fixed << setprecision(2) << omp_get_wtime() - tStart << " seconds" << endl;
     LOGGER.close();
 
     return 0;

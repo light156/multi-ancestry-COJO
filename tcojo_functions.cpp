@@ -23,11 +23,10 @@ void TCOJO::calc_inner_product_with_screened(Cohort &c, int single_index)
     int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
     c.r_temp_vec.setZero(screened_SNP.size());
 
-    VectorXd vec_in_list;
-
     #pragma omp parallel for 
     for (int j = 0; j < screened_SNP.size(); j++) {
         if (abs(SNP_pos_ref[final_commonSNP_index[screened_SNP[j]]] - X_temp_vec_pos_ref) <= window_size) {
+            VectorXd vec_in_list;
             c.get_vector_from_bed_matrix(final_commonSNP_index[screened_SNP[j]], vec_in_list);
             c.r_temp_vec(j) = (c.X_temp_vec.transpose() * vec_in_list).value() / (c.indi_num-1);
         }       
@@ -191,7 +190,6 @@ void TCOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
             SNP_pos_backward.push_back(SNP_pos_ref[final_commonSNP_index[candidate_SNP[i]]]);
     }
 
-    #pragma omp parallel for 
     for (int i = 1; i < total_num; i++)
         for (int j = 0; j < i; j++)
             if (abs(SNP_pos_backward[i] - SNP_pos_backward[j]) <= window_size) {
