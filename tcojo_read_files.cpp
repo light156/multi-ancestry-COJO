@@ -3,9 +3,6 @@
 
 long TCOJO::commonSNP_total_num;
 map<string, int> TCOJO::commonSNP_index_map;
-vector<string> TCOJO::final_commonSNP;
-vector<int> TCOJO::final_commonSNP_index;
-
 vector<string> TCOJO::A1_ref, TCOJO::A2_ref;
 vector<int> TCOJO::SNP_pos_ref;
 
@@ -300,13 +297,13 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
 void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
 {   
     vec.setZero(indi_num);
-    long real_index = TCOJO::final_commonSNP_index[index];
+    long X_start_index = long(index) * indi_num;
 
     #pragma omp parallel for
     for (int i = 0; i < indi_num; i++) {
-        bool A1 = X_A1[real_index * indi_num + i], A2 = X_A2[real_index * indi_num + i];
+        bool A1 = X_A1[X_start_index + i], A2 = X_A2[X_start_index + i];
         if (!A1 || A2) 
-            vec(i) = (double(A1) + double(A2) - X_avg[real_index]) / X_std[real_index];
+            vec(i) = (double(A1) + double(A2) - X_avg[index]) / X_std[index];
     }
 }
 

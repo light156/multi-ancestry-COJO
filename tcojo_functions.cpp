@@ -3,7 +3,7 @@
 
 void TCOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
 {   
-    c.get_vector_from_bed_matrix(single_index, c.X_temp_vec);
+    c.get_vector_from_bed_matrix(final_commonSNP_index[single_index], c.X_temp_vec);
     int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
 
     c.r_temp_vec.setZero(candidate_SNP.size());
@@ -21,15 +21,14 @@ void TCOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
 void TCOJO::calc_inner_product_with_screened(Cohort &c, int single_index)
 {   
     int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
-
     c.r_temp_vec.setZero(screened_SNP.size());
 
-    // #pragma omp parallel for 
+    VectorXd vec_in_list;
+
+    #pragma omp parallel for 
     for (int j = 0; j < screened_SNP.size(); j++) {
-        // LOGGER << j << " " << screened_SNP.size() << " " << final_commonSNP_index.size() << " " << SNP_pos_ref.size() << endl;
         if (abs(SNP_pos_ref[final_commonSNP_index[screened_SNP[j]]] - X_temp_vec_pos_ref) <= window_size) {
-            VectorXd vec_in_list;
-            c.get_vector_from_bed_matrix(screened_SNP[j], vec_in_list);
+            c.get_vector_from_bed_matrix(final_commonSNP_index[screened_SNP[j]], vec_in_list);
             c.r_temp_vec(j) = (c.X_temp_vec.transpose() * vec_in_list).value() / (c.indi_num-1);
         }       
     }
@@ -99,9 +98,10 @@ void Cohort::calc_R_inv(bool if_fast_inv) {
 
 void Cohort::save_temp_model() 
 {   
-    // just saved both anyway to avoid complexity
-    R_inv_pre = R_inv_post;     // only used for if_fast_inv == true
-    R_pre = R_post;             // only used for if_fast_inv == false
+    R_inv_pre = R_inv_post;
+
+    // only used for if_fast_inv == false, saved anyway to avoid complexity
+    R_pre = R_post;
 
     previous_R2 = R2;
     output_b = beta;
@@ -126,7 +126,7 @@ void TCOJO::initialize_matrices(Cohort &c)
 {   
     c.sumstat_candidate = c.sumstat_screened.row(max_SNP_index);
     
-    c.get_vector_from_bed_matrix(max_SNP_index, c.X_temp_vec);
+    c.get_vector_from_bed_matrix(final_commonSNP_index[max_SNP_index], c.X_temp_vec);
     c.X_candidate.push_back(c.X_temp_vec);
 
     calc_inner_product_with_screened(c, max_SNP_index);

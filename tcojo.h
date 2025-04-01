@@ -73,9 +73,6 @@ class TCOJO
 public:
     static long commonSNP_total_num;
     static map<string, int> commonSNP_index_map;
-    static vector<int> final_commonSNP_index;
-    static vector<string> final_commonSNP;
-
     static vector<string> A1_ref, A2_ref;
     static vector<int> SNP_pos_ref;
 
@@ -107,11 +104,14 @@ public:
 public:
     Cohort c1, c2;
 
+    vector<int> final_commonSNP_index;
+    vector<string> final_commonSNP;
+
     int max_SNP_index;
     int MDISA_fixed_candidate_SNP_num=0;
 
     vector<int> candidate_SNP, screened_SNP, excluded_SNP, backward_removed_SNP;
-
+    
     // merge: 0:b, 1:se2, 2:Zabs, 3:p
     ArrayXXd sumstat_merge, sumstat_new_model_joint;
 
