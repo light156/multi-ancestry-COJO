@@ -76,8 +76,6 @@ void TCOJO::main_loop(string savename)
                 continue;
             }
 
-            inverse_var_meta(c1.beta, c2.beta, c1.beta_var, c2.beta_var, sumstat_new_model_joint);
-
             if ((c1.R2 < (1+R2_incremental_threshold) * c1.previous_R2) || 
                 (c2.R2 < (1+R2_incremental_threshold) * c2.previous_R2)) {
                 // LOGGER.w(1, "R2 increment unsatisfactory", max_SNP_name);
@@ -87,7 +85,7 @@ void TCOJO::main_loop(string savename)
                 continue;
             }
 
-            // include new candidate SNP
+            // temporarily include new candidate SNP
             candidate_SNP.push_back(screened_SNP[max_SNP_index]);
 
             c1.X_candidate.push_back(c1.X_temp_vec);
@@ -98,6 +96,9 @@ void TCOJO::main_loop(string savename)
             calc_inner_product_with_screened(c2, screened_SNP[max_SNP_index]);
             append_column(c2.r, c2.r_temp_vec);
             
+            // check joint model threshold
+            inverse_var_meta(c1.beta, c2.beta, c1.beta_var, c2.beta_var, sumstat_new_model_joint);
+
             if (sumstat_new_model_joint.col(3).maxCoeff() <= threshold) {
                 LOGGER.i(0, "All checks passed", max_SNP_name);
 
@@ -271,16 +272,17 @@ void TCOJO::MDISA(Cohort &c)
                 continue;
             }
 
-            ZabsJ = abs(c.beta / sqrt(c.beta_var));
-            pJ = erfc(ZabsJ / sqrt(2));
-
-            // include new candidate SNP
+            // temporarily include new candidate SNP
             candidate_SNP.push_back(screened_SNP[max_SNP_index]);
 
             c.X_candidate.push_back(c.X_temp_vec);
             calc_inner_product_with_screened(c, screened_SNP[max_SNP_index]);
             append_column(c.r, c.r_temp_vec);
             
+            // check joint model threshold
+            ZabsJ = abs(c.beta / sqrt(c.beta_var));
+            pJ = erfc(ZabsJ / sqrt(2));
+
             if (pJ.bottomRows(candidate_SNP.size()-MDISA_fixed_candidate_SNP_num).maxCoeff() <= threshold) {
                 LOGGER.i(0, "All checks passed", max_SNP_name);
 
