@@ -21,12 +21,14 @@ void TCOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
 void TCOJO::calc_inner_product_with_screened(Cohort &c, int single_index)
 {   
     int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
+
     c.r_temp_vec.setZero(screened_SNP.size());
 
-    #pragma omp parallel for 
+    // #pragma omp parallel for 
     for (int j = 0; j < screened_SNP.size(); j++) {
+        // LOGGER << j << " " << screened_SNP.size() << " " << final_commonSNP_index.size() << " " << SNP_pos_ref.size() << endl;
         if (abs(SNP_pos_ref[final_commonSNP_index[screened_SNP[j]]] - X_temp_vec_pos_ref) <= window_size) {
-            VectorXd vec_in_list(c.indi_num);
+            VectorXd vec_in_list;
             c.get_vector_from_bed_matrix(screened_SNP[j], vec_in_list);
             c.r_temp_vec(j) = (c.X_temp_vec.transpose() * vec_in_list).value() / (c.indi_num-1);
         }       
@@ -173,7 +175,7 @@ void TCOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
     c.sumstat_backward_new_model = c.sumstat_candidate;
     c.X_backward_new_model = c.X_candidate;
 
-    for (int i = candidate_SNP.size()-1; i >= fixed_candidate_SNP_num; i--) {
+    for (int i = candidate_SNP.size()-1; i >= MDISA_fixed_candidate_SNP_num; i--) {
         if (pJ(i) > threshold) {
             remove_row(c.sumstat_backward_new_model, i);
             c.X_backward_new_model.erase(c.X_backward_new_model.begin()+i);
@@ -185,7 +187,7 @@ void TCOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
 
     vector<int> SNP_pos_backward;
     for (int i = 0; i < candidate_SNP.size(); i++) {
-        if (i < fixed_candidate_SNP_num || pJ(i) <= threshold)
+        if (i < MDISA_fixed_candidate_SNP_num || pJ(i) <= threshold)
             SNP_pos_backward.push_back(SNP_pos_ref[final_commonSNP_index[candidate_SNP[i]]]);
     }
 
@@ -247,7 +249,7 @@ void TCOJO::adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool c
 
     screened_SNP.erase(screened_SNP.begin()+max_SNP_index);
 
-    for (int i = candidate_SNP.size()-1; i >= fixed_candidate_SNP_num; i--) {
+    for (int i = candidate_SNP.size()-1; i >= MDISA_fixed_candidate_SNP_num; i--) {
         if (pJ(i) > threshold) {
             if (!cohort2_only) 
                 remove_column(c1.r, i);

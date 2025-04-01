@@ -300,7 +300,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
 void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
 {   
     vec.setZero(indi_num);
-    int real_index = TCOJO::final_commonSNP_index[index];
+    long real_index = TCOJO::final_commonSNP_index[index];
 
     #pragma omp parallel for
     for (int i = 0; i < indi_num; i++) {

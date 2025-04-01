@@ -23,7 +23,6 @@ void TCOJO::main_loop(string savename)
 
     bool NA_flag = false, loop_break_indicator = false;
     int iter_num = 0;
-    string max_SNP_name;
 
     while (!loop_break_indicator && iter_num<max_iter_num) {
         
@@ -46,7 +45,7 @@ void TCOJO::main_loop(string savename)
                 break;
             }
             
-            max_SNP_name = final_commonSNP[screened_SNP[max_SNP_index]];
+            string max_SNP_name = final_commonSNP[screened_SNP[max_SNP_index]];
 
             // calculate joint effects Cohort 1
             append_row(c1.sumstat_candidate, c1.sumstat_screened.row(max_SNP_index));
@@ -165,7 +164,7 @@ void TCOJO::main_loop(string savename)
     save_results_main_loop(savename + ".jma.cojo");
 
     // backup SNPs for Cohort 1
-    fixed_candidate_SNP_num = candidate_SNP.size();
+    MDISA_fixed_candidate_SNP_num = candidate_SNP.size();
     
     vector<int> candidate_SNP_backup = candidate_SNP;
     vector<int> screened_SNP_backup = screened_SNP;
@@ -228,7 +227,6 @@ void TCOJO::MDISA(Cohort &c)
 
     bool NA_flag = false, loop_break_indicator = false;
     int iter_num = 0;
-    string max_SNP_name;
 
     while (!loop_break_indicator && iter_num<max_iter_num) {
         
@@ -250,7 +248,7 @@ void TCOJO::MDISA(Cohort &c)
                 break;
             }
             
-            max_SNP_name = final_commonSNP[screened_SNP[max_SNP_index]];
+            string max_SNP_name = final_commonSNP[screened_SNP[max_SNP_index]];
 
             // calculate joint effects
             append_row(c.sumstat_candidate, c.sumstat_screened.row(max_SNP_index));
@@ -283,7 +281,7 @@ void TCOJO::MDISA(Cohort &c)
             calc_inner_product_with_screened(c, screened_SNP[max_SNP_index]);
             append_column(c.r, c.r_temp_vec);
             
-            if (pJ.bottomRows(candidate_SNP.size()-fixed_candidate_SNP_num).maxCoeff() <= threshold) {
+            if (pJ.bottomRows(candidate_SNP.size()-MDISA_fixed_candidate_SNP_num).maxCoeff() <= threshold) {
                 LOGGER.i(0, "All checks passed", max_SNP_name);
 
                 int M = candidate_SNP.size();

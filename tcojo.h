@@ -50,7 +50,6 @@ public:
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward_new_model;
     
-
     // X matrix
     vector<bool> X_A1, X_A2;
     vector<double> X_avg, X_std;
@@ -65,7 +64,7 @@ public:
     ArrayXd output_b, output_se2;
     
     double Vp, R2, previous_R2;
-    int indi_num;
+    long indi_num;
 };
 
 
@@ -109,7 +108,7 @@ public:
     Cohort c1, c2;
 
     int max_SNP_index;
-    int fixed_candidate_SNP_num=0;
+    int MDISA_fixed_candidate_SNP_num=0;
 
     vector<int> candidate_SNP, screened_SNP, excluded_SNP, backward_removed_SNP;
 
