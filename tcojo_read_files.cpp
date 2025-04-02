@@ -360,7 +360,7 @@ void TCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoF
         if (*first1 < *first2)  ++first1;
         else if (*first2 < *first1) ++first2;
         else {
-            commonSNP_index_map.insert(commonSNP_index_map.end(), pair<string, int> (*first1, temp_index));
+            commonSNP_index_map.insert(commonSNP_index_map.end(), make_pair(*first1, temp_index));
             ++first1; ++first2; ++temp_index;
         }
     }
@@ -444,7 +444,7 @@ void TCOJO::read_files_one_cohort(string cojoFile, string PLINK)
         if (*first1 < *first2)  ++first1;
         else if (*first2 < *first1) ++first2;
         else {
-            commonSNP_index_map.insert(commonSNP_index_map.end(), pair<string, int> (*first1, temp_index));
+            commonSNP_index_map.insert(commonSNP_index_map.end(), make_pair(*first1, temp_index));
             ++first1; ++first2; ++temp_index;
         }
     }
