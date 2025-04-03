@@ -3,7 +3,6 @@
 
 #include "Logger.h"
 #include <omp.h>
-#include <set>
 #include <map>
 #include <vector>
 #include <fstream>
