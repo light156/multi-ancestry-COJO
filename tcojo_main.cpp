@@ -20,10 +20,6 @@ void TCOJO::main_loop(string savename)
     initialize_matrices(c1);
     initialize_matrices(c2);
     remove_new_colinear_SNP();
-    c1.output_b = c1.sumstat_screened.col(0);
-    c1.output_se2 = c1.sumstat_screened.col(1);
-    c2.output_b = c2.sumstat_screened.col(0);
-    c2.output_se2 = c2.sumstat_screened.col(1);
 
     bool NA_flag = false, loop_break_indicator = false;
     int iter_num = 0;
@@ -228,8 +224,6 @@ void TCOJO::MDISA(Cohort &c)
         
         initialize_matrices(c);
         remove_new_colinear_SNP(cohort1_only, !cohort1_only);
-        c.output_b = c.sumstat_screened.col(0);
-        c.output_se2 = c.sumstat_screened.col(1);
     } 
 
     bool NA_flag = false, loop_break_indicator = false;
