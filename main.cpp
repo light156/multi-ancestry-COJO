@@ -1,4 +1,4 @@
-#include "tcojo.h"
+#include "macojo.h"
 
 
 int main(int argc, char** argv) 
@@ -6,32 +6,32 @@ int main(int argc, char** argv)
     // double tStart = clock();
     double tStart = omp_get_wtime();
 
-    TCOJO tcojo;
+    MACOJO macojo;
     LOGGER << setprecision(12);
 
     if (argc >= 7 && strcmp(argv[1], "--d") == 0) 
     {   
         LOGGER.open(string(argv[6])+".log");
         
-        tcojo.initialize_hyperparameters(argc-7, argv+7);
-        tcojo.read_files_two_cohorts(argv[2], argv[3], argv[4], argv[5]);
+        macojo.initialize_hyperparameters(argc-7, argv+7);
+        macojo.read_files_two_cohorts(argv[2], argv[3], argv[4], argv[5]);
         
         LOGGER.i(0, "Loop started");
-        tcojo.main_loop(argv[6]);
+        macojo.main_loop(argv[6]);
     } 
     else if (argc >= 5 && strcmp(argv[1], "--s") == 0) 
     {   
         LOGGER.open(string(argv[4])+".log");
 
-        tcojo.initialize_hyperparameters(argc-5, argv+5);        
-        tcojo.read_files_one_cohort(argv[2], argv[3]);
+        macojo.initialize_hyperparameters(argc-5, argv+5);        
+        macojo.read_files_one_cohort(argv[2], argv[3]);
 
         LOGGER.i(0, "Loop started");
-        tcojo.MDISA(tcojo.c1);
-        tcojo.save_results_DISA(tcojo.c1, string(argv[4])+".MDISA.jma.cojo");
+        macojo.MDISA(macojo.c1);
+        macojo.save_results_DISA(macojo.c1, string(argv[4])+".MDISA.jma.cojo");
     }
     else 
-        tcojo.show_tips_and_exit();
+        macojo.show_tips_and_exit();
         
     // LOGGER << "Total running time: " << fixed << setprecision(2) << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
     LOGGER << "Total running time: " << fixed << setprecision(2) << omp_get_wtime() - tStart << " seconds" << endl;

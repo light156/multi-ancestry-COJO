@@ -1,10 +1,10 @@
-#include "tcojo.h"
+#include "macojo.h"
 
 
-long TCOJO::commonSNP_total_num;
-map<string, int> TCOJO::commonSNP_index_map;
-vector<string> TCOJO::A1_ref, TCOJO::A2_ref;
-vector<int> TCOJO::SNP_pos_ref;
+long MACOJO::commonSNP_total_num;
+map<string, int> MACOJO::commonSNP_index_map;
+vector<string> MACOJO::A1_ref, MACOJO::A2_ref;
+vector<int> MACOJO::SNP_pos_ref;
 
 
 void Cohort::skim_cojo(string cojofile) 
@@ -111,20 +111,20 @@ void Cohort::read_sumstat(string cojofile)
     map<string, int>::iterator iter;
     int ref_index;
 
-    sumstat.resize(TCOJO::commonSNP_total_num, 7);
+    sumstat.resize(MACOJO::commonSNP_total_num, 7);
     
     while (Meta) {
         Meta >> SNP_buf;
         if (Meta.eof()) break;
         Meta >> A1_buf >> A2_buf >> freq_buf >> b_buf >> se_buf >> p_buf >> N_buf;
 
-        if ((iter = TCOJO::commonSNP_index_map.find(SNP_buf)) == TCOJO::commonSNP_index_map.end()) 
+        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) 
             continue;
 
         if (b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
             p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || stod(N_buf) < 10) {
                 LOGGER.w(1, "removed, invalid value in sumstat file [" + cojofile + "]", SNP_buf);
-                TCOJO::commonSNP_index_map.erase(iter);
+                MACOJO::commonSNP_index_map.erase(iter);
                 continue;
             }
 
@@ -138,11 +138,11 @@ void Cohort::read_sumstat(string cojofile)
 
         ref_index = iter->second;
 
-        if (TCOJO::A1_ref[ref_index] == A1_buf || TCOJO::A2_ref[ref_index] == A2_buf);
-        else if (TCOJO::A1_ref[ref_index] == A2_buf && TCOJO::A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
+        if (MACOJO::A1_ref[ref_index] == A1_buf || MACOJO::A2_ref[ref_index] == A2_buf);
+        else if (MACOJO::A1_ref[ref_index] == A2_buf && MACOJO::A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
         else {
             LOGGER.w(1, "removed, A1 and A2 different from ref BIM file, please check", SNP_buf);
-            TCOJO::commonSNP_index_map.erase(iter);
+            MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
 
@@ -187,17 +187,17 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     bool SNP1, SNP2, swap;
     double SNP12, SNP_sum, SNP_square_sum, not_NA_indi_num, SNP_avg, SNP_std;
     
-    X_A1.resize(TCOJO::commonSNP_total_num * indi_num);
-    X_A2.resize(TCOJO::commonSNP_total_num * indi_num);
-    X_avg.resize(TCOJO::commonSNP_total_num);
-    X_std.resize(TCOJO::commonSNP_total_num);
+    X_A1.resize(MACOJO::commonSNP_total_num * indi_num);
+    X_A2.resize(MACOJO::commonSNP_total_num * indi_num);
+    X_avg.resize(MACOJO::commonSNP_total_num);
+    X_std.resize(MACOJO::commonSNP_total_num);
 
     while (Bim) {
         Bim >> str_buf;
         if (Bim.eof()) break;
         Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
 
-        if ((iter = TCOJO::commonSNP_index_map.find(SNP_buf)) == TCOJO::commonSNP_index_map.end()) {
+        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) {
             for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
             continue;
         }
@@ -215,25 +215,25 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         
         if (is_ref_cohort) {
             // read bim 1 as ref
-            TCOJO::A1_ref[ref_index] = A1_buf;
-            TCOJO::A2_ref[ref_index] = A2_buf;
-            TCOJO::SNP_pos_ref[ref_index] = ibuf;
+            MACOJO::A1_ref[ref_index] = A1_buf;
+            MACOJO::A2_ref[ref_index] = A2_buf;
+            MACOJO::SNP_pos_ref[ref_index] = ibuf;
         } else {
             // check allele in bim 2
-            if (TCOJO::A1_ref[ref_index] == A1_buf || TCOJO::A2_ref[ref_index] == A2_buf);
-            else if (TCOJO::A1_ref[ref_index] == A2_buf && TCOJO::A2_ref[ref_index] == A1_buf)
+            if (MACOJO::A1_ref[ref_index] == A1_buf || MACOJO::A2_ref[ref_index] == A2_buf);
+            else if (MACOJO::A1_ref[ref_index] == A2_buf && MACOJO::A2_ref[ref_index] == A1_buf)
                 swap = true;
             else {
                 LOGGER.w(1, "removed, A1 and A2 different between two BIM files, please check", SNP_buf);
-                TCOJO::commonSNP_index_map.erase(iter);
+                MACOJO::commonSNP_index_map.erase(iter);
                 for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
                 continue;
             }
 
             // check SNP position in bim 2
-            if (ibuf != TCOJO::SNP_pos_ref[ref_index]) {
+            if (ibuf != MACOJO::SNP_pos_ref[ref_index]) {
                 LOGGER.w(1, "removed, SNP position different between two BIM files, please check", SNP_buf);
-                TCOJO::commonSNP_index_map.erase(iter);
+                MACOJO::commonSNP_index_map.erase(iter);
                 for (i=0; i<indi_num; i+=4) Bed.read(ch, 1);
                 continue;
             }
@@ -269,7 +269,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         
         if (not_NA_indi_num == 0) {
             LOGGER.w(1, "removed, all values are NA in bedfile", SNP_buf);
-            TCOJO::commonSNP_index_map.erase(iter);
+            MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
 
@@ -278,7 +278,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
 
         if (SNP_std < 1e-5) {
             LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
-            TCOJO::commonSNP_index_map.erase(iter);
+            MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
         
@@ -326,7 +326,7 @@ void Cohort::calc_Vp(ArrayXXd &s)
 }
 
 
-void TCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2) 
+void MACOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2) 
 {   
     // scan all files to get rough common SNPs
     vector<string> commonSNP_c1, commonSNP_c2;
@@ -429,7 +429,7 @@ void TCOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoF
 }
 
 
-void TCOJO::read_files_one_cohort(string cojoFile, string PLINK) 
+void MACOJO::read_files_one_cohort(string cojoFile, string PLINK) 
 {   
     clock_t tStart = clock();
     c1.skim_cojo(cojoFile);

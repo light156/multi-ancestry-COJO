@@ -1,7 +1,7 @@
-#include "tcojo.h"
+#include "macojo.h"
 
 
-void TCOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
+void MACOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
 {   
     c.get_vector_from_bed_matrix(final_commonSNP_index[single_index], c.X_temp_vec);
     int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
@@ -18,7 +18,7 @@ void TCOJO::calc_inner_product_with_candidate(Cohort &c, int single_index)
 
 
 // must be called after get_vector_from_bed_matrix()
-void TCOJO::calc_inner_product_with_screened(Cohort &c, int single_index)
+void MACOJO::calc_inner_product_with_screened(Cohort &c, int single_index)
 {   
     int X_temp_vec_pos_ref = SNP_pos_ref[final_commonSNP_index[single_index]];
     c.r_temp_vec.setZero(screened_SNP.size());
@@ -108,7 +108,7 @@ void Cohort::save_temp_model()
 }
 
 
-void TCOJO::inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
+void MACOJO::inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
     const ArrayXd &se2_cohort1, const ArrayXd &se2_cohort2, ArrayXXd &merge) 
 {
     // merge: 0:b, 1:se2, 2:Zabs, 3:p
@@ -121,7 +121,7 @@ void TCOJO::inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2,
 }
 
 
-void TCOJO::initialize_matrices(Cohort &c) 
+void MACOJO::initialize_matrices(Cohort &c) 
 {   
     c.sumstat_candidate = c.sumstat_screened.row(max_SNP_index);
     
@@ -140,7 +140,7 @@ void TCOJO::initialize_matrices(Cohort &c)
 }
 
 
-void TCOJO::initialize_MDISA(Cohort &c) 
+void MACOJO::initialize_MDISA(Cohort &c) 
 {   
     for (int i = excluded_SNP.size()-1; i >= 0; i--) {
         calc_inner_product_with_candidate(c, excluded_SNP[i]); 
@@ -169,7 +169,7 @@ void TCOJO::initialize_MDISA(Cohort &c)
 }
 
 
-void TCOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
+void MACOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
 {   
     c.sumstat_backward_new_model = c.sumstat_candidate;
     c.X_backward_new_model = c.X_candidate;
@@ -206,7 +206,7 @@ void TCOJO::initialize_backward_selection(Cohort &c, const ArrayXd &pJ)
 }
 
 
-void TCOJO::remove_new_colinear_SNP(bool cohort1_only, bool cohort2_only) 
+void MACOJO::remove_new_colinear_SNP(bool cohort1_only, bool cohort2_only) 
 {   
     for (int i = screened_SNP.size()-1, last_col = candidate_SNP.size()-1; i >= 0; i--) {
         if ((!cohort2_only && abs(c1.r(i, last_col)) >= colinear_threshold_sqrt) || 
@@ -229,7 +229,7 @@ void TCOJO::remove_new_colinear_SNP(bool cohort1_only, bool cohort2_only)
 }   
 
 
-void TCOJO::adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool cohort1_only, bool cohort2_only) 
+void MACOJO::adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool cohort1_only, bool cohort2_only) 
 {   
     if (!cohort2_only) {
         remove_row(c1.sumstat_screened, max_SNP_index);

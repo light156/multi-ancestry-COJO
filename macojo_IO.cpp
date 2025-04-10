@@ -1,7 +1,7 @@
-#include "tcojo.h"
+#include "macojo.h"
 
 
-void TCOJO::save_results_main_loop(string filepath) 
+void MACOJO::save_results_main_loop(string filepath) 
 {   
     ofstream jmaCOJO(filepath.c_str());
     if (!jmaCOJO) LOGGER.e(0, "cannot open the file [" + filepath + "] to write.");
@@ -62,7 +62,7 @@ void TCOJO::save_results_main_loop(string filepath)
 }
 
 
-void TCOJO::save_results_DISA(Cohort &c, string filepath) 
+void MACOJO::save_results_DISA(Cohort &c, string filepath) 
 {   
     ofstream jmaCOJO(filepath.c_str());
     if (!jmaCOJO) LOGGER.e(0, "cannot open the file [" + filepath + "] to write.");
@@ -109,7 +109,7 @@ void TCOJO::save_results_DISA(Cohort &c, string filepath)
 }
 
 
-void TCOJO::initialize_hyperparameters(int argc, char** argv) 
+void MACOJO::initialize_hyperparameters(int argc, char** argv) 
 {
     int temp_num = 0;
 
@@ -157,7 +157,7 @@ void TCOJO::initialize_hyperparameters(int argc, char** argv)
 }
 
 
-void TCOJO::show_tips_and_exit() 
+void MACOJO::show_tips_and_exit() 
 {
     cout << endl << "Program usage: Joint meta analysis for two cohorts (--d) or a single cohort (--s)" << endl;
     cout << "Usage 1: program_path --d cojoFile1_path PLINK1_path cojoFile2_path PLINK2_path result_save_path (+other options)" << endl;

@@ -1,5 +1,5 @@
-#ifndef _TACOJO_H
-#define _TACOJO_H
+#ifndef _MACOJO_H
+#define _MACOJO_H
 
 #include "Logger.h"
 #include <omp.h>
@@ -10,7 +10,6 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/SpecialFunctions>
 #include <iomanip>
-#include <numeric>
 
 using namespace Eigen;
 using namespace std;
@@ -67,7 +66,7 @@ public:
 };
 
 
-class TCOJO
+class MACOJO
 {
 public:
     static long commonSNP_total_num;

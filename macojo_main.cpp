@@ -1,7 +1,7 @@
-#include "tcojo.h"
+#include "macojo.h"
 
 
-void TCOJO::main_loop(string savename) 
+void MACOJO::main_loop(string savename) 
 {   
     inverse_var_meta(c1.sumstat_screened.col(0), c2.sumstat_screened.col(0), \
         c1.sumstat_screened.col(1), c2.sumstat_screened.col(1), sumstat_merge);
@@ -12,7 +12,8 @@ void TCOJO::main_loop(string savename)
 
     candidate_SNP.push_back(max_SNP_index);
     screened_SNP.resize(final_commonSNP.size());
-    iota(screened_SNP.begin(), screened_SNP.end(), 0);
+    for (int i = 0; i < final_commonSNP.size(); i++)
+        screened_SNP[i] = i;
 
     LOGGER.i(0, "First SNP", final_commonSNP[max_SNP_index]);
     LOGGER << "--------------------------------" << endl;
@@ -197,7 +198,7 @@ void TCOJO::main_loop(string savename)
 }
 
 
-void TCOJO::MDISA(Cohort &c) 
+void MACOJO::MDISA(Cohort &c) 
 {   
     bool cohort1_only = (addressof(c) == addressof(c1));
     ArrayXd Zabs_temp, p_temp, ZabsJ, pJ;
@@ -213,7 +214,8 @@ void TCOJO::MDISA(Cohort &c)
         
         candidate_SNP.push_back(max_SNP_index);
         screened_SNP.resize(final_commonSNP.size());
-        iota(screened_SNP.begin(), screened_SNP.end(), 0);
+        for (int i = 0; i < final_commonSNP.size(); i++)
+            screened_SNP[i] = i;
 
         LOGGER.i(0, "First SNP", final_commonSNP[max_SNP_index]);
         LOGGER << "--------------------------------" << endl;
