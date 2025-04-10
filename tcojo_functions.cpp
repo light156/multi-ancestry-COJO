@@ -135,8 +135,8 @@ void TCOJO::initialize_matrices(Cohort &c)
     c.R_pre = MatrixXd::Identity(1,1);
     
     c.previous_R2 = 0.0;    
-    c.output_b = c.sumstat_screened.col(0);
-    c.output_se2 = c.sumstat_screened.col(1);
+    c.output_b = c.sumstat_candidate.col(0);
+    c.output_se2 = c.sumstat_candidate.col(1);
 }
 
 
