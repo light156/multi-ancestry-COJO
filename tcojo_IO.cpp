@@ -9,7 +9,7 @@ void TCOJO::save_results_main_loop(string filepath)
     string headers[25] = {"SNP", "A1", "A2", 
         "freq.x", "b.x", "se.x", "p.x", "N.x", "bJ.x", "seJ.x", "zJ.x", "pJ.x", 
         "freq.y", "b.y", "se.y", "p.y", "N.y", "bJ.y", "seJ.y", "zJ.y", "pJ.y", 
-        "bJ.ma" , "seJ.ma", "zJ", "pJ"};
+        "bJ.ma" , "seJ.ma", "zJ.ma", "pJ.ma"};
     
     for (int i = 0; i < 24; i++) 
         jmaCOJO << headers[i] << "\t";
