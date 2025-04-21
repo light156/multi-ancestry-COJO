@@ -77,6 +77,7 @@ public:
 public:
     void read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2);
     void read_files_one_cohort(string cojoFile, string PLINK);
+    void read_SNP_init(string filename);
 
     void initialize_matrices(Cohort &c);
     void initialize_MDISA(Cohort &c);
@@ -123,10 +124,13 @@ public:
     double R2_incremental_threshold = 0.0;
     double R2_incremental_threshold_backwards = -0.5;
     
-    long window_size = 1500000;
+    long window_size = 3000000;
     int max_iter_num = 10000;
-
     bool if_fast_inv = true;
+
+public:
+    vector<string> SNP_init;
+    bool if_SNP_init = false;
 };
 
 #endif

@@ -113,8 +113,12 @@ void MACOJO::initialize_hyperparameters(int argc, char** argv)
 {
     int temp_num = 0;
 
-    while (temp_num < argc) {
-        if (strcmp(argv[temp_num], "-colinear") == 0 && temp_num+1 < argc) {
+    while (temp_num < argc) { 
+        if (strcmp(argv[temp_num], "-SNP") == 0 && temp_num+1 < argc) {
+            if_SNP_init = true;
+            read_SNP_init(argv[temp_num+1]);
+            temp_num += 2;
+        } else if (strcmp(argv[temp_num], "-colinear") == 0 && temp_num+1 < argc) {
             colinear_threshold = atof(argv[temp_num+1]);
             temp_num += 2;
         } else if (strcmp(argv[temp_num], "-R2") == 0 && temp_num+1 < argc) {
@@ -171,7 +175,8 @@ void MACOJO::show_tips_and_exit()
     cout << "-R2: R2_incremental_threshold (0)" << endl;
     cout << "-R2back: R2_incremental_threshold_backwards (-0.5)" << endl;
     cout << "-iter_num: total iteration number (10000)" << endl;
-    cout << "-window: SNP position window +/- (1500000), set to -1 for no window" << endl;
+    cout << "-window: SNP position window +/- (3000000), set to -1 for no window" << endl;
+    cout << "-SNP: file path that fixed SNP included at initialization" << endl;
     cout << "--no_fast_inv: use normal matrix inverse" << endl << endl;
     
     cout << "For example, both commands below will give the same result, as they use default option values:" << endl;

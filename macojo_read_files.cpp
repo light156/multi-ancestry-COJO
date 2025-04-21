@@ -326,6 +326,32 @@ void Cohort::calc_Vp(ArrayXXd &s)
 }
 
 
+void MACOJO::read_SNP_init(string filename) 
+{
+    ifstream Meta(filename.c_str());
+    if (!Meta) LOGGER.e(0, "cannot open SNP init file [" + filename + "] to read");
+
+    string SNP_buf;
+    int SNP_num = 0;
+
+    while (Meta) {
+        Meta >> SNP_buf;
+        if (Meta.eof()) break;
+        SNP_init.push_back(SNP_buf);
+        SNP_num++;
+    }
+
+    Meta.clear();
+    Meta.close();
+
+    sort(SNP_init.begin(), SNP_init.end());
+    if (adjacent_find(SNP_init.begin(), SNP_init.end()) != SNP_init.end())
+        LOGGER.e(0, "Duplicate SNP in [" + filename + "], please check");
+    
+    LOGGER << endl << SNP_num << " SNPs in SNP init file [" + filename + "]" << endl;
+}
+
+
 void MACOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2) 
 {   
     // scan all files to get rough common SNPs
@@ -350,6 +376,13 @@ void MACOJO::read_files_two_cohorts(string cojoFile1, string PLINK1, string cojo
     LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
     
     // find common SNPs between two cohorts
+    if (if_SNP_init) {
+        vector<string> common_SNP_temp;
+        set_intersection(commonSNP_c1.begin(), commonSNP_c1.end(), 
+            SNP_init.begin(), SNP_init.end(), back_inserter(common_SNP_temp));
+        commonSNP_c1.swap(common_SNP_temp);
+    }
+
     tStart = clock();
     auto first1 = commonSNP_c1.begin(), last1 = commonSNP_c1.end();
     auto first2 = commonSNP_c2.begin(), last2 = commonSNP_c2.end();
@@ -434,6 +467,13 @@ void MACOJO::read_files_one_cohort(string cojoFile, string PLINK)
     clock_t tStart = clock();
     c1.skim_cojo(cojoFile);
     c1.skim_PLINK(PLINK);
+
+    if (if_SNP_init) {
+        vector<string> common_SNP_temp;
+        set_intersection(c1.SNP_cojo.begin(), c1.SNP_cojo.end(), 
+            SNP_init.begin(), SNP_init.end(), back_inserter(common_SNP_temp));
+        c1.SNP_cojo.swap(common_SNP_temp);
+    }
 
     auto first1 = c1.SNP_cojo.begin(), last1 = c1.SNP_cojo.end();
     auto first2 = c1.SNP_PLINK.begin(), last2 = c1.SNP_PLINK.end();
