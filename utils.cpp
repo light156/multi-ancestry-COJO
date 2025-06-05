@@ -64,24 +64,24 @@ int split_string(const string &str, vector<string> &vec_str, string separator)
 
 void append_row(ArrayXXd &matrix, const ArrayXXd &vector)
 {   
-    int numRows = matrix.rows();
-    matrix.conservativeResize(numRows+1, NoChange);
+    int numRows = matrix.rows(), numCols = vector.cols();
+    matrix.conservativeResize(numRows+1, numCols);
     matrix.row(numRows) = vector;
 }
 
 
 void append_row(MatrixXd &matrix, const MatrixXd &vector)
 {   
-    int numRows = matrix.rows();
-    matrix.conservativeResize(numRows+1, NoChange);
+    int numRows = matrix.rows(), numCols = vector.cols();
+    matrix.conservativeResize(numRows+1, numCols);
     matrix.row(numRows) = vector;
 }
 
 
 void append_column(MatrixXd &matrix, const MatrixXd &vector)
 {
-    int numCols = matrix.cols();
-    matrix.conservativeResize(NoChange, numCols+1);
+    int numRows = vector.rows(), numCols = matrix.cols();
+    matrix.conservativeResize(numRows, numCols+1);
     matrix.col(numCols) = vector;
 }
 

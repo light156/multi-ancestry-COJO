@@ -30,20 +30,18 @@ void remove_column(MatrixXd &matrix, int index=-1);
 class Cohort 
 {    
 public:
-    void skim_cojo(string cojofile);
-    void skim_PLINK(string PLINKfile);
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
+    void skim_PLINK(string PLINKfile, vector<string> &SNP_PLINK);
     
     void get_vector_from_bed_matrix(int index, VectorXd &vec);
+    void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index, int window_size);
+
     void calc_conditional_effects();
     bool calc_joint_effects(const ArrayXXd &sumstat_temp, bool flag, double iter_colinear_threshold=0);    
-    void calc_Vp(ArrayXXd &sumstat_temp);
+    void calc_Vp();
     void calc_R_inv(bool if_fast_inv);
-
-    void save_temp_model();
-    
-    vector<string> SNP_cojo, SNP_PLINK;
+    void calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_size);
 
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward_new_model;
@@ -51,18 +49,17 @@ public:
     // X matrix
     vector<bool> X_A1, X_A2;
     vector<double> X_avg, X_std;
-    vector<VectorXd> X_candidate, X_backward_new_model;
     
     // necessary information during calculation
-    MatrixXd r, R_inv_pre, R_inv_post, R_pre, R_post;
+    MatrixXd r, R_inv_post, R_post, R_inv_pre = MatrixXd::Identity(1,1), R_pre = MatrixXd::Identity(1,1);
     ArrayXd conditional_beta, beta, beta_var;
     VectorXd X_temp_vec, r_temp_vec;
 
     // final output
     ArrayXd output_b, output_se2;
     
-    double Vp, R2, previous_R2;
-    long indi_num;
+    double Vp, R2, previous_R2 = 0.0;
+    long indi_num;    
 };
 
 
@@ -73,47 +70,37 @@ public:
     static map<string, int> commonSNP_index_map;
     static vector<string> A1_ref, A2_ref;
     static vector<int> SNP_pos_ref;
+    static vector<int> final_commonSNP_index;
 
 public:
-    void read_files_two_cohorts(string cojoFile1, string PLINK1, string cojoFile2, string PLINK2);
-    void read_files_one_cohort(string cojoFile, string PLINK);
-    void read_SNP_init(string filename);
+    void read_user_hyperparameters(int argc, char** argv);
+    void read_cojo_PLINK_files(char** filenames, int cohort_num);
+    void read_SNP_only(string filename, vector<string> &SNP_list, bool table_head=false);
+    void entry_function(string savename);
 
-    void initialize_matrices(Cohort &c);
-    void initialize_MDISA(Cohort &c);
-    void initialize_backward_selection(Cohort &c, const ArrayXd &pJ);
-
-    void inverse_var_meta(const ArrayXd &b_cohort1, const ArrayXd &b_cohort2, 
-        const ArrayXd &se2_cohort1, const ArrayXd &se2_cohort2, ArrayXXd &merge);
+    void initialize_main_loop();
+    void main_loop();
+    void inverse_var_meta(bool if_conditional);
+    void inverse_var_meta_joint();
+    void accept_SNP_as_candidate(int candidate_index);
+    void remove_new_colinear_SNP(int candidate_index);
+    void adjust_SNP_according_to_backward_selection();
+    void save_temp_model();
     
-    void calc_inner_product_with_candidate(Cohort &c, int single_index);
-    void calc_inner_product_with_screened(Cohort &c, int single_index);
+    void initialize_MDISA_from_MACOJO(Cohort &c);
+    void output_results_to_file(string filepath);
 
-    void remove_new_colinear_SNP(bool cohort1_only=false, bool cohort2_only=false);
-    void adjust_SNP_according_to_backward_selection(const ArrayXd &pJ, bool cohort1_only=false, bool cohort2_only=false);
-
-    void main_loop(string savename);
-    void MDISA(Cohort &c);
-
-    void initialize_hyperparameters(int argc, char** argv);
-    void save_results_main_loop(string filepath);
-    void save_results_DISA(Cohort &c, string filepath);
     void show_tips_and_exit();
 
 public:
-    Cohort c1, c2;
+    vector<Cohort> cohorts;
+    vector<int> current_calculation_list;
 
-    vector<int> final_commonSNP_index;
     vector<string> final_commonSNP;
-
-    int max_SNP_index;
-    int MDISA_fixed_candidate_SNP_num=0;
-
     vector<int> candidate_SNP, screened_SNP, excluded_SNP, backward_removed_SNP;
     
     // merge: 0:b, 1:se2, 2:Zabs, 3:p
     ArrayXXd sumstat_merge, sumstat_new_model_joint;
-
     
 // hyperparameters for users to predefine and adjust
 public: 
@@ -121,16 +108,17 @@ public:
     double colinear_threshold = 0.9;
     double colinear_threshold_sqrt, iter_colinear_threshold;
 
-    double R2_incremental_threshold = 0.0;
-    double R2_incremental_threshold_backwards = -0.5;
+    double R2_incremental_threshold = -1;
+    double R2_incremental_threshold_backwards = -1;
     
-    long window_size = 3000000;
+    int window_size = 1e7;
     int max_iter_num = 10000;
     bool if_fast_inv = true;
+    bool if_MDISA = true;
 
 public:
-    vector<string> SNP_init;
-    bool if_SNP_init = false;
+    vector<string> all_SNP, fixed_candidate_SNP;
+    int fixed_candidate_SNP_num=0;
 };
 
 #endif

@@ -3,34 +3,28 @@
 
 int main(int argc, char** argv) 
 {
+    LOGGER << setprecision(12);
+
     // double tStart = clock();
     double tStart = omp_get_wtime();
 
+    if (argc < 2 || atoi(argv[1]) < 1) 
+        LOGGER.e(0, "Please specify the number of cohorts");
+    
     MACOJO macojo;
-    LOGGER << setprecision(12);
+    for (int i = 0; i < atoi(argv[1]); i++)
+        macojo.cohorts.push_back(Cohort()); 
 
-    if (argc >= 7 && strcmp(argv[1], "--d") == 0) 
-    {   
-        LOGGER.open(string(argv[6])+".log");
+    int param_num = atoi(argv[1]) * 2 + 3; // cohort num, cojo files, PLINK files, output file 
+
+    if (argc >= param_num) {   
+        string savename = argv[param_num-1];
+        LOGGER.open(savename+".log");
         
-        macojo.initialize_hyperparameters(argc-7, argv+7);
-        macojo.read_files_two_cohorts(argv[2], argv[3], argv[4], argv[5]);
-        
-        LOGGER.i(0, "Loop started");
-        macojo.main_loop(argv[6]);
-    } 
-    else if (argc >= 5 && strcmp(argv[1], "--s") == 0) 
-    {   
-        LOGGER.open(string(argv[4])+".log");
-
-        macojo.initialize_hyperparameters(argc-5, argv+5);        
-        macojo.read_files_one_cohort(argv[2], argv[3]);
-
-        LOGGER.i(0, "Loop started");
-        macojo.MDISA(macojo.c1);
-        macojo.save_results_DISA(macojo.c1, string(argv[4])+".MDISA.jma.cojo");
-    }
-    else 
+        macojo.read_user_hyperparameters(argc-param_num, argv+param_num);
+        macojo.read_cojo_PLINK_files(argv+2, atoi(argv[1]));
+        macojo.entry_function(savename);
+    } else 
         macojo.show_tips_and_exit();
         
     // LOGGER << "Total running time: " << fixed << setprecision(2) << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;

@@ -1,4 +1,5 @@
 /*
+Modified from the original GCTA logger class
    GCTA: a tool for Genome-wide Complex Trait Analysis
 
    Global Singleton logger system with robust functions and thread safe.
