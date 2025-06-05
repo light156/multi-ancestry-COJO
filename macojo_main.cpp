@@ -9,6 +9,14 @@ void MACOJO::entry_function(string savename)
         current_calculation_list.push_back(n);
 
     initialize_main_loop();
+
+    if (if_cojo_joint && fixed_candidate_SNP_num > 0) {
+        // output results with fixed candidate SNPs and exit
+        output_results_to_file(savename+".jma.cojo.fixedSNP");
+        LOGGER.i(0, "Calculation finished with fixed candidate SNPs, program exit!");
+        return;
+    }
+
     main_loop();
 
     // handle case for single cohort
@@ -65,8 +73,11 @@ void MACOJO::initialize_main_loop()
             for (int n : current_calculation_list) 
                 append_row(cohorts[n].sumstat_candidate, cohorts[n].sumstat.row(single_index));
             
-            accept_SNP_as_candidate(single_index);
-            remove_new_colinear_SNP(single_index);
+            if (!if_cojo_joint) {
+                accept_SNP_as_candidate(single_index);
+                remove_new_colinear_SNP(single_index);
+            } else 
+                candidate_SNP.push_back(single_index);
         }
     }
 

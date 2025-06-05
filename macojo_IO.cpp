@@ -132,7 +132,10 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
         } else if (strcmp(argv[temp_num], "--no_MDISA") == 0) {
             if_MDISA = false;
             temp_num += 1;
-        } else{
+        } else if (strcmp(argv[temp_num], "--cojo-joint") == 0) {
+            if_cojo_joint = true;
+            temp_num += 1;
+        } else {
             LOGGER.e(0, "Unknown option: " + string(argv[temp_num]));
             show_tips_and_exit();
         }

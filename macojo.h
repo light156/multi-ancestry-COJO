@@ -115,6 +115,7 @@ public:
     int max_iter_num = 10000;
     bool if_fast_inv = true;
     bool if_MDISA = true;
+    bool if_cojo_joint = false;
 
 public:
     vector<string> all_SNP, fixed_candidate_SNP;
