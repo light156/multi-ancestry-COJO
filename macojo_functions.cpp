@@ -74,7 +74,7 @@ void Cohort::calc_R_inv(bool if_fast_inv) {
         double temp_element = 1 / (1 - r_temp_vec.transpose() * temp_vector);
     
         int dim = R_inv_pre.rows();
-        R_inv_post.resize(dim+1, dim+1);
+        R_inv_post.setZero(dim+1, dim+1);
     
         R_inv_post.block(0, 0, dim, dim) = R_inv_pre + temp_element * temp_vector * temp_vector.transpose();
         R_inv_post.block(0, dim, dim, 1) = -temp_element * temp_vector;
@@ -82,7 +82,7 @@ void Cohort::calc_R_inv(bool if_fast_inv) {
         R_inv_post(dim, dim) = temp_element;
     } else {
         int dim = R_pre.rows();
-        R_post.resize(dim+1, dim+1);
+        R_post.setZero(dim+1, dim+1);
     
         R_post.block(0, 0, dim, dim) = R_pre;
         R_post.block(0, dim, dim, 1) = r_temp_vec;
@@ -118,8 +118,8 @@ void Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_si
         }
     }
 
-    R_inv_post.noalias() = R_post.inverse();
-    // R_inv_post.noalias() = R_post.ldlt().solve(MatrixXd::Identity(total_num, total_num));
+    // R_inv_post.noalias() = R_post.inverse();
+    R_inv_post.noalias() = R_post.ldlt().solve(MatrixXd::Identity(total_num, total_num));
 }
     
 
