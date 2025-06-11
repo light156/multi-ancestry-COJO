@@ -277,7 +277,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         SNP_std = sqrt((SNP_square_sum-SNP_avg*SNP_avg*not_NA_indi_num)/(indi_num-1));
 
         if (SNP_std < 1e-5) {
-            LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
+            // LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
             MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
