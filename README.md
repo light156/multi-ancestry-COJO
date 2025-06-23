@@ -40,10 +40,10 @@ Or simply download the `manc-cojo` binary to your server.
 | `-R2back`       | R² threshold for backward selection.                                          | `-1` (no threshold) |
 | `-iter_num`     | Maximum number of iterations.                                                 | `10000`             |
 | `-window`       | LD window size in Mb. Use `-1` to disable windowing.                          | `10`                |
-| `--no_fast_inv` | Disable the fast matrix inversion algorithm.                                  | Enabled by default  |
-| `--no_MDISA`    | Skip running MDISA after Manc-COJO.                                           | Disabled by default |
+| `--no_fast_inv` | Disable the fast matrix inversion algorithm.                                  | —                   |
+| `--no_MDISA`    | Skip running MDISA after Manc-COJO.                                           | —                   |
 
-## Example: Three Ancestries with HapMap3 SNPs and 20Mb Window
+## Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; turn off fast matrix inversion algorhithm; skip running MDISA
 
 ```bash
 ./macojo 3 \
@@ -56,7 +56,9 @@ LD_reference_Cohort3_path \
 Output_directory_and_name \
 -colinear 0.9 \
 -extract HapMap3.SNPlist \
--window 20
+-window 20 \
+--no_fast_inv \
+--no_MDISA
 ```
 
 ---
