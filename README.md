@@ -63,4 +63,4 @@ Output_directory_and_name \
 
 ---
 
-Please contact Yong (yong.wang@stats.ox.ac.uk) for software related enquries, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorhithm related questions
+Please contact Yong (yong.wang@stats.ox.ac.uk) for software related enquries, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm related questions
