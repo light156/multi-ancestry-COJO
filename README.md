@@ -43,7 +43,7 @@ Or simply download the `manc-cojo` binary to your server.
 | `--no_fast_inv` | Disable the fast matrix inversion algorithm.                                  | —                   |
 | `--no_MDISA`    | Skip running MDISA after Manc-COJO.                                           | —                   |
 
-## Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; turn off fast matrix inversion algorhithm; skip running MDISA
+## Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; turn off fast matrix inversion algorithm; skip running MDISA
 
 ```bash
 ./macojo 3 \
