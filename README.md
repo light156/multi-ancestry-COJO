@@ -1,4 +1,3 @@
-````markdown
 Manc-COJO (Multi-ancestry Conditional and Joint Analysis)
 
 ## Overview
