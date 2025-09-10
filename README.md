@@ -1,8 +1,7 @@
-Manc-COJO (Multi-ancestry Conditional and Joint Analysis)
-
-## Overview
+# Manc-COJO (Multi-ancestry Conditional and Joint Analysis)
 
 **Manc-COJO** is a tool for multi-ancestry conditional and joint analysis of GWAS summary statistics.
+
 
 ## Download
 
