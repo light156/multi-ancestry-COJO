@@ -40,10 +40,9 @@ void MACOJO::read_SNP_only(string filename, vector<string> &SNP_list, bool table
 }
 
 
-void Cohort::skim_PLINK(string PLINKfile, vector<string> &SNP_PLINK) 
+void Cohort::skim_fam(string famFile) 
 {   
-    // Step 1: read .fam to get individual number 
-    string famFile = PLINKfile+".fam";
+    // read .fam to get individual number 
     ifstream Fam(famFile.c_str());
     if (!Fam) LOGGER.e(0, "cannot open FAM file [" + famFile + "] to read");
 
@@ -66,32 +65,8 @@ void Cohort::skim_PLINK(string PLINKfile, vector<string> &SNP_PLINK)
     sort(indi_ids.begin(), indi_ids.end());
     if (adjacent_find(indi_ids.begin(), indi_ids.end()) != indi_ids.end())
         LOGGER.e(0, "Duplicate individual ID in FAM file [" + famFile + "], please check");
-    
-    // Step 2: read .bim to get SNP number
-    string bimFile = PLINKfile+".bim";
-    ifstream Bim(bimFile.c_str());
-    if (!Bim) LOGGER.e(0, "cannot open BIM file [" + bimFile + "] to read");
 
-    // Read bim file
-    int SNP_num = 0;
-    string SNP_buf, str_buf;
-
-    while (Bim) {
-        Bim >> str_buf;
-        if (Bim.eof()) break;
-        Bim >> SNP_buf >> str_buf >> str_buf >> str_buf >> str_buf;
-        SNP_PLINK.push_back(SNP_buf);
-        SNP_num++;
-    }
-
-    Bim.clear();
-    Bim.close();
-    
-    sort(SNP_PLINK.begin(), SNP_PLINK.end());
-    if (adjacent_find(SNP_PLINK.begin(), SNP_PLINK.end()) != SNP_PLINK.end())
-        LOGGER.e(0, "Duplicate SNP in BIM file [" + bimFile + "], please check");
-
-    LOGGER << indi_num << " individuals and " << SNP_num << " SNPs in PLINK file [" + PLINKfile + "]" << endl;
+    LOGGER << indi_num << " individuals in FAM file [" + famFile + "]" << endl;
 }
 
 
@@ -323,9 +298,13 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         tStart = clock();
 
         auto &c = cohorts[n];
-        vector<string> SNP_cojo, SNP_PLINK, SNP_common;    
-        read_SNP_only(filenames[n*2], SNP_cojo, true);
-        c.skim_PLINK(filenames[n*2+1], SNP_PLINK);
+        vector<string> SNP_cojo, SNP_PLINK, SNP_common;
+
+        string cojo_file = filenames[n*2], PLINK_file = filenames[n*2+1];
+
+        read_SNP_only(cojo_file, SNP_cojo, true);
+        read_SNP_only(PLINK_file+".bim", SNP_PLINK, false);
+        c.skim_fam(PLINK_file+".fam");
 
         set_intersection(SNP_cojo.begin(), SNP_cojo.end(), 
             SNP_PLINK.begin(), SNP_PLINK.end(), back_inserter(SNP_common));
@@ -384,14 +363,26 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
     temp_index = 0;
 
     for (auto iter = commonSNP_index_map.begin(); iter != commonSNP_index_map.end(); ) {
-        bool erase_flag = true;
-        for (auto &c : cohorts) {
-            if (abs(c.sumstat(iter->second, 3)-0.5) <= 0.49) {
-                erase_flag = false; 
-                break;
+        bool erase_flag;
+
+        if (if_freq_mode_or) {
+            erase_flag = true;
+            for (auto &c : cohorts) {
+                if (c.sumstat(iter->second, 3) >= freq_threshold && c.sumstat(iter->second, 3) <= 1-freq_threshold) {
+                    erase_flag = false; 
+                    break;
+                }
+            }
+        } else {
+            erase_flag = false;
+            for (auto &c : cohorts) {
+                if (c.sumstat(iter->second, 3) < freq_threshold || c.sumstat(iter->second, 3) > 1-freq_threshold) {
+                    erase_flag = true; 
+                    break;
+                }
             }
         }
-
+        
         if (erase_flag)
             iter = commonSNP_index_map.erase(iter);
         else {

@@ -32,8 +32,8 @@ class Cohort
 public:
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
-    void skim_PLINK(string PLINKfile, vector<string> &SNP_PLINK);
-    
+    void skim_fam(string famFile);
+
     void get_vector_from_bed_matrix(int index, VectorXd &vec);
     void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index, int window_size);
 
@@ -42,6 +42,8 @@ public:
     void calc_Vp();
     void calc_R_inv(bool if_fast_inv);
     void calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_size);
+
+    void save_LD_matrix(string PLINKfile, int window_size);
 
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward_new_model;
@@ -59,7 +61,7 @@ public:
     ArrayXd output_b, output_se2;
     
     double Vp, R2, previous_R2 = 0.0;
-    long indi_num;    
+    long indi_num;
 };
 
 
@@ -90,7 +92,7 @@ public:
     void initialize_MDISA_from_MACOJO(Cohort &c);
     void output_results_to_file(string filepath);
 
-    void show_tips_and_exit();
+    void show_tips();
 
 public:
     vector<Cohort> cohorts;
@@ -108,14 +110,19 @@ public:
     double colinear_threshold = 0.9;
     double colinear_threshold_sqrt, iter_colinear_threshold;
 
+    double freq_threshold = 0.01;
+    bool if_freq_mode_or = true;
+
     double R2_incremental_threshold = -1;
     double R2_incremental_threshold_backwards = -1;
-    
     int window_size = 1e7;
     int max_iter_num = 10000;
+
     bool if_fast_inv = true;
     bool if_MDISA = true;
     bool if_cojo_joint = false;
+
+    bool if_LD_mode = false;
 
 public:
     vector<string> all_SNP, fixed_candidate_SNP;
