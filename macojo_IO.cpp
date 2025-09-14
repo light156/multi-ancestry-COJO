@@ -187,8 +187,7 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
     if (!if_MDISA)
         LOGGER << endl << "Do not run MDISA after MACOJO" << endl;
 
-    LOGGER << "--------------------------------" << endl;
-    exit(-1);
+    LOGGER << "--------------------------------" << endl << endl;
 }
 
 
@@ -217,9 +216,9 @@ void MACOJO::show_tips()
     cout << "-freq: frequency threshold to exclude rare SNPs (default: 0.01)" << endl;
     cout << "--freq_mode_and: only keep SNPs that reach frequency threshold in sumstat files of all cohorts (default: at least one cohort)" << endl;   
     cout << "--LD: read .ld files instead of .bed files, please refer to GitHub for details" << endl;
+    cout << "--no_MDISA: do not run MDISA after multi-ancestry COJO (can be ignored for single ancestry)" << endl;
 
-    // below are some trivial features, hidden in the usage tips    
-    // cout << "--no_MDISA: do not run MDISA after MACOJO" << endl;
+    // below are some trivial features, hidden in the usage tips 
     // cout << "--no_fast_inv: use normal matrix inverse (default: use fast inverse)" << endl;
     // cout << "--cojo-joint: only output for provided fixed candidate SNPs and exit" << endl;
 

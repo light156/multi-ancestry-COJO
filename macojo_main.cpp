@@ -98,7 +98,7 @@ void MACOJO::initialize_main_loop()
 
         for (int n : current_calculation_list) {
             auto &c = cohorts[n];
-            c.calc_R_inv_from_SNP_list(candidate_SNP, window_size);
+            c.calc_R_inv_from_SNP_list(candidate_SNP, window_size, if_LD_mode);
             c.calc_joint_effects(c.sumstat_candidate, false);
         }
 
@@ -169,7 +169,7 @@ void MACOJO::main_loop()
             
             for (int n : current_calculation_list) {
                 auto &c = cohorts[n];
-                c.calc_inner_product_with_SNP_list(candidate_SNP, true_index, window_size);
+                c.calc_inner_product_with_SNP_list(candidate_SNP, true_index, window_size, if_LD_mode);
                 c.calc_R_inv(if_fast_inv);
 
                 if (c.calc_joint_effects(c.sumstat_candidate, true, iter_colinear_threshold)) {
@@ -239,7 +239,7 @@ void MACOJO::main_loop()
 
             for (int n : current_calculation_list) {
                 auto &c = cohorts[n];
-                c.calc_R_inv_from_SNP_list(backward_new_model_candidate, window_size);
+                c.calc_R_inv_from_SNP_list(backward_new_model_candidate, window_size, if_LD_mode);
                 c.calc_joint_effects(c.sumstat_backward_new_model, false);
 
                 LOGGER << "Adjusted R2 after SNP elimination for cohort " << n+1 << ": " << fixed << c.R2 << endl; 

@@ -1,6 +1,6 @@
-#ifndef _MACOJO_H
-#define _MACOJO_H
-
+#pragma once
+#include "BitArray.h"
+#include "LD.h"
 #include "Logger.h"
 #include <omp.h>
 #include <map>
@@ -32,26 +32,26 @@ class Cohort
 public:
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
+    void read_PLINK_LD(string PLINKfile, bool is_ref_cohort);
     void skim_fam(string famFile);
 
     void get_vector_from_bed_matrix(int index, VectorXd &vec);
-    void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index, int window_size);
+    void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index, int window_size, bool if_LD_mode);
 
     void calc_conditional_effects();
     bool calc_joint_effects(const ArrayXXd &sumstat_temp, bool flag, double iter_colinear_threshold=0);    
     void calc_Vp();
     void calc_R_inv(bool if_fast_inv);
-    void calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_size);
-
-    void save_LD_matrix(string PLINKfile, int window_size);
+    void calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_size, bool if_LD_mode=true);
 
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     ArrayXXd sumstat, sumstat_candidate, sumstat_screened, sumstat_backward_new_model;
     
-    // X matrix
-    vector<bool> X_A1, X_A2;
+    // X or LD matrix, depend on which mode is used
+    BitArray X_A1, X_A2;
     vector<double> X_avg, X_std;
-    
+    LDPacked LD_matrix;
+
     // necessary information during calculation
     MatrixXd r, R_inv_post, R_post, R_inv_pre = MatrixXd::Identity(1,1), R_pre = MatrixXd::Identity(1,1);
     ArrayXd conditional_beta, beta, beta_var;
@@ -61,14 +61,14 @@ public:
     ArrayXd output_b, output_se2;
     
     double Vp, R2, previous_R2 = 0.0;
-    long indi_num;
+    uint64_t indi_num;
 };
 
 
 class MACOJO
 {
 public:
-    static long commonSNP_total_num;
+    static uint64_t commonSNP_total_num;
     static map<string, int> commonSNP_index_map;
     static vector<string> A1_ref, A2_ref;
     static vector<int> SNP_pos_ref;
@@ -77,7 +77,8 @@ public:
 public:
     void read_user_hyperparameters(int argc, char** argv);
     void read_cojo_PLINK_files(char** filenames, int cohort_num);
-    void read_SNP_only(string filename, vector<string> &SNP_list, bool table_head=false);
+    void read_SNP_only(string filename, vector<string> &SNP_list, bool if_sumstat=false, bool if_bim=false);
+    void set_reference_from_bim(string PLINKfile);
     void entry_function(string savename);
 
     void initialize_main_loop();
@@ -128,5 +129,3 @@ public:
     vector<string> all_SNP, fixed_candidate_SNP;
     int fixed_candidate_SNP_num=0;
 };
-
-#endif
