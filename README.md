@@ -21,12 +21,12 @@ Or simply download the `manc_cojo` binary to your server.
   
 For two cohorts, your command should be like
 ```bash
-./macojo 2 GWAS_Cohort1_path LD_reference_Cohort1_path GWAS_Cohort2_path LD_reference_Cohort2_path Output_directory_and_name -colinear 0.9
+./manc_cojo 2 GWAS_Cohort1_path LD_reference_Cohort1_path GWAS_Cohort2_path LD_reference_Cohort2_path Output_directory_and_name -colinear 0.9
 ```
 
 For one cohort, your command should be like
 ```bash
-./macojo 1 GWAS_path LD_reference_path Output_directory_and_name -window 10 --LD -extract Included_SNP_path
+./manc_cojo 1 GWAS_path LD_reference_path Output_directory_and_name -window 10 --LD -extract Included_SNP_path
 ```
 
 ## Notes
@@ -54,17 +54,17 @@ For one cohort, your command should be like
 | `--LD`            | Read PLINK .ld files instead of PLINK .bed files.                             |                     |
 | `-iter_num`       | Maximum number of iterations.                                                 | `10000`             |
 
-## A Final Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; skip running MDISA
+## A Mock Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; skip running MDISA
 
 ```bash
-./macojo 3 \
-GWAS_Cohort1_path \
-LD_reference_Cohort1_path \
-GWAS_Cohort2_path \
-LD_reference_Cohort2_path \
-GWAS_Cohort3_path \
-LD_reference_Cohort3_path \
-Output_directory_and_name \
+./manc_cojo 3 \
+/users/your_name/cohort1_sumstat.linear_gcta_format \
+/users/your_name/cohort1_LD_ref \
+/users/your_name/cohort2_sumstat.linear_gcta_format \
+/users/your_name/cohort2_LD_ref \
+/users/your_name/cohort3_sumstat.linear_gcta_format \
+/users/your_name/cohort3_LD_ref \
+/users/your_name/output_filename \
 -colinear 0.9 \
 -extract HapMap3.SNPlist \
 -window 20 \
