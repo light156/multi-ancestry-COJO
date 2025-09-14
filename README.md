@@ -41,17 +41,17 @@ For one cohort, your command should be like
 
 | Option            | Description                                                                   | Default             |
 | ----------------- | ----------------------------------------------------------------------------- | ------------------- |
-| `-extract`        | File path for list of SNPs to include in the analysis.                        | —                   |
-| `-fixedSNP`       | File path for list of fixed candidate SNPs (not removable during iterations). | —                   |
+| `-extract`        | File path for list of SNPs to include in the analysis.                        |                     |
+| `-fixedSNP`       | File path for list of fixed candidate SNPs (not removable during iterations). |                     |
 | `-colinear`       | Colinearity threshold.                                                        | `0.9`               |
 | `-R2`             | R² threshold for forward selection.                                           | `-1` (no threshold) |
 | `-R2back`         | R² threshold for backward selection.                                          | `-1` (no threshold) |
 | `-window`         | LD window size in Mb. Use `-1` to disable windowing.                          | `10` (±10Mb)        |
 | `-freq`           | frequency threshold to exclude rare SNPs.                                     | `0.01`              |
-| `--freq_mode_and` | Only keep SNPs that reach frequency threshold in sumstat of all cohorts.      | —                   |
+| `--freq_mode_and` | Only keep SNPs that reach frequency threshold in sumstat of all cohorts.      |                     |
 |                   | By default, keep SNPs that reaches threshold in at least one cohort.          |                     |
-| `--no_MDISA`      | Skip running MDISA after Manc-COJO.                                           | —                   |
-| `--LD`            | Read PLINK .ld files instead of PLINK .bed files.                             | —                   |
+| `--no_MDISA`      | Skip running MDISA after Manc-COJO.                                           |                     |
+| `--LD`            | Read PLINK .ld files instead of PLINK .bed files.                             |                     |
 | `-iter_num`       | Maximum number of iterations.                                                 | `10000`             |
 
 ## A Final Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; skip running MDISA
