@@ -15,8 +15,10 @@ Or simply download the `manc_cojo` binary to your server.
 
 ## Usage & Example Commands
 
+```bash
 <program_path> <cohort_num> <sumstat_file1> <PLINK_file1> [<sumstat_file2> <PLINK_file2> ...] <output_file> [options]
-    
+```
+  
 For two cohorts, your command should be like
 ```bash
 ./macojo 2 GWAS_Cohort1_path LD_reference_Cohort1_path GWAS_Cohort2_path LD_reference_Cohort2_path Output_directory_and_name -colinear 0.9
