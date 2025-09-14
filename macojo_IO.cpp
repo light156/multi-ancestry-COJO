@@ -206,9 +206,8 @@ void MACOJO::show_tips()
     cout << "3. Please put all options after output_path" << endl << endl;
 
     cout << "Options:" << endl;   
-    cout << "-iter_num: total iteration number (default: 10000)" << endl;
     cout << "-extract: file path of user-given SNPs included for analysis" << endl;
-    cout << "-fixedSNP: file path of fixed candidate SNPs" << endl;
+    cout << "-fixedSNP: file path of fixed candidate SNPs, not removable during iterations" << endl;
     cout << "-colinear: colinear_threshold (default: 0.9)" << endl;
     cout << "-R2: R2_incremental_threshold (default: -1, no threshold)" << endl;
     cout << "-R2back: R2_incremental_threshold for backward selection (default: -1, no threshold)" << endl;
@@ -217,7 +216,8 @@ void MACOJO::show_tips()
     cout << "--freq_mode_and: only keep SNPs that reach frequency threshold in sumstat files of all cohorts (default: at least one cohort)" << endl;   
     cout << "--LD: read .ld files instead of .bed files, please refer to GitHub for details" << endl;
     cout << "--no_MDISA: do not run MDISA after multi-ancestry COJO (can be ignored for single ancestry)" << endl;
-
+    cout << "-iter_num: total iteration number (default: 10000)" << endl;
+    
     // below are some trivial features, hidden in the usage tips 
     // cout << "--no_fast_inv: use normal matrix inverse (default: use fast inverse)" << endl;
     // cout << "--cojo-joint: only output for provided fixed candidate SNPs and exit" << endl;
