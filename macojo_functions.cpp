@@ -6,15 +6,6 @@ void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
     vec.setZero(indi_num);
     uint64_t X_start_index = uint64_t(index) * indi_num;
 
-    double mean = X_avg[index], stdv = X_std[index];
-    /*
-    for (int i = 0; i < indi_num; i++) {
-        bool A1 = X_A1.get(X_start_index + i), A2 = X_A2.get(X_start_index + i);
-        if (!A1 || A2) 
-            vec(i) = (double(A1) + double(A2) - mean) / stdv;
-    }
-    */
-
     uint64_t start_word = X_start_index >> 6;
     uint64_t start_bit  = X_start_index & 63;
 
@@ -28,8 +19,11 @@ void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
             bool A1 = (wordA1 >> b) & 1ULL;
             bool A2 = (wordA2 >> b) & 1ULL;
 
-            if (!A1 || A2)
-                vec(i) = (double(A1) + double(A2) - mean) / stdv;
+            if (if_fill_NA)
+                vec(i) = (!A1 || A2) ? (double(A1) + double(A2) - X_avg[index]) / X_std[index] : 0;
+            else
+                vec(i) = (!A1 || A2) ? double(A1) + double(A2) : -9;
+            
         }
 
         start_word++;
@@ -38,7 +32,7 @@ void Cohort::get_vector_from_bed_matrix(int index, VectorXd &vec)
 }
 
 
-void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index, int window_size, bool if_LD_mode)
+void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index)
 {   
     r_temp_vec.setZero(SNP_list.size());
     int temp_index = MACOJO::final_commonSNP_index[single_index];
@@ -57,7 +51,25 @@ void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int s
             if (abs(MACOJO::SNP_pos_ref[MACOJO::final_commonSNP_index[SNP_list[j]]] - temp_SNP_pos) <= window_size) {
                 VectorXd vec_in_list;
                 get_vector_from_bed_matrix(MACOJO::final_commonSNP_index[SNP_list[j]], vec_in_list);
-                r_temp_vec(j) = (X_temp_vec.transpose() * vec_in_list).value() / (indi_num-1);
+
+                if (if_fill_NA) {
+                    r_temp_vec(j) = (X_temp_vec.transpose() * vec_in_list).value() / (indi_num-1);
+                    continue;
+                } 
+
+                double s1=0, s2=0, s12=0, s11=0, s22=0, n=0;
+                for (int k = 0; k < indi_num; k++) {
+                    if (X_temp_vec(k) > -5 && vec_in_list(k) > -5) {
+                        s1 += X_temp_vec(k);
+                        s2 += vec_in_list(k);
+                        s12 += X_temp_vec(k) * vec_in_list(k);
+                        s11 += X_temp_vec(k) * X_temp_vec(k);
+                        s22 += vec_in_list(k) * vec_in_list(k);
+                        n++;
+                    }
+                }
+
+                r_temp_vec(j) = (n*s12 - s1*s2) / sqrt((n*s11 - s1*s1)*(n*s22 - s2*s2));
             }       
         }
     }
@@ -76,10 +88,10 @@ void Cohort::calc_conditional_effects()
 }
 
 
-bool Cohort::calc_joint_effects(const ArrayXXd &s, bool flag, double iter_colinear_threshold) 
+bool Cohort::calc_joint_effects(const ArrayXXd &s) 
 {      
-    if (flag && ((abs(R_inv_post.minCoeff()) > iter_colinear_threshold) || (abs(R_inv_post.maxCoeff()) > iter_colinear_threshold)))
-        return true;
+    if ((abs(R_inv_post.minCoeff()) > iter_colinear_threshold) || (abs(R_inv_post.maxCoeff()) > iter_colinear_threshold))
+        return false;
 
     VectorXd temp1 = sqrt(s.col(5)) * s.col(0);
     ArrayXd temp2 = R_inv_post * temp1;
@@ -89,17 +101,17 @@ bool Cohort::calc_joint_effects(const ArrayXXd &s, bool flag, double iter_coline
                 
     beta_var = sigma_J_squared * R_inv_post.diagonal().array() / s.col(6) ;
 
-    if (flag && beta_var.minCoeff() <= 0)
-        return true;
+    if (beta_var.minCoeff() <= 1e-30)
+        return false;
 
     double Neff = median(s.col(4));
     int M = s.rows();
     R2 = 1 - sigma_J_squared * (Neff-1) / Vp / (Neff-M-1);
-    return false;
+    return true;
 }
 
 
-void Cohort::calc_R_inv(bool if_fast_inv) {
+void Cohort::calc_R_inv() {
     if (if_fast_inv) {
         VectorXd temp_vector = R_inv_pre * r_temp_vec;
         double temp_element = 1 / (1 - r_temp_vec.transpose() * temp_vector);
@@ -125,7 +137,7 @@ void Cohort::calc_R_inv(bool if_fast_inv) {
 }
 
 
-void Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_size, bool if_LD_mode) 
+void Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list) 
 {   
     int total_num = SNP_list.size();
     R_post = MatrixXd::Identity(total_num, total_num);
@@ -152,91 +164,56 @@ void Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, int window_si
             for (int j = 0; j < i; j++) {
                 if (abs(MACOJO::SNP_pos_ref[MACOJO::final_commonSNP_index[SNP_list[i]]] - 
                         MACOJO::SNP_pos_ref[MACOJO::final_commonSNP_index[SNP_list[j]]]) <= window_size) {
-                    R_post(i, j) = (X_new_model[i].transpose() * X_new_model[j]).value() / (indi_num-1);
+                    
+                    if (if_fill_NA) {
+                        R_post(i, j) = (X_new_model[i].transpose() * X_new_model[j]).value() / (indi_num-1);
+                        R_post(j, i) = R_post(i, j);
+                        continue;
+                    }
+
+                    double s1=0, s2=0, s12=0, s11=0, s22=0, n=0;
+                    for (int k = 0; k < indi_num; k++) {
+                        if (X_new_model[i](k) > -5 && X_new_model[j](k) > -5) {
+                            s1 += X_new_model[i](k);
+                            s2 += X_new_model[j](k);
+                            s12 += X_new_model[i](k) * X_new_model[j](k);
+                            s11 += X_new_model[i](k) * X_new_model[i](k);
+                            s22 += X_new_model[j](k) * X_new_model[j](k);
+                            n++;
+                        }
+                    }
+
+                    R_post(i, j) = (n*s12 - s1*s2) / sqrt((n*s11 - s1*s1)*(n*s22 - s2*s2));
                     R_post(j, i) = R_post(i, j);
                 }
             }
         }
     } 
 
-    // R_inv_post.noalias() = R_post.inverse();
     R_inv_post.noalias() = R_post.ldlt().solve(MatrixXd::Identity(total_num, total_num));
 }
     
 
-void MACOJO::accept_SNP_as_candidate(int candidate_index) 
+void MACOJO::accept_SNP_as_candidate(int screened_index) 
 {   
-    candidate_SNP.push_back(candidate_index);
+    int candidate_index = screened_SNP[screened_index];
 
     for (int n : current_calculation_list) {
         auto &c = cohorts[n];
-        c.calc_inner_product_with_SNP_list(screened_SNP, candidate_index, window_size, if_LD_mode);
+        c.calc_inner_product_with_SNP_list(screened_SNP, candidate_index);
         append_column(c.r, c.r_temp_vec);
-    }
-}
-
-
-void MACOJO::remove_new_colinear_SNP(int candidate_index) 
-{   
-    for (int i = screened_SNP.size()-1, last_col = candidate_SNP.size()-1; i >= 0; i--) {
-        
-        bool erase_flag = false;
-        for (int n : current_calculation_list) {
-            if (abs(cohorts[n].r(i, last_col)) >= colinear_threshold_sqrt) {
-                erase_flag = true; 
-                break;
-            }
-        }
-
-        if (erase_flag) {
-            for (int n : current_calculation_list) {
-                remove_row(cohorts[n].sumstat_screened, i);
-                remove_row(cohorts[n].r, i);
-            }
-            
-            excluded_SNP.push_back(screened_SNP[i]);
-            screened_SNP.erase(screened_SNP.begin()+i);
-        }
+        remove_row(c.sumstat_screened, screened_index);
+        remove_row(c.r, screened_index);
     }
 
-    auto iter = find(excluded_SNP.begin(), excluded_SNP.end(), candidate_index);
-    if (iter != excluded_SNP.end())
-        excluded_SNP.erase(iter);
-}   
-
-
-void MACOJO::initialize_MDISA_from_MACOJO(Cohort &c) 
-{   
-    for (int i = excluded_SNP.size()-1; i >= 0; i--) {
-        c.calc_inner_product_with_SNP_list(candidate_SNP, excluded_SNP[i], window_size, if_LD_mode);
-        
-        if (c.r_temp_vec.cwiseAbs().maxCoeff() < colinear_threshold_sqrt) {
-            append_row(c.sumstat_screened, c.sumstat.row(excluded_SNP[i]));
-            append_row(c.r, c.r_temp_vec.transpose());
-            screened_SNP.push_back(excluded_SNP[i]); 
-            excluded_SNP.erase(excluded_SNP.begin()+i);
-        }
-    }
-
-    for (int i = backward_removed_SNP.size()-1; i >= 0; i--) {
-        c.calc_inner_product_with_SNP_list(candidate_SNP, backward_removed_SNP[i], window_size, if_LD_mode);
-        
-        if (c.r_temp_vec.cwiseAbs().maxCoeff() < colinear_threshold_sqrt) {
-            append_row(c.sumstat_screened, c.sumstat.row(backward_removed_SNP[i])); 
-            append_row(c.r, c.r_temp_vec.transpose());
-            screened_SNP.push_back(backward_removed_SNP[i]);
-        } else {
-            excluded_SNP.push_back(backward_removed_SNP[i]); 
-        }
-    }
-
-    vector<int>().swap(backward_removed_SNP);
+    candidate_SNP.push_back(candidate_index);
+    screened_SNP.erase(screened_SNP.begin() + screened_index);
 }
 
 
 void MACOJO::adjust_SNP_according_to_backward_selection() 
 {   
-    for (int i = candidate_SNP.size()-1; i >= fixed_candidate_SNP_num; i--) {
+    for (int i = sumstat_new_model_joint.rows()-1; i >= fixed_candidate_SNP_num; i--) {
 
         if (sumstat_new_model_joint(i, 3) > threshold) {
             for (int n : current_calculation_list) {
@@ -250,29 +227,19 @@ void MACOJO::adjust_SNP_according_to_backward_selection()
             candidate_SNP.erase(candidate_SNP.begin()+i);
         }
     }
-    
-    for (int i = excluded_SNP.size()-1; i >= 0; i--) {
+}
 
-        bool append_flag = true;
-        for (int n : current_calculation_list) {
-            auto &c = cohorts[n];
-            // check if the excluded SNP is colinear with any remaining candidate SNP
-            c.calc_inner_product_with_SNP_list(candidate_SNP, excluded_SNP[i], window_size, if_LD_mode);
-            if (c.r_temp_vec.cwiseAbs().maxCoeff() >= colinear_threshold_sqrt) {
-                append_flag = false; 
-                break;
-            }
-        }
-    
-        if (append_flag) {
-            for (int n : current_calculation_list) {
-                auto &c = cohorts[n];
-                append_row(c.sumstat_screened, c.sumstat.row(excluded_SNP[i]));
-                append_row(c.r, c.r_temp_vec.transpose());
-            }
-            
-            screened_SNP.push_back(excluded_SNP[i]); 
-            excluded_SNP.erase(excluded_SNP.begin()+i);
+
+void MACOJO::initialize_MDISA_from_MACOJO(Cohort &c) 
+{   
+    for (int i = backward_removed_SNP.size()-1; i >= 0; i--) {
+        c.calc_inner_product_with_SNP_list(candidate_SNP, backward_removed_SNP[i]);
+        
+        if (c.r_temp_vec.cwiseAbs().maxCoeff() < sqrt(colinear_threshold)) {
+            append_row(c.sumstat_screened, c.sumstat.row(backward_removed_SNP[i]));
+            append_row(c.r, c.r_temp_vec.transpose());
+            screened_SNP.push_back(backward_removed_SNP[i]); 
+            backward_removed_SNP.erase(backward_removed_SNP.begin()+i);
         }
     }
 }
@@ -323,7 +290,7 @@ void MACOJO::inverse_var_meta(bool if_conditional)
 void MACOJO::inverse_var_meta_joint() 
 {
     // merge: 0:b, 1:se2, 2:Zabs, 3:p
-    sumstat_new_model_joint.setZero(candidate_SNP.size(), 4);
+    sumstat_new_model_joint.setZero(candidate_SNP.size()+1, 4);
 
     if (current_calculation_list.size() == 1) {
         auto &c = cohorts[current_calculation_list[0]];

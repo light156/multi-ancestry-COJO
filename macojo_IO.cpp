@@ -118,6 +118,9 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
         } 
         else if (strcmp(argv[temp_num], "-colinear") == 0 && temp_num+1 < argc) {
             colinear_threshold = atof(argv[temp_num+1]);
+            if (colinear_threshold < 0 || colinear_threshold >= 1) 
+                LOGGER.e(0, "colinear_threshold should be between 0 and 1");
+
             temp_num += 2;
         } 
         else if (strcmp(argv[temp_num], "-R2") == 0 && temp_num+1 < argc) {
@@ -138,6 +141,9 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
         } 
         else if (strcmp(argv[temp_num], "-freq") == 0 && temp_num+1 < argc) {    
             freq_threshold = atof(argv[temp_num+1]);
+            if (freq_threshold < 0 || freq_threshold >= 0.5) 
+                LOGGER.e(0, "freq threshold should be between 0 and 0.5");
+
             temp_num += 2;
         } 
         else if (strcmp(argv[temp_num], "--freq_mode_and") == 0) {
@@ -160,14 +166,15 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
             if_cojo_joint = true;
             temp_num += 1;
         } 
+        else if (strcmp(argv[temp_num], "--fill_NA") == 0) {
+            if_fill_NA = true;
+            temp_num += 1;
+        }
         else {
             show_tips();
             LOGGER.e(0, "Unknown option: " + string(argv[temp_num]));
         }
     }
-
-    colinear_threshold_sqrt = sqrt(colinear_threshold);
-    iter_colinear_threshold = 1 / (1 - colinear_threshold);
     
     LOGGER << "Threshold: 5e-8" << endl;
     LOGGER << "Colinearity threshold: " << colinear_threshold << endl;
@@ -186,6 +193,17 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
 
     if (!if_MDISA)
         LOGGER << endl << "Do not run MDISA after MACOJO" << endl;
+
+    if (if_fill_NA)
+        LOGGER << endl << "Fill NA with mean values for genotypes" << endl;
+
+    for (auto &c : cohorts) {
+        c.window_size = window_size;
+        c.if_fast_inv = if_fast_inv;
+        c.if_LD_mode = if_LD_mode;
+        c.if_fill_NA = if_fill_NA;
+        c.iter_colinear_threshold = 1 / (1 - colinear_threshold);
+    }
 
     LOGGER << "--------------------------------" << endl << endl;
 }
@@ -216,11 +234,12 @@ void MACOJO::show_tips()
     cout << "--freq_mode_and: only keep SNPs that reach frequency threshold in sumstat files of all cohorts (default: at least one cohort)" << endl;   
     cout << "--LD: read .ld files instead of .bed files, please refer to GitHub for details" << endl;
     cout << "--no_MDISA: do not run MDISA after multi-ancestry COJO (can be ignored for single ancestry)" << endl;
+    cout << "--fill_NA: fill NA with mean values for genotypes during inner product calculation (default: no filling)" << endl;
+    cout << "--cojo-joint: only output for provided fixed candidate SNPs and exit" << endl;
     cout << "-iter_num: total iteration number (default: 10000)" << endl;
     
     // below are some trivial features, hidden in the usage tips 
     // cout << "--no_fast_inv: use normal matrix inverse (default: use fast inverse)" << endl;
-    // cout << "--cojo-joint: only output for provided fixed candidate SNPs and exit" << endl;
 
     cout << endl;
 }
