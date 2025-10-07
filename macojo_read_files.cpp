@@ -169,7 +169,7 @@ void Cohort::read_sumstat(string sumstatfile)
             continue;
 
         if (b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
-            p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || stod(N_buf) < 10) {
+            p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || atof(N_buf.c_str()) < 10) {
             LOGGER.w(1, "removed, invalid value in sumstat file [" + sumstatfile + "]", SNP_buf);
             MACOJO::commonSNP_index_map.erase(iter);
             continue;
