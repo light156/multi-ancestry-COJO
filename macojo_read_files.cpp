@@ -229,29 +229,31 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     map<string, int>::iterator iter;
     uint64_t ref_index, X_start_index;
 
-    bool swap;
-    double SNP_sum, SNP_square_sum, not_NA_indi_num, SNP_avg, SNP_std;
-    
     X_A1.resize(MACOJO::commonSNP_total_num * indi_num);
     X_A2.resize(MACOJO::commonSNP_total_num * indi_num);
-    X_avg.resize(MACOJO::commonSNP_total_num);
-    X_std.resize(MACOJO::commonSNP_total_num);
+
+    if (if_fill_NA) {
+        X_avg.resize(MACOJO::commonSNP_total_num);
+        X_std.resize(MACOJO::commonSNP_total_num);
+    }
 
     int bytes_per_snp = (indi_num + 3) / 4;
     vector<unsigned char> buffer(bytes_per_snp);
+
+    int bad_freq_count = 0;
 
     while (Bim) {
         Bim >> str_buf;
         if (Bim.eof()) break;
         Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
 
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) {
-            Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
-            continue;
-        }
+        Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
         
+        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) continue;
+
         ref_index = iter->second;
-        swap = false;
+        X_start_index = ref_index * indi_num;
+        bool swap = false;
         
         // check allele and position in BIM file with reference cohort
         if (!is_ref_cohort) {
@@ -264,28 +266,19 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             else {
                 LOGGER.w(1, "removed, A1 and A2 different between two BIM files, please check", SNP_buf);
                 MACOJO::commonSNP_index_map.erase(iter);
-                Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
                 continue;
             }
             
             if (ibuf != MACOJO::SNP_pos_ref[ref_index]) {
                 LOGGER.w(1, "removed, SNP position different between two BIM files, please check", SNP_buf);
                 MACOJO::commonSNP_index_map.erase(iter);
-                Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
                 continue;
             }      
         }
         
-        X_start_index = ref_index * indi_num;
-        SNP_sum = 0; 
-        SNP_square_sum = 0; 
-        not_NA_indi_num = 0;
-        
         // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
-        Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
-        if (!Bed) LOGGER.e(0, "problem with the BED file ... has the FAM/BIM file been changed?");
-
         const auto& LUT = swap ? LUT_swapped : LUT_normal;
+        double SNP_sum = 0, SNP_square_sum = 0, not_NA_indi_num = 0;
 
         int i = 0;
         for (int j = 0; j < bytes_per_snp; j++) {
@@ -310,38 +303,36 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             continue;
         }
 
-        SNP_avg = SNP_sum/not_NA_indi_num;
-        SNP_std = sqrt((SNP_square_sum-SNP_avg*SNP_avg*not_NA_indi_num)/(indi_num-1));
-
-        if (SNP_std < 1e-5) {
-            // LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
+        double SNP_avg = SNP_sum/not_NA_indi_num;
+        
+        if (abs(sumstat(ref_index, 3) - SNP_avg/2) > 0.2) {
+            // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
+            bad_freq_count++;
             MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
         
-        /*
-        double denom = sqrt(sumstat(ref_index, 3)*(1-sumstat(ref_index, 3))/2.0/sumstat(ref_index, 4) + 
-                        SNP_avg/2*(1-SNP_avg/2)/2.0/not_NA_indi_num);
 
-        cout << sumstat(ref_index, 3) << " " << SNP_avg/2 << " " 
-            << denom << " " << abs(sumstat(ref_index, 3) - SNP_avg/2) / denom / sqrt(2) << endl;
-
-        if (erfc(abs(sumstat(ref_index, 3) - SNP_avg/2) / denom / sqrt(2)) < 0.05) {
-            LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile (p<0.05)", SNP_buf);
+        if (not_NA_indi_num*SNP_square_sum - SNP_sum*SNP_sum < 0.5) {
+            LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
             MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
-        */
-
-        X_avg[ref_index] = SNP_avg;
-        X_std[ref_index] = SNP_std;
+        
+        if (if_fill_NA) {
+            X_avg[ref_index] = SNP_avg;
+            X_std[ref_index] = sqrt((SNP_square_sum-SNP_avg*SNP_avg*not_NA_indi_num)/(indi_num-1));
+        }
     }
 
     Bim.clear();
     Bim.close();
     Bed.clear();
     Bed.close();
+
     LOGGER << "Finished reading PLINK file" << endl;
+    if (bad_freq_count > 0)
+        LOGGER.w(1, "SNPs removed due to allele frequency too different between sumstat and bedfile", to_string(bad_freq_count));
 }
 
 
