@@ -52,6 +52,7 @@ For one cohort, your command should be like
 |                   | By default, keep SNPs that reach threshold in at least one cohort.            |                     |
 | `--no_MDISA`      | Skip running MDISA after Manc-COJO.                                           |                     |
 | `--LD`            | Read PLINK .ld files instead of PLINK .bed files.                             |                     |
+| `--cojo-joint`    | Only output for provided fixed candidate SNPs and exit.                       |                     |
 | `-iter_num`       | Maximum number of iterations.                                                 | `10000`             |
 
 ## A Mock Example: Three Ancestries with HapMap3 SNPs and 20Mb Window; skip running MDISA
