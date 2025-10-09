@@ -170,6 +170,10 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
             if_fill_NA = true;
             temp_num += 1;
         }
+        else if (strcmp(argv[temp_num], "--gcta") == 0) {
+            if_gcta_COJO = true;
+            temp_num += 1;
+        }
         else {
             show_tips();
             LOGGER.e(0, "Unknown option: " + string(argv[temp_num]));
@@ -202,6 +206,7 @@ void MACOJO::read_user_hyperparameters(int argc, char** argv)
         c.if_fast_inv = if_fast_inv;
         c.if_LD_mode = if_LD_mode;
         c.if_fill_NA = if_fill_NA;
+        c.if_gcta_COJO = if_gcta_COJO;
         c.iter_colinear_threshold = 1 / (1 - colinear_threshold);
     }
 
@@ -237,6 +242,7 @@ void MACOJO::show_tips()
     cout << "--fill_NA: fill NA with mean values for genotypes during inner product calculation (default: no filling)" << endl;
     cout << "--cojo-joint: only output for provided fixed candidate SNPs and exit" << endl;
     cout << "-iter_num: total iteration number (default: 10000)" << endl;
+    cout << "--gcta: use GCTA-COJO model selection criteria (default: do not use)" << endl;
     
     // below are some trivial features, hidden in the usage tips 
     // cout << "--no_fast_inv: use normal matrix inverse (default: use fast inverse)" << endl;

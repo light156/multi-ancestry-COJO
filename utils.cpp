@@ -1,27 +1,50 @@
 #include "macojo.h"
 
 
+double calc_inner_product(const ArrayXd &vec1, const ArrayXd &vec2, bool if_fill_NA)
+{   
+    if (if_fill_NA)
+        return (vec1 * vec2).sum();
+
+    double s1=0, s2=0, s12=0, s11=0, s22=0, n=0;
+    int indi_num = vec1.size();
+
+    for (int k = 0; k < indi_num; k++) {
+        if (vec1(k) > -5 && vec2(k) > -5) {
+            s1 += vec1(k);
+            s2 += vec2(k);
+            s12 += vec1(k) * vec2(k);
+            s11 += vec1(k) * vec1(k);
+            s22 += vec2(k) * vec2(k);
+            n++;
+        }
+    }
+
+    return (n*s12 - s1*s2) / sqrt((n*s11 - s1*s1)*(n*s22 - s2*s2));
+}
+
+
+double median(const vector<double> &v)
+{
+    int size = v.size();
+	if (size == 0) return 0.0;
+
+    vector<double> b(v);
+    sort(b.begin(), b.end());
+	return (size%2==1) ? b[(size-1)/2] : (b[size/2]+b[size/2-1])/2;
+}
+
+
 double median(const ArrayXd &eigen_vector)
 {
-    int size = eigen_vector.size();
-    vector<double> b(eigen_vector.data(), eigen_vector.data() + size);
-    double b_median; 
-
-    sort(b.begin(), b.end());
-    if (size%2==1)
-        b_median = b[(size-1)/2];
-    else 
-        b_median = (b[size/2]+b[size/2-1])/2;
-
-    vector<double>().swap(b);
-    return b_median;
+    vector<double> v(eigen_vector.data(), eigen_vector.data() + eigen_vector.size());
+    return median(v);
 }
 
 
 void to_upper(string &str)
 {
-	int i=0;
-	for(i=0; i<str.size(); i++){
+	for(int i=0; i<str.size(); i++){
 		if(str[i]>='a' && str[i]<='z') str[i]+='A'-'a';
 	}
 }
@@ -32,18 +55,17 @@ int split_string(const string &str, vector<string> &vec_str, string separator)
 	if(str.empty()) return 0;
 	vec_str.clear();
 
-	int i=0;
 	bool look=false;
 	string str_buf;
 	string symbol_pool="`1234567890-=~!@#$%^&*()_+qwertyuiop[]\\asdfghjkl;'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>? \t\n";
 	string::size_type pos;
 
-	for(i=0; i<separator.size(); i++){
+	for(int i=0; i<separator.size(); i++){
 		pos=symbol_pool.find(separator[i]);
 		if( pos!=string::npos ) symbol_pool.erase(symbol_pool.begin()+pos);
 	}
 
-	for(i=0; i<str.size(); i++){
+	for(int i=0; i<str.size(); i++){
 		if( symbol_pool.find(str[i])!=string::npos ){
 			if(!look) look=true;
 			str_buf += str[i];

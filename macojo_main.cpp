@@ -59,6 +59,7 @@ void MACOJO::initialize_main_loop()
     for (int i = 0; i < final_commonSNP.size(); i++)
         screened_SNP[i] = i;
 
+    /*
     // deal with cases where user provides fixed candidate SNPs
     list<int> candidate_SNP_index;
     for (const auto &SNP_name : fixed_candidate_SNP) {
@@ -83,6 +84,10 @@ void MACOJO::initialize_main_loop()
             if (candidate_SNP.size() == 0) {
                 c.output_b = c.sumstat_candidate.col(0);
                 c.output_se2 = c.sumstat_candidate.col(1);
+                if (if_gcta_COJO) {
+                    c.R_pre(0,0) = c.sumstat_candidate(0,6);
+                    c.R_inv_pre(0,0) = 1.0 / c.R_pre(0,0);
+                }
             } else {
                 c.calc_inner_product_with_SNP_list(candidate_SNP, single_index);
                 if (c.r_temp_vec.cwiseAbs().maxCoeff() >= sqrt(colinear_threshold))
@@ -102,35 +107,34 @@ void MACOJO::initialize_main_loop()
         else
             candidate_SNP.push_back(single_index);
     }
-
+    */
     fixed_candidate_SNP_num = candidate_SNP.size();
-    LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
+    if (fixed_candidate_SNP_num > 0)
+        LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
 }
 
 
 void MACOJO::main_loop() 
 {   
     int max_screened_index;
+    string max_SNP_name;
 
     if (candidate_SNP.size() == 0) {
         LOGGER.i(0, "No candidate SNPs, using the most significant SNP as the first candidate");
 
-        inverse_var_meta(false);
+        inverse_var_meta_init();
 
         sumstat_merge.col(2).maxCoeff(&max_screened_index);
         if (sumstat_merge(max_screened_index, 3) > threshold)
             LOGGER.e(0, "Input data has no significant SNPs");
 
-        for (int n : current_calculation_list) {
-            auto &c = cohorts[n];
-            c.sumstat_candidate = c.sumstat_screened.row(max_screened_index);
-            c.output_b = c.sumstat_candidate.col(0);
-            c.output_se2 = c.sumstat_candidate.col(1);
-        }
+        for (int n : current_calculation_list) 
+            cohorts[n].sumstat_candidate = cohorts[n].sumstat_screened.row(max_screened_index);
         
         accept_SNP_as_candidate(max_screened_index);
 
-        LOGGER.i(0, "First SNP", final_commonSNP[screened_SNP[max_screened_index]]);
+        max_SNP_name = final_commonSNP[screened_SNP[max_screened_index]];
+        LOGGER.i(0, "First SNP", max_SNP_name);
         LOGGER << "p-value: " << scientific << sumstat_merge(max_screened_index, 3) << endl;
         LOGGER << "--------------------------------" << endl;
     }
@@ -145,7 +149,7 @@ void MACOJO::main_loop()
         for (int n : current_calculation_list)
             cohorts[n].calc_conditional_effects();
 
-        inverse_var_meta(true);
+        inverse_var_meta_conditional();
         
         while (true) {
             // select maximal SNP
@@ -155,40 +159,51 @@ void MACOJO::main_loop()
                 loop_break_indicator = true;
                 break;
             }
-            
-            string max_SNP_name = final_commonSNP[screened_SNP[max_screened_index]];
+
+            max_SNP_name = final_commonSNP[screened_SNP[max_screened_index]];
             
             // calculate joint effects
-            bool fail_flag = false;
+            int finished_cohort_num = 0;
 
-            for (int n : current_calculation_list)
+            for (int n : current_calculation_list) {
+                cohorts[n].calc_inner_product_with_SNP_list(candidate_SNP, cohorts[n].sumstat_candidate, screened_SNP[max_screened_index]);
                 append_row(cohorts[n].sumstat_candidate, cohorts[n].sumstat_screened.row(max_screened_index));
-            
+            }
+
             for (int n : current_calculation_list) {
                 auto &c = cohorts[n];
 
-                c.calc_inner_product_with_SNP_list(candidate_SNP, screened_SNP[max_screened_index]);
-                if (c.r_temp_vec.cwiseAbs().maxCoeff() >= sqrt(colinear_threshold)) {
+                if (c.sumstat_screened(max_screened_index, 6) > 1e10) {
+                    // LOGGER.w(1, "removed, adjusted N too large", max_SNP_name);
+                    break;
+                }
+
+                if (c.r_temp_vec_plain.cwiseAbs().maxCoeff() >= sqrt(colinear_threshold)) {
                     // LOGGER.w(1, "removed, colinear with existing candidate SNPs", max_SNP_name);
-                    fail_flag = true;
                     break;
                 }
 
-                c.calc_R_inv();
-                if (!c.calc_joint_effects(c.sumstat_candidate)) {
-                    // LOGGER.w(1, "NA produced, potentially due to colinearity", max_SNP_name);
-                    fail_flag = true;
+                if (!c.calc_R_inv()) {
+                    // LOGGER.w(1, "removed, NA produced during R inverse calculation", max_SNP_name);
                     break;
                 }
 
-                if (c.R2 < (1+R2_incremental_threshold) * c.previous_R2) {
+                c.calc_joint_effects(c.sumstat_candidate);
+
+                if (c.beta_var.minCoeff() <= 1e-30) {
+                    // LOGGER.w(1, "removed, joint se too small", max_SNP_name);
+                    break;
+                }
+
+                if (!if_gcta_COJO && c.R2 < (1+R2_incremental_threshold) * c.previous_R2) {
                     // LOGGER.w(1, "R2 increment unsatisfactory", max_SNP_name);
-                    fail_flag = true;
                     break;
                 }
+                    
+                finished_cohort_num++;
             }
 
-            if (fail_flag) {
+            if (finished_cohort_num < current_calculation_list.size()) {
                 for (int n : current_calculation_list)
                     remove_row(cohorts[n].sumstat_candidate);
 
@@ -205,16 +220,9 @@ void MACOJO::main_loop()
                 accept_SNP_as_candidate(max_screened_index);
 
                 int M = candidate_SNP.size();
-                for (int n : current_calculation_list)
-                    LOGGER << "Added diagonal value cohort " << n+1 << ": " << cohorts[n].R_inv_post(M-1, M-1) << endl;
-
                 LOGGER << "Joint b: " << sumstat_new_model_joint(M-1, 0) << endl;
                 LOGGER << "Joint se: " << sqrt(sumstat_new_model_joint(M-1, 1)) << endl;
                 LOGGER << "Joint p-value: " << scientific << sumstat_new_model_joint(M-1, 3) << endl;
-                
-                for (int n : current_calculation_list)
-                    LOGGER << "Adjusted R2 for cohort " << n+1 << ": " << fixed << cohorts[n].R2 << endl;
-
                 break; 
             }
 
@@ -248,25 +256,31 @@ void MACOJO::main_loop()
                 continue;
             }
 
-            bool R2_backward_fail_flag = false;
+            finished_cohort_num = 0;
 
             for (int n : current_calculation_list) {
                 auto &c = cohorts[n];
-                c.calc_R_inv_from_SNP_list(backward_new_model_candidate);
-                if (!c.calc_joint_effects(c.sumstat_backward_new_model)) {
-                    LOGGER.w(0, "Backward selection failed, colinear SNPs in backward model", max_SNP_name);
-                    R2_backward_fail_flag = true;
+                if (!c.calc_R_inv_from_SNP_list(backward_new_model_candidate, c.sumstat_backward_new_model)) {
+                    LOGGER.w(0, "Backward selection failed, NA produced during R inverse calculation", max_SNP_name);
                     break;
                 }
 
-                if (c.R2 < (1+R2_incremental_threshold_backwards) * c.previous_R2) {
-                    LOGGER.w(0, "Backward selection failed, adjusted R2 lower than threshold", max_SNP_name);
-                    R2_backward_fail_flag = true;
+                c.calc_joint_effects(c.sumstat_backward_new_model);
+                
+                if (c.beta_var.minCoeff() <= 1e-30) {
+                    LOGGER.w(0, "Backward selection failed, se too small", max_SNP_name);
                     break;
                 }
+
+                if (!if_gcta_COJO && c.R2 < (1+R2_incremental_threshold_backwards) * c.previous_R2) {
+                    LOGGER.w(0, "Backward selection failed, adjusted R2 lower than threshold", max_SNP_name);
+                    break;
+                }
+
+                finished_cohort_num++;
             }
 
-            if (R2_backward_fail_flag) {
+            if (finished_cohort_num < current_calculation_list.size()) {
                 for (int n : current_calculation_list) 
                     remove_row(cohorts[n].sumstat_candidate);
 
@@ -277,15 +291,8 @@ void MACOJO::main_loop()
             LOGGER.i(0, "Backward selection succeeded", max_SNP_name); 
             accept_SNP_as_candidate(max_screened_index);
             adjust_SNP_according_to_backward_selection();
-
-            for (int n : current_calculation_list)
-                LOGGER << "Adjusted R2 for cohort " << n+1 << ": " << fixed << cohorts[n].R2 << endl;
-
             break;
         }
-
-        if (!loop_break_indicator)
-            save_temp_model();
 
         LOGGER << "iter " << ++iter_num << " finished" << endl;
         LOGGER << "--------------------------------" << endl;

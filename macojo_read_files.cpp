@@ -159,23 +159,12 @@ void Cohort::read_sumstat(string sumstatfile)
     int ref_index;
 
     sumstat.resize(MACOJO::commonSNP_total_num, 7);
+    vector<double> Vp_gcta_list;
     
     while (Meta) {
         Meta >> SNP_buf;
         if (Meta.eof()) break;
         Meta >> A1_buf >> A2_buf >> freq_buf >> b_buf >> se_buf >> p_buf >> N_buf;
-
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) 
-            continue;
-
-        if (b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
-            p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || atof(N_buf.c_str()) < 10) {
-            LOGGER.w(1, "removed, invalid value in sumstat file [" + sumstatfile + "]", SNP_buf);
-            MACOJO::commonSNP_index_map.erase(iter);
-            continue;
-        }
-        
-        ref_index = iter->second;
 
         to_upper(A1_buf);
         to_upper(A2_buf);
@@ -185,6 +174,23 @@ void Cohort::read_sumstat(string sumstatfile)
         p = atof(p_buf.c_str());
         N = atof(N_buf.c_str());
         
+        if ((b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
+            p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || N < 10)) { 
+            if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) != MACOJO::commonSNP_index_map.end()) {
+                LOGGER.w(1, "removed, invalid value in sumstat file [" + sumstatfile + "]", SNP_buf);
+                MACOJO::commonSNP_index_map.erase(iter);
+            }
+            continue;
+        } 
+
+        double h = 2 * freq * (1 - freq);
+        Vp_gcta_list.push_back(h * N * se * se + h * b * b * N / (N - 1.0));
+
+        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) 
+            continue;
+
+        ref_index = iter->second;
+
         if (MACOJO::A1_ref[ref_index] == A1_buf || MACOJO::A2_ref[ref_index] == A2_buf);
         else if (MACOJO::A1_ref[ref_index] == A2_buf && MACOJO::A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
         else {
@@ -203,6 +209,7 @@ void Cohort::read_sumstat(string sumstatfile)
 
     Meta.clear();
     Meta.close();
+    Vp = median(Vp_gcta_list);
 }
 
 
@@ -232,7 +239,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     X_A1.resize(MACOJO::commonSNP_total_num * indi_num);
     X_A2.resize(MACOJO::commonSNP_total_num * indi_num);
 
-    if (if_fill_NA) {
+    if (if_gcta_COJO) {
         X_avg.resize(MACOJO::commonSNP_total_num);
         X_std.resize(MACOJO::commonSNP_total_num);
     }
@@ -304,7 +311,6 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         }
 
         double SNP_avg = SNP_sum/not_NA_indi_num;
-        
         if (abs(sumstat(ref_index, 3) - SNP_avg/2) > 0.2) {
             // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
             bad_freq_count++;
@@ -312,16 +318,16 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             continue;
         }
         
-
-        if (not_NA_indi_num*SNP_square_sum - SNP_sum*SNP_sum < 0.5) {
+        double SSPD = not_NA_indi_num*SNP_square_sum - SNP_sum*SNP_sum;
+        if (SSPD < 0.5) {
             LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
             MACOJO::commonSNP_index_map.erase(iter);
             continue;
         }
         
-        if (if_fill_NA) {
+        if (if_gcta_COJO || if_fill_NA) {
             X_avg[ref_index] = SNP_avg;
-            X_std[ref_index] = sqrt((SNP_square_sum-SNP_avg*SNP_avg*not_NA_indi_num)/(indi_num-1));
+            X_std[ref_index] = sqrt(SSPD/not_NA_indi_num);
         }
     }
 
@@ -431,20 +437,25 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
 }
 
 
-void Cohort::calc_Vp() 
+void Cohort::calc_adjusted_N() 
 {   
     ArrayXXd &s = sumstat_screened;
 
     // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
     s.col(5) = s.col(3) * (1-s.col(3)) * 2;
-    ArrayXd Vp_gcta_list = s.col(5) * s.col(4) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
-    Vp = median(Vp_gcta_list);
+
+    if (!if_gcta_COJO) {
+        ArrayXd Vp_gcta_list = s.col(5) * s.col(4) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
+        Vp = median(Vp_gcta_list);
+    }
 
     s.col(4) = (Vp - s.col(5)*square(s.col(0))) / (s.col(5)*s.col(1)) + 1;
     s.col(6) = s.col(4) * s.col(5);
 
-    Vp_gcta_list = s.col(6) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
-    Vp = median(Vp_gcta_list);
+    if (!if_gcta_COJO) {
+        ArrayXd Vp_gcta_list = s.col(6) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
+        Vp = median(Vp_gcta_list);
+    }
 }
 
 
@@ -567,7 +578,7 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
     }
 
-    LOGGER.i(0, "common SNPs after reading PLINK files", to_string(commonSNP_index_map.size()));
+    LOGGER.i(0, "common SNPs at last for iterative selection", to_string(commonSNP_index_map.size()));
     
     // Step 5: clean sumstat for all cohorts
     for (auto &c : cohorts)
@@ -585,14 +596,14 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
     
     for (int n=0; n<cohort_num; n++) {
         auto &c = cohorts[n];
-        c.calc_Vp();
+        c.calc_adjusted_N();
         c.sumstat = c.sumstat_screened;
         LOGGER << "Vp Cohort " << n+1 << ": " << c.Vp << endl;
     }
       
     commonSNP_total_num = commonSNP_index_map.size();
     LOGGER << "--------------------------------" << endl << endl;
-
+    
     /*
     // check if X and LD give same results
     for (auto &c : cohorts) {

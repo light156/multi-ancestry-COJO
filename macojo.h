@@ -18,6 +18,8 @@ using namespace std;
 void to_upper(string &str);
 int split_string(const string &str, vector<string> &vec_str, string separator=" ,\t;\n");
 double median(const ArrayXd &eigen_vector);
+double median(const vector<double> &v);
+double calc_inner_product(const ArrayXd &vec1, const ArrayXd &vec2, bool if_fill_NA);
 
 void append_row(ArrayXXd &matrix, const ArrayXXd &vector);
 void append_row(MatrixXd &matrix, const MatrixXd &vector);
@@ -35,14 +37,14 @@ public:
     void read_PLINK_LD(string PLINKfile, bool is_ref_cohort);
     void skim_fam(string famFile);
 
-    void get_vector_from_bed_matrix(int index, VectorXd &vec);
-    void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index);
+    void get_vector_from_bed_matrix(int index, ArrayXd &vec);
+    void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, const ArrayXXd &sumstat_temp, int single_index);
 
     void calc_conditional_effects();
-    bool calc_joint_effects(const ArrayXXd &sumstat_temp);    
-    void calc_Vp();
-    void calc_R_inv();
-    void calc_R_inv_from_SNP_list(const vector<int> &SNP_list);
+    void calc_joint_effects(const ArrayXXd &sumstat_temp);    
+    void calc_adjusted_N();
+    bool calc_R_inv();
+    bool calc_R_inv_from_SNP_list(const vector<int> &SNP_list, const ArrayXXd &sumstat_temp);
 
 public:
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
@@ -56,11 +58,11 @@ public:
     // necessary information during calculation
     MatrixXd r, R_inv_post, R_post, R_inv_pre = MatrixXd::Identity(1,1), R_pre = MatrixXd::Identity(1,1);
     ArrayXd conditional_beta, beta, beta_var;
-    VectorXd X_temp_vec, r_temp_vec;
+    ArrayXd X_temp_vec;
+    VectorXd r_temp_vec, r_temp_vec_plain;
 
     // final output
     ArrayXd output_b, output_se2;
-    
     double Vp, R2, previous_R2 = 0.0;
     uint64_t indi_num;
 
@@ -69,6 +71,7 @@ public:
     bool if_fast_inv;
     bool if_LD_mode;
     bool if_fill_NA;
+    bool if_gcta_COJO;
     double iter_colinear_threshold;
 };
 
@@ -92,11 +95,11 @@ public:
 
     void initialize_main_loop();
     void main_loop();
-    void inverse_var_meta(bool if_conditional);
+    void inverse_var_meta_init();
+    void inverse_var_meta_conditional();
     void inverse_var_meta_joint();
     void accept_SNP_as_candidate(int screened_index);
     void adjust_SNP_according_to_backward_selection();
-    void save_temp_model();
     
     void initialize_MDISA_from_MACOJO(Cohort &c);
     void output_results_to_file(string filepath);
@@ -127,6 +130,8 @@ public:
     bool if_cojo_joint = false;
     bool if_LD_mode = false;
     bool if_fill_NA = false;
+
+    bool if_gcta_COJO = false;
 
 public:
     vector<string> all_SNP, fixed_candidate_SNP;
