@@ -1,5 +1,7 @@
 /*
-Modified from the original GCTA logger class
+Modified from the original logger class and other small functions in GCTA(https://github.com/jianyangqt/gcta)
+Below are the original comments:
+
    GCTA: a tool for Genome-wide Complex Trait Analysis
 
    Global Singleton logger system with robust functions and thread safe.
@@ -37,10 +39,12 @@ Modified from the original GCTA logger class
 #include <ios>
 #include <chrono>
 #include <iostream>
+#include <vector>
 #define LOGGER (*Logger::GetLogger())
 #define LOGGER_P Logger::GetLogger()
 using std::string;
 using std::endl;
+using std::vector;
 
 class Logger {
 public:
@@ -95,5 +99,9 @@ private:
     static Logger* m_pThis;
     static std::ofstream m_logFile;
 };
+
+
+void to_upper(string &str);
+int split_string(const string &str, std::vector<string> &vec_str, string separator=" ,\t;\n");
 
 #endif //GCTA2_LOGGER_H

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
-// #include <stdexcept>
+#include <stdexcept>
 
 
 class BitArray 
@@ -16,7 +16,7 @@ public:
     }
 
     inline void set(uint64_t idx, bool value) {
-        // if (idx >= n_bits_) throw std::out_of_range("BitArray::set");
+        if (idx >= n_bits_) throw std::out_of_range("BitArray::set");
         uint64_t word = idx >> 6;
         uint64_t bit  = idx & 63;
         uint64_t mask = 1ULL << bit;
@@ -27,7 +27,7 @@ public:
     }
 
     inline bool get(uint64_t idx) const {
-        // if (idx >= n_bits_) throw std::out_of_range("BitArray::get");
+        if (idx >= n_bits_) throw std::out_of_range("BitArray::get");
         uint64_t word = idx >> 6;
         uint64_t bit  = idx & 63;
         return (data_[word] >> bit) & 1ULL;

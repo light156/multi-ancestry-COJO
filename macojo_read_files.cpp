@@ -158,7 +158,8 @@ void Cohort::read_sumstat(string sumstatfile)
     map<string, int>::iterator iter;
     int ref_index;
 
-    sumstat.resize(MACOJO::commonSNP_total_num, 7);
+    sumstat_screened.resize(MACOJO::commonSNP_total_num, 9);
+    sumstat_screened.col(8).setOnes(); // col 8: X_norm_square, initialized as 1
     vector<double> Vp_gcta_list;
     
     while (Meta) {
@@ -199,12 +200,12 @@ void Cohort::read_sumstat(string sumstatfile)
             continue;
         } 
 
-        // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
-        sumstat(ref_index, 0) = b;
-        sumstat(ref_index, 1) = se * se;
-        sumstat(ref_index, 2) = p;
-        sumstat(ref_index, 3) = freq;
-        sumstat(ref_index, 4) = N;
+        // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D, 7:X_avg, 8:X_norm_square
+        sumstat_screened(ref_index, 0) = b;
+        sumstat_screened(ref_index, 1) = se * se;
+        sumstat_screened(ref_index, 2) = p;
+        sumstat_screened(ref_index, 3) = freq;
+        sumstat_screened(ref_index, 4) = N;
     }
 
     Meta.clear();
@@ -238,11 +239,6 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
 
     X_A1.resize(MACOJO::commonSNP_total_num * indi_num);
     X_A2.resize(MACOJO::commonSNP_total_num * indi_num);
-
-    if (if_gcta_COJO) {
-        X_avg.resize(MACOJO::commonSNP_total_num);
-        X_std.resize(MACOJO::commonSNP_total_num);
-    }
 
     int bytes_per_snp = (indi_num + 3) / 4;
     vector<unsigned char> buffer(bytes_per_snp);
@@ -311,7 +307,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         }
 
         double SNP_avg = SNP_sum/not_NA_indi_num;
-        if (abs(sumstat(ref_index, 3) - SNP_avg/2) > 0.2) {
+        if (abs(sumstat_screened(ref_index, 3) - SNP_avg/2) > 0.2) {
             // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
             bad_freq_count++;
             MACOJO::commonSNP_index_map.erase(iter);
@@ -325,9 +321,9 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             continue;
         }
         
-        if (if_gcta_COJO || if_fill_NA) {
-            X_avg[ref_index] = SNP_avg;
-            X_std[ref_index] = sqrt(SSPD/not_NA_indi_num);
+        if (!if_keep_NA) {
+            sumstat_screened(ref_index, 7) = SNP_avg;
+            sumstat_screened(ref_index, 8) = SSPD/not_NA_indi_num; // this is actually variance*(n-1)
         }
     }
 
@@ -441,7 +437,7 @@ void Cohort::calc_adjusted_N()
 {   
     ArrayXXd &s = sumstat_screened;
 
-    // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D 
+    // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D, 7:X_avg, 8:X_norm_square 
     s.col(5) = s.col(3) * (1-s.col(3)) * 2;
 
     if (!if_gcta_COJO) {
@@ -531,25 +527,23 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
 
     // exclude rare SNPs based on freq_threshold
     for (auto iter = commonSNP_index_map.begin(); iter != commonSNP_index_map.end(); ) {
-        bool erase_flag;
+        bool erase_flag = !if_freq_mode_and;
 
-        if (if_freq_mode_or) {
-            erase_flag = true;
+        if (if_freq_mode_and) {
             for (auto &c : cohorts) {
-                if (c.sumstat(iter->second, 3) >= freq_threshold && c.sumstat(iter->second, 3) <= 1-freq_threshold) {
-                    erase_flag = false; 
-                    break;
-                }
-            }
-        } else {
-            erase_flag = false;
-            for (auto &c : cohorts) {
-                if (c.sumstat(iter->second, 3) < freq_threshold || c.sumstat(iter->second, 3) > 1-freq_threshold) {
+                if (c.sumstat_screened(iter->second, 3) < freq_threshold || c.sumstat_screened(iter->second, 3) > 1-freq_threshold) {
                     erase_flag = true; 
                     break;
                 }
             }
-        }
+        } else {
+            for (auto &c : cohorts) {
+                if (c.sumstat_screened(iter->second, 3) >= freq_threshold && c.sumstat_screened(iter->second, 3) <= 1-freq_threshold) {
+                    erase_flag = false; 
+                    break;
+                }
+            }
+        } 
         
         if (erase_flag)
             iter = commonSNP_index_map.erase(iter);
@@ -572,36 +566,38 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
     
         if (if_LD_mode)
             cohorts[n].read_PLINK_LD(filenames[n*2+1], n==0);
-        else
+        else {
             cohorts[n].read_PLINK(filenames[n*2+1], n==0);
-        
+            cohorts[n].X_avg = cohorts[n].sumstat_screened.col(7);
+            cohorts[n].X_square = cohorts[n].sumstat_screened.col(8);
+        }
+           
         LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
     }
 
-    LOGGER.i(0, "common SNPs at last for iterative selection", to_string(commonSNP_index_map.size()));
+    commonSNP_total_num = commonSNP_index_map.size();
+    LOGGER.i(0, "common SNPs at last for iterative selection", to_string(commonSNP_total_num));
     
-    // Step 5: clean sumstat for all cohorts
-    for (auto &c : cohorts)
-        c.sumstat_screened.setZero(commonSNP_index_map.size(), 7);
-        
-    temp_index = 0;
-
-    for (auto iter = commonSNP_index_map.begin(); iter != commonSNP_index_map.end(); temp_index++, iter++) {
+    // Step 5: clean sumstat for all cohorts and finalize common SNP list
+    for (auto iter = commonSNP_index_map.begin(); iter != commonSNP_index_map.end(); iter++) {
         final_commonSNP.push_back(iter->first);
         final_commonSNP_index.push_back(iter->second);
-        
-        for (auto &c : cohorts)
-            c.sumstat_screened.row(temp_index) = c.sumstat.row(iter->second);
-    } 
+    }
     
+    ArrayXXd temp;
     for (int n=0; n<cohort_num; n++) {
         auto &c = cohorts[n];
-        c.calc_adjusted_N();
-        c.sumstat = c.sumstat_screened;
+        temp.setZero(commonSNP_total_num, 9);
+
+        #pragma omp parallel for
+        for (int i = 0; i < commonSNP_total_num; i++)
+            temp.row(i) = c.sumstat_screened.row(final_commonSNP_index[i]); 
+
+        c.sumstat_screened = temp; // 0,1,2,3,4,7,8 are filled, 5,6 are to be calculated
+        c.calc_adjusted_N(); // 5,6 are filled, 4 is adjusted
         LOGGER << "Vp Cohort " << n+1 << ": " << c.Vp << endl;
     }
-      
-    commonSNP_total_num = commonSNP_index_map.size();
+
     LOGGER << "--------------------------------" << endl << endl;
     
     /*
