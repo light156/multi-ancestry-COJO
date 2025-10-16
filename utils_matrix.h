@@ -15,20 +15,15 @@ double median(const ArrayXd &eigen_vector);
 double calc_inner_product(const ArrayXd &vec1, const ArrayXd &vec2, bool if_keep_NA);
 
 // Fast Schur-complement-based block inverse update
-bool calc_block_inverse_fast(
+bool calc_R_inverse_fast(
     const MatrixXd& R_inv_pre,
     const VectorXd& r_temp_vec,
     double lower_right_corner,
     double iter_colinear_threshold,
     MatrixXd& R_inv_post);
 
-void calc_block_inverse_fast(
-    const MatrixXd& R_inv_pre,
-    int remove_index,
-    MatrixXd& R_inv_post);
-
 // Exact LDLT-based block inverse (GCTA-style)
-bool calc_block_inverse_exact(
+bool calc_R_inverse_exact(
     const MatrixXd& R_pre,
     const VectorXd& r_temp_vec,
     double lower_right_corner,
@@ -36,14 +31,15 @@ bool calc_block_inverse_exact(
     MatrixXd& R_post,
     MatrixXd& R_inv_post,
     bool do_check,
-    const ArrayXd* scaling_vector=nullptr);
+    const ArrayXd& scaling_vector=ArrayXd());
 
-void calc_block_inverse_exact(
+void calc_R_inverse_backward(
     const MatrixXd& R_pre,
+    const MatrixXd& R_inv_pre,
     int remove_index,
     MatrixXd& R_post,
-    MatrixXd& R_inv_post);
-    
+    MatrixXd& R_inv_post,
+    bool if_fast_inv);
 
 // template functions for matrix manipulation   
 // Append a row: row must be 1 × N and match matrix.cols()
@@ -78,13 +74,11 @@ inline void append_column(PlainObjectBase<MatDerived>& matrix, const DenseBase<C
 
 // Remove a row by index (-1 for last row)
 template <typename Derived>
-inline void remove_row(PlainObjectBase<Derived> &matrix, typename Derived::Index index) 
+inline void remove_row(PlainObjectBase<Derived> &matrix, typename Derived::Index index=-1) 
 {
-    if (matrix.rows() == 0 || matrix.cols() == 0) return;
-
     typename Derived::Index numRows = matrix.rows() - 1;
 
-    if (numRows == 0) {
+    if (numRows <= 0 || matrix.cols() == 0) {
         matrix.resize(0, 0);
         return;
     }
@@ -96,13 +90,11 @@ inline void remove_row(PlainObjectBase<Derived> &matrix, typename Derived::Index
 }
 
 template <typename Derived>
-inline void remove_column(PlainObjectBase<Derived> &matrix, typename Derived::Index index) 
+inline void remove_column(PlainObjectBase<Derived> &matrix, typename Derived::Index index=-1) 
 {
-    if (matrix.rows() == 0 || matrix.cols() == 0) return;
-
     typename Derived::Index numCols = matrix.cols() - 1;
 
-    if (numCols == 0) {
+    if (numCols <= 0 || matrix.rows() == 0) {
         matrix.resize(0, 0);
         return;
     }

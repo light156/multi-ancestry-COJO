@@ -1,13 +1,6 @@
 #include "macojo.h"
 
 
-uint64_t MACOJO::commonSNP_total_num;
-map<string, int> MACOJO::commonSNP_index_map;
-vector<string> MACOJO::A1_ref, MACOJO::A2_ref;
-vector<int> MACOJO::SNP_pos_ref;
-vector<int> MACOJO::final_commonSNP_index;
-
-
 namespace {
     struct Entry {
         bool A1, A2;
@@ -126,16 +119,16 @@ void MACOJO::set_reference_from_bim(string PLINKfile)
         if (Bim.eof()) break;
         Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
 
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end())
+        if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end())
             continue;
         
         to_upper(A1_buf);
         to_upper(A2_buf);
 
         ref_index = iter->second;
-        A1_ref[ref_index] = A1_buf;
-        A2_ref[ref_index] = A2_buf;
-        SNP_pos_ref[ref_index] = ibuf;
+        shared.A1_ref[ref_index] = A1_buf;
+        shared.A2_ref[ref_index] = A2_buf;
+        shared.SNP_pos_ref[ref_index] = ibuf;
     }
 
     Bim.clear();
@@ -158,7 +151,7 @@ void Cohort::read_sumstat(string sumstatfile)
     map<string, int>::iterator iter;
     int ref_index;
 
-    sumstat_screened.resize(MACOJO::commonSNP_total_num, 9);
+    sumstat_screened.resize(shared.commonSNP_total_num, 9);
     sumstat_screened.col(8).setOnes(); // col 8: X_norm_square, initialized as 1
     vector<double> Vp_gcta_list;
     
@@ -177,9 +170,9 @@ void Cohort::read_sumstat(string sumstatfile)
         
         if ((b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
             p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || N < 10)) { 
-            if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) != MACOJO::commonSNP_index_map.end()) {
+            if ((iter = shared.commonSNP_index_map.find(SNP_buf)) != shared.commonSNP_index_map.end()) {
                 LOGGER.w(1, "removed, invalid value in sumstat file [" + sumstatfile + "]", SNP_buf);
-                MACOJO::commonSNP_index_map.erase(iter);
+                shared.commonSNP_index_map.erase(iter);
             }
             continue;
         } 
@@ -187,16 +180,16 @@ void Cohort::read_sumstat(string sumstatfile)
         double h = 2 * freq * (1 - freq);
         Vp_gcta_list.push_back(h * N * se * se + h * b * b * N / (N - 1.0));
 
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) 
+        if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) 
             continue;
 
         ref_index = iter->second;
 
-        if (MACOJO::A1_ref[ref_index] == A1_buf || MACOJO::A2_ref[ref_index] == A2_buf);
-        else if (MACOJO::A1_ref[ref_index] == A2_buf && MACOJO::A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
+        if (shared.A1_ref[ref_index] == A1_buf || shared.A2_ref[ref_index] == A2_buf);
+        else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
         else {
             LOGGER.w(1, "removed, A1 and A2 different from ref BIM file, please check", SNP_buf);
-            MACOJO::commonSNP_index_map.erase(iter);
+            shared.commonSNP_index_map.erase(iter);
             continue;
         } 
 
@@ -237,8 +230,8 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     map<string, int>::iterator iter;
     uint64_t ref_index, X_start_index;
 
-    X_A1.resize(MACOJO::commonSNP_total_num * indi_num);
-    X_A2.resize(MACOJO::commonSNP_total_num * indi_num);
+    X_A1.resize(shared.commonSNP_total_num * indi_num);
+    X_A2.resize(shared.commonSNP_total_num * indi_num);
 
     int bytes_per_snp = (indi_num + 3) / 4;
     vector<unsigned char> buffer(bytes_per_snp);
@@ -251,8 +244,8 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
 
         Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
-        
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end()) continue;
+
+        if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) continue;
 
         ref_index = iter->second;
         X_start_index = ref_index * indi_num;
@@ -263,18 +256,18 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             to_upper(A1_buf);
             to_upper(A2_buf);
 
-            if (MACOJO::A1_ref[ref_index] == A1_buf || MACOJO::A2_ref[ref_index] == A2_buf);
-            else if (MACOJO::A1_ref[ref_index] == A2_buf && MACOJO::A2_ref[ref_index] == A1_buf)
+            if (shared.A1_ref[ref_index] == A1_buf || shared.A2_ref[ref_index] == A2_buf);
+            else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf)
                 swap = true;
             else {
                 LOGGER.w(1, "removed, A1 and A2 different between two BIM files, please check", SNP_buf);
-                MACOJO::commonSNP_index_map.erase(iter);
+                shared.commonSNP_index_map.erase(iter);
                 continue;
             }
-            
-            if (ibuf != MACOJO::SNP_pos_ref[ref_index]) {
+
+            if (ibuf != shared.SNP_pos_ref[ref_index]) {
                 LOGGER.w(1, "removed, SNP position different between two BIM files, please check", SNP_buf);
-                MACOJO::commonSNP_index_map.erase(iter);
+                shared.commonSNP_index_map.erase(iter);
                 continue;
             }      
         }
@@ -288,7 +281,6 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             unsigned char b = buffer[j];
             for (int k = 0; k < 4 && i < indi_num; k++, i++) {
                 auto e = LUT[b][k];
-
                 X_A1.set(X_start_index + i, e.A1);
                 X_A2.set(X_start_index + i, e.A2);
 
@@ -302,7 +294,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         
         if (not_NA_indi_num == 0) {
             LOGGER.w(1, "removed, all values are NA in bedfile", SNP_buf);
-            MACOJO::commonSNP_index_map.erase(iter);
+            shared.commonSNP_index_map.erase(iter);
             continue;
         }
 
@@ -310,18 +302,18 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         if (abs(sumstat_screened(ref_index, 3) - SNP_avg/2) > 0.2) {
             // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
             bad_freq_count++;
-            MACOJO::commonSNP_index_map.erase(iter);
+            shared.commonSNP_index_map.erase(iter);
             continue;
         }
         
         double SSPD = not_NA_indi_num*SNP_square_sum - SNP_sum*SNP_sum;
         if (SSPD < 0.5) {
             LOGGER.w(1, "removed, identical genotypes for all individuals in bedfile", SNP_buf);
-            MACOJO::commonSNP_index_map.erase(iter);
+            shared.commonSNP_index_map.erase(iter);
             continue;
         }
         
-        if (!if_keep_NA) {
+        if (!params.if_keep_NA) {
             sumstat_screened(ref_index, 7) = SNP_avg;
             sumstat_screened(ref_index, 8) = SSPD/not_NA_indi_num; // this is actually variance*(n-1)
         }
@@ -350,21 +342,17 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
     int SNP1_index, SNP2_index;
     map<string, int>::iterator iter;
 
-    LD_matrix.resize(MACOJO::commonSNP_total_num);
+    LD_matrix.resize(shared.commonSNP_total_num);
 
     while (Ld) {
         Ld >> SNP1_buf;
         if (Ld.eof()) break;
         Ld >> SNP2_buf >> r_buf;
 
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP1_buf)) == MACOJO::commonSNP_index_map.end()) 
-            continue;
-
+        if ((iter = shared.commonSNP_index_map.find(SNP1_buf)) == shared.commonSNP_index_map.end()) continue;
         SNP1_index = iter->second;
 
-        if ((iter = MACOJO::commonSNP_index_map.find(SNP2_buf)) == MACOJO::commonSNP_index_map.end()) 
-            continue;
-
+        if ((iter = shared.commonSNP_index_map.find(SNP2_buf)) == shared.commonSNP_index_map.end()) continue;
         SNP2_index = iter->second;
 
         LD_matrix(SNP1_index, SNP2_index) = atof(r_buf.c_str()); 
@@ -383,34 +371,33 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
         int ibuf = 0;
         string SNP_buf, A1_buf = "0", A2_buf = "0", str_buf;
     
-        vector<int> swap_array(MACOJO::commonSNP_total_num, 0);
+        vector<int> swap_array(shared.commonSNP_total_num, 0);
 
         while (Bim) {
             Bim >> str_buf;
             if (Bim.eof()) break;
             Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
 
-            if ((iter = MACOJO::commonSNP_index_map.find(SNP_buf)) == MACOJO::commonSNP_index_map.end())
-                continue;
+            if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) continue;
             
             int ref_index = iter->second;
 
             // check allele and position in BIM file with reference cohort
             to_upper(A1_buf);
             to_upper(A2_buf);
-        
-            if (MACOJO::A1_ref[ref_index] == A1_buf || MACOJO::A2_ref[ref_index] == A2_buf);
-            else if (MACOJO::A1_ref[ref_index] == A2_buf && MACOJO::A2_ref[ref_index] == A1_buf)
+
+            if (shared.A1_ref[ref_index] == A1_buf || shared.A2_ref[ref_index] == A2_buf);
+            else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf)
                 swap_array[ref_index] = 1;
             else {
                 LOGGER.w(1, "removed, A1 and A2 different between two BIM files, please check", SNP_buf);
-                MACOJO::commonSNP_index_map.erase(iter);
+                shared.commonSNP_index_map.erase(iter);
                 continue;
             }
-            
-            if (ibuf != MACOJO::SNP_pos_ref[ref_index]) {
+
+            if (ibuf != shared.SNP_pos_ref[ref_index]) {
                 LOGGER.w(1, "removed, SNP position different between two BIM files, please check", SNP_buf);
-                MACOJO::commonSNP_index_map.erase(iter);
+                shared.commonSNP_index_map.erase(iter);
                 continue;
             }
         }
@@ -419,8 +406,8 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
         Bim.close();
     
         // adjust LD_packed according to allele coding
-        for (int i = 0; i < MACOJO::commonSNP_total_num; i++) {
-            for (int j = i; j < MACOJO::commonSNP_total_num; j++) {
+        for (int i = 0; i < shared.commonSNP_total_num; i++) {
+            for (int j = i; j < shared.commonSNP_total_num; j++) {
                 if (swap_array[i] ^ swap_array[j]) {
                     LD_matrix(i,j) = -LD_matrix(i,j);
                     cout << "swap " << i << " " << j << endl;
@@ -440,7 +427,7 @@ void Cohort::calc_adjusted_N()
     // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D, 7:X_avg, 8:X_norm_square 
     s.col(5) = s.col(3) * (1-s.col(3)) * 2;
 
-    if (!if_gcta_COJO) {
+    if (!params.if_gcta_COJO) {
         ArrayXd Vp_gcta_list = s.col(5) * s.col(4) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
         Vp = median(Vp_gcta_list);
     }
@@ -448,14 +435,14 @@ void Cohort::calc_adjusted_N()
     s.col(4) = (Vp - s.col(5)*square(s.col(0))) / (s.col(5)*s.col(1)) + 1;
     s.col(6) = s.col(4) * s.col(5);
 
-    if (!if_gcta_COJO) {
+    if (!params.if_gcta_COJO) {
         ArrayXd Vp_gcta_list = s.col(6) * (s.col(1) + square(s.col(0))/(s.col(4)-1));
         Vp = median(Vp_gcta_list);
     }
 }
 
 
-void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num) 
+void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num, string extract_file) 
 {   
     // Step 1: get common SNPs across all cohorts
     vector<string> commonSNP_all_cohorts;
@@ -469,7 +456,6 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         vector<string> SNP_sumstat, SNP_PLINK, SNP_common;
 
         string sumstat_file = filenames[n*2], PLINK_file = filenames[n*2+1];
-
         read_SNP_only(sumstat_file, SNP_sumstat, true, false);
         read_SNP_only(PLINK_file+".bim", SNP_PLINK, false, true);
         c.skim_fam(PLINK_file+".fam");
@@ -490,13 +476,16 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
     } 
 
-    // if user provides SNP list, intersect with common SNPs
-    if (all_SNP.size() > 0) {
-        vector<string> temp;
+    // if user provides extract SNP file, read file and intersect with common SNPs
+    if (!extract_file.empty()) {
+        vector<string> all_SNP, temp;
+
+        read_SNP_only(extract_file, all_SNP);
         set_intersection(all_SNP.begin(), all_SNP.end(), 
             commonSNP_all_cohorts.begin(), commonSNP_all_cohorts.end(), back_inserter(temp));
         commonSNP_all_cohorts.swap(temp);
         
+        LOGGER.i(0, "The user has initialized SNPs for analysis");
         LOGGER.i(0, "common SNPs after user-given SNPs", to_string(commonSNP_all_cohorts.size()));
     }
     
@@ -506,15 +495,15 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
     int temp_index = 0;
 
     for (const auto &snp : commonSNP_all_cohorts) {
-        commonSNP_index_map.insert(make_pair(snp, temp_index));
+        shared.commonSNP_index_map.insert(make_pair(snp, temp_index));
         temp_index++;
     }
-    
-    A1_ref.resize(temp_index);
-    A2_ref.resize(temp_index);
-    SNP_pos_ref.resize(temp_index);
-    commonSNP_total_num = temp_index;
-    
+
+    shared.A1_ref.resize(temp_index);
+    shared.A2_ref.resize(temp_index);
+    shared.SNP_pos_ref.resize(temp_index);
+    shared.commonSNP_total_num = temp_index;
+
     LOGGER << "Setting reference based on BIM file of Cohort 1 ..." << endl;
     set_reference_from_bim(filenames[1]);
 
@@ -526,19 +515,21 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
     }
 
     // exclude rare SNPs based on freq_threshold
-    for (auto iter = commonSNP_index_map.begin(); iter != commonSNP_index_map.end(); ) {
-        bool erase_flag = !if_freq_mode_and;
+    for (auto iter = shared.commonSNP_index_map.begin(); iter != shared.commonSNP_index_map.end(); ) {
+        bool erase_flag = !params.if_freq_mode_and;
 
-        if (if_freq_mode_and) {
+        if (params.if_freq_mode_and) {
             for (auto &c : cohorts) {
-                if (c.sumstat_screened(iter->second, 3) < freq_threshold || c.sumstat_screened(iter->second, 3) > 1-freq_threshold) {
+                if (c.sumstat_screened(iter->second, 3) < params.freq_threshold || 
+                    c.sumstat_screened(iter->second, 3) > 1-params.freq_threshold) {
                     erase_flag = true; 
                     break;
                 }
             }
         } else {
             for (auto &c : cohorts) {
-                if (c.sumstat_screened(iter->second, 3) >= freq_threshold && c.sumstat_screened(iter->second, 3) <= 1-freq_threshold) {
+                if (c.sumstat_screened(iter->second, 3) >= params.freq_threshold && 
+                    c.sumstat_screened(iter->second, 3) <= 1-params.freq_threshold) {
                     erase_flag = false; 
                     break;
                 }
@@ -546,15 +537,15 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         } 
         
         if (erase_flag)
-            iter = commonSNP_index_map.erase(iter);
+            iter = shared.commonSNP_index_map.erase(iter);
         else 
             iter++;
     }
-    
-    LOGGER.i(0, "common SNPs after removing rare SNPs", to_string(commonSNP_index_map.size()));
+
+    LOGGER.i(0, "common SNPs after removing rare SNPs", to_string(shared.commonSNP_index_map.size()));
     LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
 
-    if (commonSNP_index_map.size() == 0)
+    if (shared.commonSNP_index_map.size() == 0)
         LOGGER.e(0, "Input data has no common SNPs");
     
     // Step 4: read bim and bed files for all cohorts
@@ -564,7 +555,7 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         // bim file of cohort 1 is reference, do not need to check allele
         tStart = clock();
     
-        if (if_LD_mode)
+        if (params.if_LD_mode)
             cohorts[n].read_PLINK_LD(filenames[n*2+1], n==0);
         else {
             cohorts[n].read_PLINK(filenames[n*2+1], n==0);
@@ -575,23 +566,23 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num)
         LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
     }
 
-    commonSNP_total_num = commonSNP_index_map.size();
-    LOGGER.i(0, "common SNPs at last for iterative selection", to_string(commonSNP_total_num));
-    
+    shared.commonSNP_total_num = shared.commonSNP_index_map.size();
+    LOGGER.i(0, "common SNPs at last for iterative selection", to_string(shared.commonSNP_total_num));
+
     // Step 5: clean sumstat for all cohorts and finalize common SNP list
-    for (auto iter = commonSNP_index_map.begin(); iter != commonSNP_index_map.end(); iter++) {
-        final_commonSNP.push_back(iter->first);
-        final_commonSNP_index.push_back(iter->second);
+    for (auto iter = shared.commonSNP_index_map.begin(); iter != shared.commonSNP_index_map.end(); iter++) {
+        shared.final_commonSNP.push_back(iter->first);
+        shared.final_commonSNP_index.push_back(iter->second);
     }
     
     ArrayXXd temp;
     for (int n=0; n<cohort_num; n++) {
         auto &c = cohorts[n];
-        temp.setZero(commonSNP_total_num, 9);
+        temp.setZero(shared.commonSNP_total_num, 9);
 
         #pragma omp parallel for
-        for (int i = 0; i < commonSNP_total_num; i++)
-            temp.row(i) = c.sumstat_screened.row(final_commonSNP_index[i]); 
+        for (int i = 0; i < shared.commonSNP_total_num; i++)
+            temp.row(i) = c.sumstat_screened.row(shared.final_commonSNP_index[i]);
 
         c.sumstat_screened = temp; // 0,1,2,3,4,7,8 are filled, 5,6 are to be calculated
         c.calc_adjusted_N(); // 5,6 are filled, 4 is adjusted

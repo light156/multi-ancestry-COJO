@@ -1,7 +1,8 @@
 #pragma once
+#include "config.h"
 #include "BitArray.h"
 #include "LD.h"
-#include "utils.h"
+#include "Logger.h"
 #include "utils_matrix.h"
 #include <omp.h>
 #include <map>
@@ -9,8 +10,8 @@
 #include <list>
 #include <fstream>
 #include <Eigen/Dense>
-#include <unsupported/Eigen/SpecialFunctions>
 #include <iomanip>
+#include <cmath>
 
 using namespace Eigen;
 using namespace std;
@@ -19,6 +20,8 @@ using namespace std;
 class Cohort 
 {    
 public:
+    Cohort(const HyperParams& p, SharedData& s) : params(p), shared(s) {};
+
     void read_sumstat(string cojofile);
     void read_PLINK(string PLINKfile, bool is_ref_cohort);
     void read_PLINK_LD(string PLINKfile, bool is_ref_cohort);
@@ -32,13 +35,12 @@ public:
     void calc_adjusted_N();
     bool calc_R_inv();
     void calc_R_inv_gcta(int screened_index);
-    void calc_R_inv_backward(int remove_index);
     bool calc_R_inv_from_SNP_list(const vector<int> &SNP_list, const ArrayXXd &sumstat);
     void save_temp_model();
 
 public:
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D, 7:X_avg, 8:X_norm_square
-    ArrayXXd sumstat_candidate, sumstat_screened, sumstat_removed, sumstat_new_model;
+    ArrayXXd sumstat_candidate, sumstat_screened, sumstat_removed;
     
     // X or LD matrix, depend on which mode is used
     BitArray X_A1, X_A2;
@@ -59,18 +61,13 @@ public:
     double Vp, R2, previous_R2 = 0.0;
     uint64_t indi_num;
 
-public:
-    int window_size;
-    bool if_fast_inv;
-    bool if_LD_mode;
-    bool if_keep_NA;
-    bool if_gcta_COJO;
-    double iter_colinear_threshold;
+private:
+    const HyperParams& params;
+    SharedData& shared;
 
-// backup for temporary model during backward selection
-public:
+    // backup for temporary model during backward selection
     struct BackupState {
-        ArrayXXd sumstat_candidate, sumstat_removed;
+        ArrayXXd sumstat_candidate, sumstat_screened, sumstat_removed;
         MatrixXd r, R_inv_pre, R_pre;
         MatrixXd r_gcta, R_inv_pre_gcta, R_pre_gcta;
         ArrayXd output_b, output_se2;
@@ -79,8 +76,10 @@ public:
 
     BackupState backup;
 
+public:
     void save_state() {
         backup.sumstat_candidate = sumstat_candidate;
+        backup.sumstat_screened  = sumstat_screened;
         backup.sumstat_removed   = sumstat_removed;
         backup.r                 = r;
         backup.R_inv_pre         = R_inv_pre;
@@ -95,6 +94,7 @@ public:
 
     void restore_state() {
         sumstat_candidate = backup.sumstat_candidate;
+        sumstat_screened  = backup.sumstat_screened;
         sumstat_removed   = backup.sumstat_removed;
         r                 = backup.r;
         R_inv_pre         = backup.R_inv_pre;
@@ -112,15 +112,7 @@ public:
 class MACOJO
 {
 public:
-    static uint64_t commonSNP_total_num;
-    static map<string, int> commonSNP_index_map;
-    static vector<string> A1_ref, A2_ref;
-    static vector<int> SNP_pos_ref;
-    static vector<int> final_commonSNP_index;
-    vector<string> final_commonSNP;
-
-public:
-    void read_cojo_PLINK_files(char** filenames, int cohort_num);
+    void read_cojo_PLINK_files(char** filenames, int cohort_num, string extract_file="");
     void read_SNP_only(string filename, vector<string> &SNP_list, bool if_sumstat=false, bool if_bim=false);
     void set_reference_from_bim(string PLINKfile);
     void entry_function(string savename);
@@ -132,39 +124,23 @@ public:
     void inverse_var_meta_conditional();
     void inverse_var_meta_joint();
     void accept_SNP_as_candidate(int screened_index);
+    void remove_SNP_from_screened(int screened_index);
+    void remove_SNP_from_candidate(int candidate_index);
 
     void output_results_to_file(string filepath);
     void output_user_hyperparameters();
 
 public:
+    HyperParams params;
+    SharedData shared;
+
     vector<Cohort> cohorts;
     vector<int> current_calculation_list;
     vector<int> candidate_SNP, screened_SNP, removed_SNP;
     vector<int> candidate_SNP_backup, screened_SNP_backup, removed_SNP_backup;
+    ArrayXd abs_zC, bJ, se2J, abs_zJ;
     
-    // merge: 0:b, 1:se2, 2:Zabs, 3:p
-    ArrayXXd sumstat_merge, sumstat_merge_new_model;
-    
-// hyperparameters for users to predefine and adjust
-public: 
-    double threshold = 5e-8;
-    double colinear_threshold = 0.9;
-    double freq_threshold = 0.01;
-    bool if_freq_mode_and = false;
-    double R2_incremental_threshold = -1;
-    double R2_incremental_threshold_backwards = -1;
-    double window_mb = 10;
-    int max_iter_num = 10000;
-
-    bool if_gcta_COJO = false;
-    bool if_LD_mode = false;
-    bool if_cojo_joint = false;
-    bool if_skip_MDISA = false;
-    bool if_keep_NA = false;
-    bool if_fast_inv = false;
-
-public:
-    string extract_file, fixedSNP_file;
-    vector<string> all_SNP, fixed_candidate_SNP;
+    // user-provided SNP lists
+    vector<string> fixed_candidate_SNP;
     int fixed_candidate_SNP_num=0;
 };

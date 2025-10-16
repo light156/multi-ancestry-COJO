@@ -24,7 +24,7 @@ double calc_inner_product(const ArrayXd &vec1, const ArrayXd &vec2, bool if_keep
 }
 
 
-bool calc_block_inverse_fast(
+bool calc_R_inverse_fast(
     const MatrixXd& R_inv_pre,
     const VectorXd& r_temp_vec,
     double lower_right_corner,
@@ -46,7 +46,7 @@ bool calc_block_inverse_fast(
 }
 
 
-bool calc_block_inverse_exact(
+bool calc_R_inverse_exact(
     const MatrixXd& R_pre,
     const VectorXd& r_temp_vec,
     double lower_right_corner,
@@ -54,7 +54,7 @@ bool calc_block_inverse_exact(
     MatrixXd& R_post, 
     MatrixXd& R_inv_post,
     bool do_check,
-    const ArrayXd* scaling_vector)
+    const ArrayXd& scaling_vector)
 {   
     int dim = R_pre.rows();
     R_post.setZero(dim + 1, dim + 1);
@@ -74,8 +74,7 @@ bool calc_block_inverse_exact(
     
     if (!do_check) return true;
 
-    if (scaling_vector != nullptr)
-        ldlt_D = ldlt_D / (*scaling_vector);
+    ldlt_D = ldlt_D / scaling_vector;
 
     return (ldlt_D.minCoeff() > 0) && (sqrt(ldlt_D.maxCoeff() / ldlt_D.minCoeff()) < 30) 
                 && (R_inv_post.diagonal().maxCoeff() < iter_colinear_threshold);
@@ -84,39 +83,29 @@ bool calc_block_inverse_exact(
 
 // overload, remove one row and one column
 // no need to check colinearity becuase it is guaranteed in forward step
-void calc_block_inverse_fast(
+void calc_R_inverse_backward(
+    const MatrixXd& R_pre,
     const MatrixXd& R_inv_pre,
     int remove_index,
-    MatrixXd& R_inv_post)
+    MatrixXd& R_post,
+    MatrixXd& R_inv_post,
+    bool if_fast_inv)
 {
     int dim = R_inv_pre.rows();
     if (remove_index < 0 || remove_index >= dim)
         throw std::invalid_argument("calc_block_inverse_fast: remove_index out of range.");
 
-    R_inv_post = R_inv_pre - R_inv_pre.col(remove_index) * R_inv_pre.row(remove_index) / R_inv_pre(remove_index, remove_index);
-
-    remove_row(R_inv_post, remove_index);
-    remove_column(R_inv_post, remove_index);
+    if (if_fast_inv) {
+        R_inv_post = R_inv_pre - R_inv_pre.col(remove_index) * R_inv_pre.row(remove_index) / R_inv_pre(remove_index, remove_index);
+        remove_row(R_inv_post, remove_index);
+        remove_column(R_inv_post, remove_index);
+    } else {
+        R_post = R_pre;
+        remove_row(R_post, remove_index);
+        remove_column(R_post, remove_index);
+        R_inv_post = R_post.ldlt().solve(MatrixXd::Identity(dim - 1, dim - 1));
+    }
 }
-
-
-void calc_block_inverse_exact(
-    const MatrixXd& R_pre,
-    int remove_index,
-    MatrixXd& R_post,
-    MatrixXd& R_inv_post)
-{
-    int dim = R_pre.rows();
-    if (remove_index < 0 || remove_index >= dim)
-        throw std::invalid_argument("calc_block_inverse_exact: remove_index out of range.");
-
-    R_post = R_pre;
-    remove_row(R_post, remove_index);
-    remove_column(R_post, remove_index);
-
-    R_inv_post = R_post.ldlt().solve(MatrixXd::Identity(dim - 1, dim - 1));
-}
-
 
 
 double median(const std::vector<double> &v)

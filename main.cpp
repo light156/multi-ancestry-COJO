@@ -24,23 +24,24 @@ int main(int argc, char** argv)
     app.add_option("-o, --out", savename, "Output file path")->required();
     app.add_option("-e, --extract", extract_file, "File path of user-given SNPs")->check(CLI::ExistingFile);
     app.add_option("-f, --fixedSNP", fixedSNP_file, "File path of fixed candidate SNPs")->check(CLI::ExistingFile);
-    app.add_option("-w, --window", macojo.window_mb, "SNP position window in Mb (-1 for no windows)")->default_val(10.0);
-    app.add_option("-c, --colinear", macojo.colinear_threshold, "Colinearity threshold (0-1)")->default_val(0.9)->check(CLI::Range(0.0, 1.0));
-    app.add_option("--R2", macojo.R2_incremental_threshold, "R2 incremental threshold (-1 for no threshold)")->default_val(-1);
-    app.add_option("--R2back", macojo.R2_incremental_threshold_backwards, "R2 threshold for backward selection (-1 for no threshold)")->default_val(-1);
-    app.add_option("--freq", macojo.freq_threshold, "Frequency threshold (0-0.5)")->default_val(0.01)->check(CLI::Range(0.0, 0.5));
-    app.add_option("--iter", macojo.max_iter_num, "Total iteration number")->default_val(10000)->check(CLI::PositiveNumber);
+
+    app.add_option("-w, --window", macojo.params.window_mb, "SNP position window in Mb (-1 for no windows)")->default_val(10.0);
+    app.add_option("-c, --colinear", macojo.params.colinear_threshold, "Colinearity threshold (0-0.999)")->default_val(0.9)->check(CLI::Range(0.0, 0.999));
+    app.add_option("--R2", macojo.params.R2_incremental_threshold, "R2 incremental threshold (-1 for no threshold)")->default_val(-1);
+    app.add_option("--R2back", macojo.params.R2_incremental_threshold_backwards, "R2 threshold for backward selection (-1 for no threshold)")->default_val(-1);
+    app.add_option("--freq", macojo.params.freq_threshold, "Frequency threshold (0-0.5)")->default_val(0.01)->check(CLI::Range(0.0, 0.5));
+    app.add_option("--iter", macojo.params.max_iter_num, "Total iteration number")->default_val(10000)->check(CLI::PositiveNumber);
 
     for (auto *opt : app.get_options())
         opt->multi_option_policy(CLI::MultiOptionPolicy::Throw);
 
-    app.add_flag("--freq_mode_and", macojo.if_freq_mode_and, "Use AND mode for frequency threshold");
-    app.add_flag("--LD", macojo.if_LD_mode, "Use .ld files for calculation");
-    app.add_flag("--cojo-joint", macojo.if_cojo_joint, "Only output for provided fixed candidate SNPs and exit");
-    app.add_flag("--skip_MDISA", macojo.if_skip_MDISA, "Disable MDISA after COJO");
-    app.add_flag("--keep_NA", macojo.if_keep_NA, "Do not fill NA with mean values");
-    app.add_flag("--fast_inv", macojo.if_fast_inv, "Incremental matrix inverse based on last iteration");
-    app.add_flag("--gcta", macojo.if_gcta_COJO, "Use GCTA-COJO model selection criteria");
+    app.add_flag("--freq-mode-and", macojo.params.if_freq_mode_and, "Use AND mode for frequency threshold");
+    app.add_flag("--LD", macojo.params.if_LD_mode, "Use .ld files for calculation");
+    app.add_flag("--cojo-joint", macojo.params.if_cojo_joint, "Only output for provided fixed candidate SNPs and exit");
+    app.add_flag("--skip-MDISA", macojo.params.if_skip_MDISA, "Disable MDISA after COJO");
+    app.add_flag("--keep-NA", macojo.params.if_keep_NA, "Do not fill NA with mean values");
+    // app.add_flag("--fast-inv", macojo.params.if_fast_inv, "Incremental matrix inverse based on last iteration");
+    app.add_flag("--gcta", macojo.params.if_gcta_COJO, "Use GCTA-COJO model selection criteria");
 
     if (argc < 2 || atoi(argv[1]) <= 0) {
         LOGGER << app.help() << endl;
@@ -48,7 +49,6 @@ int main(int argc, char** argv)
     }  
 
     int cohort_num = atoi(argv[1]);
-    macojo.cohorts.resize(cohort_num);
     if (argc < cohort_num * 2 + 4) {
         LOGGER << "Too few parameters, please check how to use this program." << endl;
         LOGGER << app.help() << endl;
@@ -56,24 +56,22 @@ int main(int argc, char** argv)
     }  
 
     CLI11_PARSE(app, argc, argv);
+    macojo.params.window_size = (macojo.params.window_mb < 0 ? INT_MAX : macojo.params.window_mb * 1e6);
+    macojo.params.iter_colinear_threshold = 1.0 / (1.0 - macojo.params.colinear_threshold);
     LOGGER.open(savename + ".log");
     LOGGER << setprecision(12);
 
     // double tStart = clock();
     double tStart = omp_get_wtime();
-    
-    if (!extract_file.empty()) {
-        macojo.read_SNP_only(extract_file, macojo.all_SNP);
-        LOGGER.i(0, "The user has initialized SNPs for analysis");
-    }
 
-    if (!fixedSNP_file.empty()) {
+    for (int i = 0; i < cohort_num; i++)
+        macojo.cohorts.emplace_back(macojo.params, macojo.shared);
+
+    if (!fixedSNP_file.empty())
         macojo.read_SNP_only(fixedSNP_file, macojo.fixed_candidate_SNP);
-        LOGGER << "The user has provided fixed candidate SNPs, which will not be removed during calculation" << endl;
-    }
-
+        
     macojo.output_user_hyperparameters();
-    macojo.read_cojo_PLINK_files(argv+2, cohort_num);
+    macojo.read_cojo_PLINK_files(argv+2, cohort_num, extract_file);
     macojo.entry_function(savename);
 
     // LOGGER << "Total running time: " << fixed << setprecision(2) << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;

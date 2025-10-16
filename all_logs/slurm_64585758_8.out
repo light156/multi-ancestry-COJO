@@ -1,0 +1,2630 @@
+
+=========== MACOJO CONFIGURATION ===========
+Threshold: 5e-8
+Colinearity threshold: 0.9
+R2 incremental threshold: -1
+R2 incremental threshold backwards: -1
+SNP position window (+/-): 10Mb
+SNP frequency threshold: 0.01
+SNP frequency mode: OR
+Use GCTA-COJO model selection criteria
+===========================================
+
+6514392 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/HDL_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]
+69010 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.fam]
+362860 common SNPs after including Cohort 1
+Time taken: 5.233162 seconds
+
+6514392 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/HDL_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]
+6901 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.fam]
+362860 common SNPs after including Cohort 2
+Time taken: 5.196345 seconds
+
+Setting reference based on BIM file of Cohort 1 ...
+Reading Cohort 1 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/HDL_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+Reading Cohort 2 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/HDL_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+362860 common SNPs after removing rare SNPs
+Time taken: 20.645209 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  8 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 132.619404 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  47 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 15.031674 seconds
+
+362805 common SNPs at last for iterative selection
+Vp Cohort 1: 1.14373754302
+Vp Cohort 2: 1.08085296771
+--------------------------------
+
+Calculation started!
+0 362805 0
+No candidate SNPs, using the most significant SNP as the first candidate
+rs15285 First SNP
+p-value: 0.000000000000e+00
+--------------------------------
+1 362804 0
+rs4841132 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.873235809373e-287
+Joint b, se, max pJ: -0.093267782586 0.002578327090 7.873235809378e-287
+rs4841132 New candidate SNP accepted
+iter 1 finished
+--------------------------------
+2 362803 0
+rs28597716 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.512608529345e-263
+Joint b, se, max pJ: 0.069591872869 0.002000209013 1.590115780448e-265
+rs28597716 New candidate SNP accepted
+iter 2 finished
+--------------------------------
+3 362802 0
+rs3289 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.979038975051e-156
+Joint b, se, max pJ: -0.122330518869 0.004534035970 1.251988255881e-160
+rs3289 New candidate SNP accepted
+iter 3 finished
+--------------------------------
+4 362801 0
+rs2954038 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.350031208183e-138
+Joint b, se, max pJ: -0.042605728755 0.001702008708 1.350031208183e-138
+rs2954038 New candidate SNP accepted
+iter 4 finished
+--------------------------------
+5 362800 0
+rs4128744 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.115747888835e-88
+Joint b, se, max pJ: 0.058005028717 0.002585438344 8.909558290797e-112
+rs4128744 New candidate SNP accepted
+iter 5 finished
+--------------------------------
+6 362799 0
+rs2293889 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.619374808615e-81
+Joint b, se, max pJ: -0.030166193775 0.001583918516 3.594066943236e-81
+rs2293889 New candidate SNP accepted
+iter 6 finished
+--------------------------------
+7 362798 0
+rs10888176 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.247309963393e-61
+Joint b, se, max pJ: -0.028402309577 0.001645482003 4.642082980422e-67
+rs10888176 New candidate SNP accepted
+iter 7 finished
+--------------------------------
+8 362797 0
+rs11774381 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.118829705847e-58
+Joint b, se, max pJ: -0.030556842420 0.001866953444 1.639188666895e-60
+rs11774381 New candidate SNP accepted
+iter 8 finished
+--------------------------------
+9 362796 0
+rs12546944 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.688165928858e-39
+Joint b, se, max pJ: -0.026239834051 0.001996591742 9.418930426575e-40
+rs12546944 New candidate SNP accepted
+iter 9 finished
+--------------------------------
+10 362795 0
+rs58301047 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.657949896399e-38
+Joint b, se, max pJ: 0.024560126046 0.001909434508 3.657949896399e-38
+rs58301047 New candidate SNP accepted
+iter 10 finished
+--------------------------------
+11 362794 0
+rs74304285 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.407890230421e-30
+Joint b, se, max pJ: 0.031089755134 0.002475347110 1.757079223134e-36
+rs74304285 New candidate SNP accepted
+iter 11 finished
+--------------------------------
+12 362793 0
+rs10955992 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.042105631866e-29
+Joint b, se, max pJ: 0.018453108499 0.001638725220 1.026215158876e-29
+rs10955992 New candidate SNP accepted
+iter 12 finished
+--------------------------------
+13 362792 0
+rs34693282 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.121197072138e-25
+Joint b, se, max pJ: 0.018453108499 0.001638725220 1.026215158876e-29
+rs34693282 New candidate SNP accepted
+iter 13 finished
+--------------------------------
+14 362791 0
+rs34770253 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.384907279679e-23
+Joint b, se, max pJ: 0.025481472182 0.002491791018 7.569632956810e-25
+rs34770253 New candidate SNP accepted
+iter 14 finished
+--------------------------------
+15 362790 0
+rs142638686 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.196386093364e-24
+Joint b, se, max pJ: 0.033204220421 0.003148277451 2.628119896575e-26
+rs142638686 New candidate SNP accepted
+iter 15 finished
+--------------------------------
+16 362789 0
+rs34246353 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.278323376973e-22
+Joint b, se, max pJ: -0.025148022082 0.002632376808 6.278323376973e-22
+rs34246353 New candidate SNP accepted
+iter 16 finished
+--------------------------------
+17 362788 0
+rs9657541 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.482325612469e-22
+Joint b, se, max pJ: -0.025148022082 0.002632376808 6.278323376973e-22
+rs9657541 New candidate SNP accepted
+iter 17 finished
+--------------------------------
+18 362787 0
+rs11990424 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.850045656648e-19
+Joint b, se, max pJ: -0.019507037032 0.002191564311 2.768163043605e-19
+rs11990424 New candidate SNP accepted
+iter 18 finished
+--------------------------------
+19 362786 0
+rs79153732 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.241903699046e-19
+Joint b, se, max pJ: -0.045208682907 0.005104056798 4.095037799894e-19
+rs79153732 New candidate SNP accepted
+iter 19 finished
+--------------------------------
+20 362785 0
+rs1801177 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.180328932606e-17
+Joint b, se, max pJ: -0.019507037032 0.002191564311 2.768163043605e-19
+rs1801177 New candidate SNP accepted
+iter 20 finished
+--------------------------------
+21 362784 0
+rs55682243 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.804708585533e-17
+Joint b, se, max pJ: 0.038720088059 0.004670877084 5.677557871105e-17
+rs55682243 New candidate SNP accepted
+iter 21 finished
+--------------------------------
+22 362783 0
+rs17818197 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.196617777670e-16
+Joint b, se, max pJ: -0.015275182101 0.001862406210 1.183547493958e-16
+rs17818197 New candidate SNP accepted
+iter 22 finished
+--------------------------------
+23 362782 0
+rs201072028 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.104609173809e-16
+Joint b, se, max pJ: -0.039090874287 0.004861806001 4.477214043933e-16
+rs201072028 New candidate SNP accepted
+iter 23 finished
+--------------------------------
+24 362781 0
+rs9644636 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.342673162636e-16
+Joint b, se, max pJ: -0.038939463152 0.004861971567 5.782894586795e-16
+rs9644636 New candidate SNP accepted
+iter 24 finished
+--------------------------------
+25 362780 0
+rs1351442 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.929819935657e-14
+Joint b, se, max pJ: 0.011464654843 0.001515358528 1.929819935657e-14
+rs1351442 New candidate SNP accepted
+iter 25 finished
+--------------------------------
+26 362779 0
+rs6586875 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.214704682051e-13
+Joint b, se, max pJ: 0.011464654843 0.001515358528 1.929819935657e-14
+rs6586875 New candidate SNP accepted
+iter 26 finished
+--------------------------------
+27 362778 0
+rs7822123 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.353177106698e-13
+Joint b, se, max pJ: 0.011464654843 0.001515358528 1.929819935657e-14
+rs7822123 New candidate SNP accepted
+iter 27 finished
+--------------------------------
+28 362777 0
+rs7816345 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.142076638920e-13
+Joint b, se, max pJ: -0.013899723671 0.001918190947 2.142076638920e-13
+rs7816345 New candidate SNP accepted
+iter 28 finished
+--------------------------------
+29 362776 0
+rs7828742 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.111767732707e-13
+Joint b, se, max pJ: -0.013899723671 0.001918190947 2.142076638920e-13
+rs7828742 New candidate SNP accepted
+iter 29 finished
+--------------------------------
+30 362775 0
+rs34523847 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.086772603715e-12
+Joint b, se, max pJ: -0.013899723671 0.001918190947 2.142076638920e-13
+rs34523847 New candidate SNP accepted
+iter 30 finished
+--------------------------------
+31 362774 0
+rs7822926 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.091064884689e-11
+Joint b, se, max pJ: 0.010345269333 0.001545611475 1.090830534144e-11
+rs7822926 New candidate SNP accepted
+iter 31 finished
+--------------------------------
+32 362773 0
+rs7832357 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.718478589541e-11
+Joint b, se, max pJ: 0.010345269333 0.001545611475 1.090830534144e-11
+rs7832357 New candidate SNP accepted
+iter 32 finished
+--------------------------------
+33 362772 0
+rs11783088 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.841842286421e-11
+Joint b, se, max pJ: -0.012304106112 0.001859365147 1.828234444639e-11
+rs11783088 New candidate SNP accepted
+iter 33 finished
+--------------------------------
+34 362771 0
+rs28471687 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.891642736715e-11
+Joint b, se, max pJ: -0.019930047980 0.003042868596 2.881551169345e-11
+rs28471687 New candidate SNP accepted
+iter 34 finished
+--------------------------------
+35 362770 0
+rs10958704 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.660503119474e-10
+Joint b, se, max pJ: -0.009770450148 0.001554872476 1.652371853974e-10
+rs10958704 New candidate SNP accepted
+iter 35 finished
+--------------------------------
+36 362769 0
+rs7005359 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.383549346050e-10
+Joint b, se, max pJ: -0.009770450148 0.001554872476 1.652371853974e-10
+rs7005359 New candidate SNP accepted
+iter 36 finished
+--------------------------------
+37 362768 0
+rs35445944 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.181858844306e-12
+Joint b, se, max pJ: 0.016845490328 0.003372003860 2.931268896924e-07
+rs35445944 New candidate SNP added, start backward selection
+rs4128744 Candidate SNP removed
+Joint b, se, max pJ: 0.015685976214 0.002623059234 1.115474020302e-09
+Backward selection successful!
+iter 37 finished
+--------------------------------
+37 362767 1
+rs10099512 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.559662071494e-10
+Joint b, se, max pJ: 0.015684991615 0.002623059237 1.118047405940e-09
+rs10099512 New candidate SNP accepted
+iter 38 finished
+--------------------------------
+38 362766 1
+rs34372843 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.034586805167e-10
+Joint b, se, max pJ: 0.015684991615 0.002623059237 1.118047405940e-09
+rs34372843 New candidate SNP accepted
+iter 39 finished
+--------------------------------
+39 362765 1
+rs1949102 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.493527560468e-10
+Joint b, se, max pJ: 0.015684991615 0.002623059237 1.118047405940e-09
+rs1949102 New candidate SNP accepted
+iter 40 finished
+--------------------------------
+40 362764 1
+rs4487762 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.118166410182e-09
+Joint b, se, max pJ: 0.015684920125 0.002623059242 1.118234548461e-09
+rs4487762 New candidate SNP accepted
+iter 41 finished
+--------------------------------
+41 362763 1
+rs373360576 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.481923760242e-09
+Joint b, se, max pJ: 0.015684920125 0.002623059242 1.118234548461e-09
+rs373360576 New candidate SNP accepted
+iter 42 finished
+--------------------------------
+42 362762 1
+rs12155724 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.256725252117e-09
+Joint b, se, max pJ: 0.009873593390 0.001701460387 3.256725252117e-09
+rs12155724 New candidate SNP accepted
+iter 43 finished
+--------------------------------
+43 362761 1
+rs7822495 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.622486120684e-09
+Joint b, se, max pJ: 0.009873593390 0.001701460387 3.256725252117e-09
+rs7822495 New candidate SNP accepted
+iter 44 finished
+--------------------------------
+44 362760 1
+rs1802539 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.916419044552e-09
+Joint b, se, max pJ: 0.011319292371 0.001985090605 5.915142936442e-09
+rs1802539 New candidate SNP accepted
+iter 45 finished
+--------------------------------
+45 362759 1
+rs28549111 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.932181773503e-09
+Joint b, se, max pJ: -0.009921010865 0.001748092192 6.920827513457e-09
+rs28549111 New candidate SNP accepted
+iter 46 finished
+--------------------------------
+46 362758 1
+rs6984721 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.033498087628e-09
+Joint b, se, max pJ: -0.008879046796 0.001564638570 6.941610294460e-09
+rs6984721 New candidate SNP accepted
+iter 47 finished
+--------------------------------
+47 362757 1
+rs16909263 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.001355233708e-08
+Joint b, se, max pJ: 0.012502480038 0.002227836430 1.000365325707e-08
+rs16909263 New candidate SNP accepted
+iter 48 finished
+--------------------------------
+48 362756 1
+rs6986061 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.156324292327e-08
+Joint b, se, max pJ: 0.009273455494 0.001658081177 1.116643273733e-08
+rs6986061 New candidate SNP accepted
+iter 49 finished
+--------------------------------
+49 362755 1
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs10503672 8.745819204178e-08
+iter 50 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/HDL/chr8.jma.cojo]
+
+MDISA for Cohort 1
+49 362756 0
+rs330942 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.818610468812e-09
+Joint b, se, max pJ: 0.029150567281 0.006200166164 1.290790558993e-06
+rs330942 skipped, fixed candidate SNP exceeds p-value threshold
+rs2645400 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.698241029461e-08
+Joint b, se, max pJ: 0.029330631252 0.006200257903 1.119560744530e-06
+rs2645400 skipped, fixed candidate SNP exceeds p-value threshold
+rs3185 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.870493215610e-08
+Joint b, se, max pJ: 0.029403219901 0.006200344546 1.057094249341e-06
+rs3185 skipped, fixed candidate SNP exceeds p-value threshold
+rs330945 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.062602469535e-08
+Joint b, se, max pJ: 0.029150209905 0.006200166161 1.291155038503e-06
+rs330945 skipped, fixed candidate SNP exceeds p-value threshold
+rs330946 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.091414779266e-08
+Joint b, se, max pJ: 0.029150167715 0.006200166160 1.291198069257e-06
+rs330946 skipped, fixed candidate SNP exceeds p-value threshold
+rs330930 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.189340267729e-08
+Joint b, se, max pJ: 0.029150138091 0.006200166160 1.291228286243e-06
+rs330930 skipped, fixed candidate SNP exceeds p-value threshold
+rs77312736 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.833015300514e-08
+Joint b, se, max pJ: 0.029873908890 0.006201492725 7.278877732247e-07
+rs77312736 skipped, fixed candidate SNP exceeds p-value threshold
+rs17153785 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.271925329044e-08
+Joint b, se, max pJ: 0.029166273255 0.006200167451 1.274875209343e-06
+rs17153785 skipped, fixed candidate SNP exceeds p-value threshold
+rs330940 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.770686053266e-08
+Joint b, se, max pJ: 0.029150931623 0.006200166186 1.290419169492e-06
+rs330940 skipped, fixed candidate SNP exceeds p-value threshold
+rs1569213 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.836959837103e-08
+Joint b, se, max pJ: 0.029131387274 0.006200166283 1.310493214299e-06
+rs1569213 skipped, fixed candidate SNP exceeds p-value threshold
+rs1534650 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.971493585603e-08
+Joint b, se, max pJ: 0.029086145180 0.006200169647 1.358133607178e-06
+rs1534650 skipped, fixed candidate SNP exceeds p-value threshold
+rs17090735 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.071998393659e-08
+Joint b, se, max pJ: 0.029324738667 0.006200254339 1.124799064077e-06
+rs17090735 skipped, fixed candidate SNP exceeds p-value threshold
+rs4922120 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.227587239412e-08
+Joint b, se, max pJ: 0.029090443568 0.006200169131 1.353535881398e-06
+rs4922120 skipped, fixed candidate SNP exceeds p-value threshold
+rs6984449 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.787280877141e-08
+Joint b, se, max pJ: 0.029432417039 0.006200401152 1.033010018169e-06
+rs6984449 skipped, fixed candidate SNP exceeds p-value threshold
+rs330939 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.911162915934e-08
+Joint b, se, max pJ: 0.029150877245 0.006200166186 1.290474609508e-06
+rs330939 skipped, fixed candidate SNP exceeds p-value threshold
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs330941 5.311983920231e-08
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/HDL/chr8.MDISA.cohort1.jma.cojo]
+
+MDISA for Cohort 2
+49 362756 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs4128744 4.041624831363e-07
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/HDL/chr8.MDISA.cohort2.jma.cojo]
+
+All calculations finished!
+Total running time: 289.60 seconds
+
+=========== MACOJO CONFIGURATION ===========
+Threshold: 5e-8
+Colinearity threshold: 0.9
+R2 incremental threshold: -1
+R2 incremental threshold backwards: -1
+SNP position window (+/-): 10Mb
+SNP frequency threshold: 0.01
+SNP frequency mode: OR
+Use GCTA-COJO model selection criteria
+===========================================
+
+6511658 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/LDL_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]
+69010 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.fam]
+362753 common SNPs after including Cohort 1
+Time taken: 5.205642 seconds
+
+6511658 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/LDL_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]
+6901 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.fam]
+362753 common SNPs after including Cohort 2
+Time taken: 5.168803 seconds
+
+Setting reference based on BIM file of Cohort 1 ...
+Reading Cohort 1 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/LDL_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+Reading Cohort 2 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/LDL_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+362753 common SNPs after removing rare SNPs
+Time taken: 20.580998 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  9 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 132.305469 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  47 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 15.021607 seconds
+
+362697 common SNPs at last for iterative selection
+Vp Cohort 1: 1.14118342679
+Vp Cohort 2: 1.08437940481
+--------------------------------
+
+Calculation started!
+0 362697 0
+No candidate SNPs, using the most significant SNP as the first candidate
+rs28601761 First SNP
+p-value: 1.410901172257e-237
+--------------------------------
+1 362696 0
+rs4841132 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.857669592561e-109
+Joint b, se, max pJ: -0.058526859427 0.002640676308 3.857669592561e-109
+rs4841132 New candidate SNP accepted
+iter 1 finished
+--------------------------------
+2 362695 0
+rs9297994 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.414992505330e-77
+Joint b, se, max pJ: 0.031447803760 0.001694428908 3.414992505330e-77
+rs9297994 New candidate SNP accepted
+iter 2 finished
+--------------------------------
+3 362694 0
+rs11787335 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.170198611363e-44
+Joint b, se, max pJ: 0.022909358786 0.001644956669 2.170198611363e-44
+rs11787335 New candidate SNP accepted
+iter 3 finished
+--------------------------------
+4 362693 0
+rs7012637 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.067026005182e-42
+Joint b, se, max pJ: 0.022909358786 0.001644956669 2.170198611363e-44
+rs7012637 New candidate SNP accepted
+iter 4 finished
+--------------------------------
+5 362692 0
+rs10104003 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.510719344041e-36
+Joint b, se, max pJ: 0.024184799962 0.001923736875 1.509220058048e-36
+rs10104003 New candidate SNP accepted
+iter 5 finished
+--------------------------------
+6 362691 0
+rs3808477 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.181646654863e-33
+Joint b, se, max pJ: -0.021624045435 0.001796946629 1.180610928548e-33
+rs3808477 New candidate SNP accepted
+iter 6 finished
+--------------------------------
+7 362690 0
+rs4457349 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.741741554801e-30
+Joint b, se, max pJ: -0.021699404380 0.001797080828 7.175016511224e-34
+rs4457349 New candidate SNP accepted
+iter 7 finished
+--------------------------------
+8 362689 0
+rs35246381 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.376887502604e-25
+Joint b, se, max pJ: 0.018575193270 0.001815910823 7.341399774539e-25
+rs35246381 New candidate SNP accepted
+iter 8 finished
+--------------------------------
+9 362688 0
+rs900776 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.215955563638e-24
+Joint b, se, max pJ: -0.020503880910 0.002054228145 9.201365105906e-24
+rs900776 New candidate SNP accepted
+iter 9 finished
+--------------------------------
+10 362687 0
+rs6997473 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.771924913996e-20
+Joint b, se, max pJ: -0.028293328617 0.003059320781 1.141111835184e-20
+rs6997473 New candidate SNP accepted
+iter 10 finished
+--------------------------------
+11 362686 0
+rs62509311 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.212708915414e-16
+Joint b, se, max pJ: -0.014833043323 0.001825310140 2.212708915414e-16
+rs62509311 New candidate SNP accepted
+iter 11 finished
+--------------------------------
+12 362685 0
+rs4367597 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.888199835718e-13
+Joint b, se, max pJ: -0.013869922000 0.001766174162 2.029575084292e-15
+rs4367597 New candidate SNP accepted
+iter 12 finished
+--------------------------------
+13 362684 0
+rs400824 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.352833450301e-12
+Joint b, se, max pJ: 0.012229719128 0.001779634077 3.164478089000e-12
+rs400824 New candidate SNP accepted
+iter 13 finished
+--------------------------------
+14 362683 0
+rs2911971 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.905007690680e-12
+Joint b, se, max pJ: -0.011493286261 0.001687714208 4.880891918519e-12
+rs2911971 New candidate SNP accepted
+iter 14 finished
+--------------------------------
+15 362682 0
+rs17715679 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.261945455504e-10
+Joint b, se, max pJ: -0.011493286261 0.001687714208 4.880891918519e-12
+rs17715679 New candidate SNP accepted
+iter 15 finished
+--------------------------------
+16 362681 0
+rs2096890 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.000792190460e-10
+Joint b, se, max pJ: 0.009673357657 0.001608053912 8.962851628002e-10
+rs2096890 New candidate SNP accepted
+iter 16 finished
+--------------------------------
+17 362680 0
+rs9324540 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.790506316050e-08
+Joint b, se, max pJ: -0.008807231717 0.001598159550 1.785434876303e-08
+rs9324540 New candidate SNP accepted
+iter 17 finished
+--------------------------------
+18 362679 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs2941465 7.874713350146e-08
+iter 18 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/LDL/chr8.jma.cojo]
+
+MDISA for Cohort 1
+18 362679 0
+rs2941465 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.382323591089e-08
+Joint b, se, max pJ: -0.007919759614 0.001652644322 8.249174368249e-07
+rs2941465 skipped, fixed candidate SNP exceeds p-value threshold
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs2941423 6.576500038631e-08
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/LDL/chr8.MDISA.cohort1.jma.cojo]
+
+MDISA for Cohort 2
+18 362679 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs10956482 2.602301714816e-06
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/LDL/chr8.MDISA.cohort2.jma.cojo]
+
+All calculations finished!
+Total running time: 212.64 seconds
+
+=========== MACOJO CONFIGURATION ===========
+Threshold: 5e-8
+Colinearity threshold: 0.9
+R2 incremental threshold: -1
+R2 incremental threshold backwards: -1
+SNP position window (+/-): 10Mb
+SNP frequency threshold: 0.01
+SNP frequency mode: OR
+Use GCTA-COJO model selection criteria
+===========================================
+
+6514129 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/logTG_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]
+69010 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.fam]
+362857 common SNPs after including Cohort 1
+Time taken: 5.288031 seconds
+
+6514129 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/logTG_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]
+6901 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.fam]
+362857 common SNPs after including Cohort 2
+Time taken: 5.253853 seconds
+
+Setting reference based on BIM file of Cohort 1 ...
+Reading Cohort 1 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/logTG_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+Reading Cohort 2 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/logTG_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+362857 common SNPs after removing rare SNPs
+Time taken: 20.630066 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  8 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 132.165145 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  46 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 14.920477 seconds
+
+362803 common SNPs at last for iterative selection
+Vp Cohort 1: 1.13087849294
+Vp Cohort 2: 1.07955603997
+--------------------------------
+
+Calculation started!
+0 362803 0
+No candidate SNPs, using the most significant SNP as the first candidate
+rs328 First SNP
+p-value: 0.000000000000e+00
+--------------------------------
+1 362802 0
+rs28601761 Screened SNP with the most significant conditional pC
+Conditional min pC: 0.000000000000e+00
+Joint b, se, max pJ: -0.083598493374 0.001577279567 0.000000000000e+00
+rs28601761 New candidate SNP accepted
+iter 1 finished
+--------------------------------
+2 362801 0
+rs2165557 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.067312491648e-242
+Joint b, se, max pJ: -0.064833137594 0.001928997364 6.040554035114e-248
+rs2165557 New candidate SNP accepted
+iter 2 finished
+--------------------------------
+3 362800 0
+rs3289 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.919349843568e-174
+Joint b, se, max pJ: 0.127788678115 0.004529970980 2.229365366050e-175
+rs3289 New candidate SNP accepted
+iter 3 finished
+--------------------------------
+4 362799 0
+rs2954038 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.119736684120e-83
+Joint b, se, max pJ: 0.046493325716 0.002031964484 3.593939849615e-116
+rs2954038 New candidate SNP accepted
+iter 4 finished
+--------------------------------
+5 362798 0
+rs10888176 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.194730185371e-82
+Joint b, se, max pJ: 0.032771982742 0.001648081209 2.747837291880e-88
+rs10888176 New candidate SNP accepted
+iter 5 finished
+--------------------------------
+6 362797 0
+rs35246381 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.897828427034e-77
+Joint b, se, max pJ: 0.033071391695 0.001787386218 9.827322505832e-77
+rs35246381 New candidate SNP accepted
+iter 6 finished
+--------------------------------
+7 362796 0
+rs28597716 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.138404436166e-62
+Joint b, se, max pJ: 0.029319430520 0.001659054690 3.422888784003e-70
+rs28597716 New candidate SNP accepted
+iter 7 finished
+--------------------------------
+8 362795 0
+rs1032577 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.196394908071e-46
+Joint b, se, max pJ: 0.022614761365 0.001589576710 3.118980726344e-46
+rs1032577 New candidate SNP accepted
+iter 8 finished
+--------------------------------
+9 362794 0
+rs9297994 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.643044099916e-36
+Joint b, se, max pJ: 0.020946826025 0.001667068783 1.643044099916e-36
+rs9297994 New candidate SNP accepted
+iter 9 finished
+--------------------------------
+10 362793 0
+rs12546944 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.452617279720e-34
+Joint b, se, max pJ: 0.020946826025 0.001667068783 1.643044099916e-36
+rs12546944 New candidate SNP accepted
+iter 10 finished
+--------------------------------
+11 362792 0
+rs9657541 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.022994774898e-31
+Joint b, se, max pJ: 0.023180816375 0.001957070448 1.146856510118e-32
+rs9657541 New candidate SNP accepted
+iter 11 finished
+--------------------------------
+12 362791 0
+rs4240624 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.497191237365e-32
+Joint b, se, max pJ: 0.030819926233 0.002570199204 1.974270306904e-33
+rs4240624 New candidate SNP accepted
+iter 12 finished
+--------------------------------
+13 362790 0
+rs60369789 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.119732176305e-22
+Joint b, se, max pJ: 0.021741624114 0.002283942585 8.714189238208e-22
+rs60369789 New candidate SNP accepted
+iter 13 finished
+--------------------------------
+14 362789 0
+rs745578 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.192716739047e-21
+Joint b, se, max pJ: 0.016518407303 0.001765791018 4.192716739047e-21
+rs745578 New candidate SNP accepted
+iter 14 finished
+--------------------------------
+15 362788 0
+rs4320509 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.175319367897e-19
+Joint b, se, max pJ: 0.016518407303 0.001765791018 4.192716739047e-21
+rs4320509 New candidate SNP accepted
+iter 15 finished
+--------------------------------
+16 362787 0
+rs10958704 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.560960318710e-18
+Joint b, se, max pJ: 0.013381680756 0.001569475658 7.560960318710e-18
+rs10958704 New candidate SNP accepted
+iter 16 finished
+--------------------------------
+17 362786 0
+rs35465966 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.618543094990e-18
+Joint b, se, max pJ: 0.013381680756 0.001569475658 7.560960318710e-18
+rs35465966 New candidate SNP accepted
+iter 17 finished
+--------------------------------
+18 362785 0
+rs13253283 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.176721102938e-25
+Joint b, se, max pJ: 0.016570905808 0.002300681755 2.953609263428e-13
+rs13253283 New candidate SNP accepted
+iter 18 finished
+--------------------------------
+19 362784 0
+rs16900755 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.127168049896e-16
+Joint b, se, max pJ: 0.016570905808 0.002300681755 2.953609263428e-13
+rs16900755 New candidate SNP accepted
+iter 19 finished
+--------------------------------
+20 362783 0
+rs12681990 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.796465671554e-15
+Joint b, se, max pJ: 0.016570905808 0.002300681755 2.953609263428e-13
+rs12681990 New candidate SNP accepted
+iter 20 finished
+--------------------------------
+21 362782 0
+rs55682243 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.092095202473e-14
+Joint b, se, max pJ: 0.016239039303 0.002301119402 8.505726048061e-13
+rs55682243 New candidate SNP accepted
+iter 21 finished
+--------------------------------
+22 362781 0
+rs373360576 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.640352756681e-14
+Joint b, se, max pJ: 0.016239039303 0.002301119402 8.505726048061e-13
+rs373360576 New candidate SNP accepted
+iter 22 finished
+--------------------------------
+23 362780 0
+rs1121923 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.727313740579e-13
+Joint b, se, max pJ: -0.036357446630 0.004742725962 8.876396515153e-15
+rs1121923 New candidate SNP accepted
+iter 23 finished
+--------------------------------
+24 362779 0
+rs112946343 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.368896558198e-15
+Joint b, se, max pJ: -0.035224885499 0.004744605702 5.673326029015e-14
+rs112946343 New candidate SNP accepted
+iter 24 finished
+--------------------------------
+25 362778 0
+rs58301047 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.171964333166e-13
+Joint b, se, max pJ: -0.013814419397 0.001920568929 3.171964333166e-13
+rs58301047 New candidate SNP accepted
+iter 25 finished
+--------------------------------
+26 362777 0
+rs9632849 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.358075955207e-12
+Joint b, se, max pJ: 0.011384888711 0.001627876092 1.338580157730e-12
+rs9632849 New candidate SNP accepted
+iter 26 finished
+--------------------------------
+27 362776 0
+rs17818197 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.366070474995e-12
+Joint b, se, max pJ: 0.013151938112 0.001881001881 1.355113303548e-12
+rs17818197 New candidate SNP accepted
+iter 27 finished
+--------------------------------
+28 362775 0
+rs17716502 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.444220835258e-12
+Joint b, se, max pJ: -0.013899223269 0.002011563893 2.429077291705e-12
+rs17716502 New candidate SNP accepted
+iter 28 finished
+--------------------------------
+29 362774 0
+rs201072028 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.621849711486e-12
+Joint b, se, max pJ: -0.013899223269 0.002011563893 2.429077291705e-12
+rs201072028 New candidate SNP accepted
+iter 29 finished
+--------------------------------
+30 362773 0
+rs7830852 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.060236942545e-12
+Joint b, se, max pJ: 0.012265531011 0.001783605900 3.060236942545e-12
+rs7830852 New candidate SNP accepted
+iter 30 finished
+--------------------------------
+31 362772 0
+rs4457349 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.651368596311e-11
+Joint b, se, max pJ: 0.012265531011 0.001783605900 3.060236942545e-12
+rs4457349 New candidate SNP accepted
+iter 31 finished
+--------------------------------
+32 362771 0
+rs4604455 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.106455418386e-12
+Joint b, se, max pJ: -0.013700148696 0.002012000941 4.906607609985e-12
+rs4604455 New candidate SNP accepted
+iter 32 finished
+--------------------------------
+33 362770 0
+rs1486000 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.222370377313e-10
+Joint b, se, max pJ: -0.013800650747 0.002180004541 1.221360667899e-10
+rs1486000 New candidate SNP accepted
+iter 33 finished
+--------------------------------
+34 362769 0
+rs62500073 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.650997993416e-10
+Joint b, se, max pJ: -0.013800650747 0.002180004541 1.221360667899e-10
+rs62500073 New candidate SNP accepted
+iter 34 finished
+--------------------------------
+35 362768 0
+rs1801177 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.419874510897e-10
+Joint b, se, max pJ: -0.013800650747 0.002180004541 1.221360667899e-10
+rs1801177 New candidate SNP accepted
+iter 35 finished
+--------------------------------
+36 362767 0
+rs1512270 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.978754424297e-10
+Joint b, se, max pJ: 0.011086328010 0.001822958981 5.953107908478e-10
+rs1512270 New candidate SNP accepted
+iter 36 finished
+--------------------------------
+37 362766 0
+rs13271435 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.000356439679e-09
+Joint b, se, max pJ: -0.010024707768 0.001671234508 9.964487606470e-10
+rs13271435 New candidate SNP accepted
+iter 37 finished
+--------------------------------
+38 362765 0
+rs6992869 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.129561241144e-09
+Joint b, se, max pJ: 0.009555708277 0.001598072990 1.118985266428e-09
+rs6992869 New candidate SNP accepted
+iter 38 finished
+--------------------------------
+39 362764 0
+rs4072394 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.420216797212e-09
+Joint b, se, max pJ: -0.009804304974 0.001649022782 1.377867067715e-09
+rs4072394 New candidate SNP accepted
+iter 39 finished
+--------------------------------
+40 362763 0
+rs4841150 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.618482950212e-09
+Joint b, se, max pJ: -0.009805908494 0.001649022859 1.369712791541e-09
+rs4841150 New candidate SNP accepted
+iter 40 finished
+--------------------------------
+41 362762 0
+rs7833274 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.731858382266e-09
+Joint b, se, max pJ: -0.009758402442 0.001649078240 1.634467986729e-09
+rs7833274 New candidate SNP accepted
+iter 41 finished
+--------------------------------
+42 362761 0
+rs969584 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.499302864017e-09
+Joint b, se, max pJ: -0.009758402442 0.001649078240 1.634467986729e-09
+rs969584 New candidate SNP accepted
+iter 42 finished
+--------------------------------
+43 362760 0
+rs75517496 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.744270987159e-09
+Joint b, se, max pJ: -0.021710194793 0.003733393177 3.029202694276e-09
+rs75517496 New candidate SNP accepted
+iter 43 finished
+--------------------------------
+44 362759 0
+rs768878 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.843921888910e-09
+Joint b, se, max pJ: 0.010837381896 0.001876279025 3.824938287252e-09
+rs768878 New candidate SNP accepted
+iter 44 finished
+--------------------------------
+45 362758 0
+rs7845165 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.139542570192e-08
+Joint b, se, max pJ: 0.010615468602 0.001894691900 1.054939912569e-08
+rs7845165 New candidate SNP accepted
+iter 45 finished
+--------------------------------
+46 362757 0
+rs62486442 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.264535809565e-08
+Joint b, se, max pJ: 0.009844856857 0.001766200198 1.244548151330e-08
+rs62486442 New candidate SNP accepted
+iter 46 finished
+--------------------------------
+47 362756 0
+rs57231250 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.273079746080e-08
+Joint b, se, max pJ: 0.008891587690 0.001596029821 1.265925934388e-08
+rs57231250 New candidate SNP accepted
+iter 47 finished
+--------------------------------
+48 362755 0
+rs4840546 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.430681962912e-08
+Joint b, se, max pJ: 0.008891587690 0.001596029821 1.265925934388e-08
+rs4840546 New candidate SNP accepted
+iter 48 finished
+--------------------------------
+49 362754 0
+rs7005359 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.407228625488e-08
+Joint b, se, max pJ: -0.009321214476 0.001678879444 1.411733214541e-08
+rs7005359 New candidate SNP accepted
+iter 49 finished
+--------------------------------
+50 362753 0
+rs9644636 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.945828798025e-11
+Joint b, se, max pJ: 0.008891587690 0.001596029821 1.265925934388e-08
+rs9644636 New candidate SNP accepted
+iter 50 finished
+--------------------------------
+51 362752 0
+rs28550053 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.429336545143e-12
+Joint b, se, max pJ: 0.008891587690 0.001596029821 1.265925934388e-08
+rs28550053 New candidate SNP accepted
+iter 51 finished
+--------------------------------
+52 362751 0
+rs10503672 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.060411807895e-09
+Joint b, se, max pJ: -0.009300635156 0.001698216108 2.166546656097e-08
+rs10503672 New candidate SNP accepted
+iter 52 finished
+--------------------------------
+53 362750 0
+rs78358410 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.809226649175e-09
+Joint b, se, max pJ: 0.009840494643 0.001766380376 1.266449582036e-08
+rs78358410 New candidate SNP accepted
+iter 53 finished
+--------------------------------
+54 362749 0
+rs6557915 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.566606028750e-08
+Joint b, se, max pJ: -0.009372545518 0.001716562898 2.379797404537e-08
+rs6557915 New candidate SNP accepted
+iter 54 finished
+--------------------------------
+55 362748 0
+rs13262459 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.607274821542e-08
+Joint b, se, max pJ: -0.009372545518 0.001716562898 2.379797404537e-08
+rs13262459 New candidate SNP accepted
+iter 55 finished
+--------------------------------
+56 362747 0
+rs2928577 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.017601939202e-08
+Joint b, se, max pJ: 0.008854836942 0.001648576098 3.910654279723e-08
+rs2928577 New candidate SNP accepted
+iter 56 finished
+--------------------------------
+57 362746 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs1372992 6.084363671280e-08
+iter 57 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/logTG/chr8.jma.cojo]
+
+MDISA for Cohort 1
+57 362746 0
+rs1561929 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.026101801396e-08
+Joint b, se, max pJ: -0.019250708168 0.006274334921 1.076880631042e-03
+rs1561929 skipped, fixed candidate SNP exceeds p-value threshold
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs1561928 5.806445075919e-08
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/logTG/chr8.MDISA.cohort1.jma.cojo]
+
+MDISA for Cohort 2
+57 362746 0
+rs1059611 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.896210641419e-10
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs1059611 skipped, fixed candidate SNP exceeds p-value threshold
+rs10645926 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.837187615583e-10
+Joint b, se, max pJ: 0.000345979718 0.005595366546 4.753478108467e-01
+rs10645926 skipped, fixed candidate SNP exceeds p-value threshold
+rs10096633 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.414130561405e-10
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs10096633 skipped, fixed candidate SNP exceeds p-value threshold
+rs3208305 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.138182280976e-09
+Joint b, se, max pJ: 0.000325719784 0.006670249340 4.805266995826e-01
+rs3208305 skipped, fixed candidate SNP exceeds p-value threshold
+rs331 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.817776159780e-09
+Joint b, se, max pJ: -0.000265327176 0.006980397269 4.848397244961e-01
+rs331 skipped, fixed candidate SNP exceeds p-value threshold
+rs10105606 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.002329716529e-09
+Joint b, se, max pJ: -0.000103845271 0.006677899415 4.937964624595e-01
+rs10105606 skipped, fixed candidate SNP exceeds p-value threshold
+rs13702 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.186280108755e-08
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs13702 skipped, fixed candidate SNP exceeds p-value threshold
+rs327 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.186800383055e-08
+Joint b, se, max pJ: -0.000163673430 0.011250158992 4.941961755264e-01
+rs327 skipped, fixed candidate SNP exceeds p-value threshold
+rs322 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.207091336932e-08
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs322 skipped, fixed candidate SNP exceeds p-value threshold
+rs15285 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.345257405890e-08
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs15285 skipped, fixed candidate SNP exceeds p-value threshold
+rs295 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.195810845669e-08
+Joint b, se, max pJ: -0.000374693897 0.006989337498 4.786232002875e-01
+rs295 skipped, fixed candidate SNP exceeds p-value threshold
+rs4543559 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.757543663402e-08
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs4543559 skipped, fixed candidate SNP exceeds p-value threshold
+rs320 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.835120356489e-08
+Joint b, se, max pJ: -0.000084923617 0.006682979557 4.949305980491e-01
+rs320 skipped, fixed candidate SNP exceeds p-value threshold
+rs304 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.861549091294e-08
+Joint b, se, max pJ: -0.000183595104 0.006684252400 4.890437050318e-01
+rs304 skipped, fixed candidate SNP exceeds p-value threshold
+rs291 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.677381517678e-08
+Joint b, se, max pJ: -0.000093081245 0.006683436271 4.944440491335e-01
+rs291 skipped, fixed candidate SNP exceeds p-value threshold
+rs305 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.684176293648e-08
+Joint b, se, max pJ: -0.000153124682 0.006684250288 4.908617175295e-01
+rs305 skipped, fixed candidate SNP exceeds p-value threshold
+rs314 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.710425423830e-08
+Joint b, se, max pJ: 0.000842682775 0.012957457176 4.740732341600e-01
+rs314 skipped, fixed candidate SNP exceeds p-value threshold
+rs289 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.840976064369e-08
+Joint b, se, max pJ: -0.000099628981 0.006683597492 4.940533909775e-01
+rs289 skipped, fixed candidate SNP exceeds p-value threshold
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs297 5.589583295363e-08
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/logTG/chr8.MDISA.cohort2.jma.cojo]
+
+All calculations finished!
+Total running time: 309.60 seconds
+
+=========== MACOJO CONFIGURATION ===========
+Threshold: 5e-8
+Colinearity threshold: 0.9
+R2 incremental threshold: -1
+R2 incremental threshold backwards: -1
+SNP position window (+/-): 10Mb
+SNP frequency threshold: 0.01
+SNP frequency mode: OR
+Use GCTA-COJO model selection criteria
+===========================================
+
+6514274 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/TC_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]
+69010 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.fam]
+362861 common SNPs after including Cohort 1
+Time taken: 5.244411 seconds
+
+6514274 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/TC_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]
+6901 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.fam]
+362861 common SNPs after including Cohort 2
+Time taken: 5.2225 seconds
+
+Setting reference based on BIM file of Cohort 1 ...
+Reading Cohort 1 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/TC_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+Reading Cohort 2 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/TC_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+362861 common SNPs after removing rare SNPs
+Time taken: 19.607084 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  8 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 132.110316 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  42 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 14.946286 seconds
+
+362811 common SNPs at last for iterative selection
+Vp Cohort 1: 1.14781583876
+Vp Cohort 2: 1.08076448034
+--------------------------------
+
+Calculation started!
+0 362811 0
+No candidate SNPs, using the most significant SNP as the first candidate
+rs28601761 First SNP
+p-value: 0.000000000000e+00
+--------------------------------
+1 362810 0
+rs4841132 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.226668737797e-198
+Joint b, se, max pJ: -0.076018953713 0.002532787116 3.226668737796e-198
+rs4841132 New candidate SNP accepted
+iter 1 finished
+--------------------------------
+2 362809 0
+rs9297994 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.149970937206e-114
+Joint b, se, max pJ: 0.036776978332 0.001621202110 3.149970937205e-114
+rs9297994 New candidate SNP accepted
+iter 2 finished
+--------------------------------
+3 362808 0
+rs35246381 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.736951620389e-75
+Joint b, se, max pJ: 0.031939473287 0.001740773088 1.716637719978e-75
+rs35246381 New candidate SNP accepted
+iter 3 finished
+--------------------------------
+4 362807 0
+rs2737245 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.671556886234e-53
+Joint b, se, max pJ: -0.026083372607 0.001702191189 2.667218495703e-53
+rs2737245 New candidate SNP accepted
+iter 4 finished
+--------------------------------
+5 362806 0
+rs4457349 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.828213904552e-52
+Joint b, se, max pJ: -0.026087481189 0.001702225157 2.582086396686e-53
+rs4457349 New candidate SNP accepted
+iter 5 finished
+--------------------------------
+6 362805 0
+rs7012637 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.035515228487e-41
+Joint b, se, max pJ: 0.022443718164 0.001622453728 8.036057450111e-44
+rs7012637 New candidate SNP accepted
+iter 6 finished
+--------------------------------
+7 362804 0
+rs11781667 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.309709711269e-39
+Joint b, se, max pJ: 0.020938103855 0.001607315180 4.309709711269e-39
+rs11781667 New candidate SNP accepted
+iter 7 finished
+--------------------------------
+8 362803 0
+rs10104003 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.145111876299e-38
+Joint b, se, max pJ: 0.023823329428 0.001839349281 1.143928944724e-38
+rs10104003 New candidate SNP accepted
+iter 8 finished
+--------------------------------
+9 362802 0
+rs6997473 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.429620330112e-27
+Joint b, se, max pJ: -0.031774516380 0.002940463222 1.612894512185e-27
+rs6997473 New candidate SNP accepted
+iter 9 finished
+--------------------------------
+10 362801 0
+rs900776 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.854165308962e-24
+Joint b, se, max pJ: -0.019782429380 0.001964992721 3.848088747928e-24
+rs900776 New candidate SNP accepted
+iter 10 finished
+--------------------------------
+11 362800 0
+rs6992869 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.404368159971e-19
+Joint b, se, max pJ: 0.013761637231 0.001554567189 4.283183298434e-19
+rs6992869 New candidate SNP accepted
+iter 11 finished
+--------------------------------
+12 362799 0
+rs62509311 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.198575982696e-16
+Joint b, se, max pJ: -0.014089218941 0.001743390165 3.198575982696e-16
+rs62509311 New candidate SNP accepted
+iter 12 finished
+--------------------------------
+13 362798 0
+rs2928576 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.658270514638e-12
+Joint b, se, max pJ: -0.011426457955 0.001640819554 1.655222714498e-12
+rs2928576 New candidate SNP accepted
+iter 13 finished
+--------------------------------
+14 362797 0
+rs10955991 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.152017873087e-10
+Joint b, se, max pJ: 0.010177007172 0.001605119664 1.146280459075e-10
+rs10955991 New candidate SNP accepted
+iter 14 finished
+--------------------------------
+15 362796 0
+rs400824 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.310876784695e-10
+Joint b, se, max pJ: 0.010744452167 0.001698182161 1.249611095037e-10
+rs400824 New candidate SNP accepted
+iter 15 finished
+--------------------------------
+16 362795 0
+rs2385094 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.756836483847e-09
+Joint b, se, max pJ: -0.013309210334 0.002301776455 3.687655922816e-09
+rs2385094 New candidate SNP accepted
+iter 16 finished
+--------------------------------
+17 362794 0
+rs10955258 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.935913182121e-09
+Joint b, se, max pJ: -0.009622612996 0.001708732531 8.935913182121e-09
+rs10955258 New candidate SNP accepted
+iter 17 finished
+--------------------------------
+18 362793 0
+rs4733851 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.736349711689e-08
+Joint b, se, max pJ: 0.008124923456 0.001510341024 3.734046620471e-08
+rs4733851 New candidate SNP accepted
+iter 18 finished
+--------------------------------
+19 362792 0
+rs2634531 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.190622062576e-08
+Joint b, se, max pJ: 0.008124923456 0.001510341024 3.734046620471e-08
+rs2634531 New candidate SNP accepted
+iter 19 finished
+--------------------------------
+20 362791 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs709821 5.142403201263e-08
+iter 20 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/TC/chr8.jma.cojo]
+
+MDISA for Cohort 1
+20 362791 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs11993679 5.222749861006e-08
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/TC/chr8.MDISA.cohort1.jma.cojo]
+
+MDISA for Cohort 2
+20 362791 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs4347008 4.975118392761e-07
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/TC/chr8.MDISA.cohort2.jma.cojo]
+
+All calculations finished!
+Total running time: 214.42 seconds
+
+=========== MACOJO CONFIGURATION ===========
+Threshold: 5e-8
+Colinearity threshold: 0.9
+R2 incremental threshold: -1
+R2 incremental threshold backwards: -1
+SNP position window (+/-): 10Mb
+SNP frequency threshold: 0.01
+SNP frequency mode: OR
+Use GCTA-COJO model selection criteria
+===========================================
+
+1112055 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/Height_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]
+69010 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.fam]
+60997 common SNPs after including Cohort 1
+Time taken: 1.116334 seconds
+
+1112055 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/Height_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat]
+363327 SNPs in file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]
+6901 individuals in FAM file [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.fam]
+60997 common SNPs after including Cohort 2
+Time taken: 1.081424 seconds
+
+Setting reference based on BIM file of Cohort 1 ...
+Reading Cohort 1 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/Height_EUR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+Reading Cohort 2 GWAS summary-level statistics from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/QCed_GWAS_trans-ancestry/Height_AFR_MAF01_QCed_withoutUKB.commonSNP.sumstat] ...
+60997 common SNPs after removing rare SNPs
+Time taken: 3.300514 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_69K_EUR_LD/UKB_69K_EUR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+Time taken: 23.427453 seconds
+
+Reading PLINK BIM file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bim]...
+Reading PLINK BED file from [/well/visscher-wray/shared/UKBiobank_info_from_UQ/UKB_LD_ref_by_CHR/For_real_data_analysis/UKB_6.9K_AFR_LD/UKB_6.9K_AFR_LD_chr8.bed] in SNP-major format ...
+Finished reading PLINK file
+  2 SNPs removed due to allele frequency too different between sumstat and bedfile
+Time taken: 2.890466 seconds
+
+60995 common SNPs at last for iterative selection
+Vp Cohort 1: 1.07682580034
+Vp Cohort 2: 1.11583619558
+--------------------------------
+
+Calculation started!
+0 60995 0
+No candidate SNPs, using the most significant SNP as the first candidate
+rs4733724 First SNP
+p-value: 4.833169995613e-188
+--------------------------------
+1 60994 0
+rs6984782 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.987412747541e-181
+Joint b, se, max pJ: -0.053847688936 0.001878416409 4.987412747542e-181
+rs6984782 New candidate SNP accepted
+iter 1 finished
+--------------------------------
+2 60993 0
+rs894345 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.866067948449e-115
+Joint b, se, max pJ: -0.030278099090 0.001327409395 1.827712909002e-115
+rs894345 New candidate SNP accepted
+iter 2 finished
+--------------------------------
+3 60992 0
+rs17379354 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.044995229819e-110
+Joint b, se, max pJ: 0.033036493453 0.001482944898 3.044995229819e-110
+rs17379354 New candidate SNP accepted
+iter 3 finished
+--------------------------------
+4 60991 0
+rs10958476 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.600869634307e-99
+Joint b, se, max pJ: 0.035990978222 0.001674480215 8.892731224256e-103
+rs10958476 New candidate SNP accepted
+iter 4 finished
+--------------------------------
+5 60990 0
+rs2013265 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.930902097840e-81
+Joint b, se, max pJ: -0.029293658036 0.001535484131 1.930902097840e-81
+rs2013265 New candidate SNP accepted
+iter 5 finished
+--------------------------------
+6 60989 0
+rs2956605 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.600206042552e-65
+Joint b, se, max pJ: 0.023855685038 0.001400011091 2.086460068007e-65
+rs2956605 New candidate SNP accepted
+iter 6 finished
+--------------------------------
+7 60988 0
+rs1063582 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.664170422528e-63
+Joint b, se, max pJ: 0.025471823124 0.001517710951 1.623528169918e-63
+rs1063582 New candidate SNP accepted
+iter 7 finished
+--------------------------------
+8 60987 0
+rs2002508 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.364631470441e-64
+Joint b, se, max pJ: 0.027352768699 0.001617487844 1.877755930182e-64
+rs2002508 New candidate SNP accepted
+iter 8 finished
+--------------------------------
+9 60986 0
+rs1550162 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.238679723245e-61
+Joint b, se, max pJ: 0.024019957596 0.001463824116 8.238679723245e-61
+rs1550162 New candidate SNP accepted
+iter 9 finished
+--------------------------------
+10 60985 0
+rs1599473 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.001116054820e-55
+Joint b, se, max pJ: -0.025020425526 0.001599949813 1.997587940875e-55
+rs1599473 New candidate SNP accepted
+iter 10 finished
+--------------------------------
+11 60984 0
+rs8180991 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.040566770157e-54
+Joint b, se, max pJ: -0.024433206960 0.001572825691 1.011764304478e-54
+rs8180991 New candidate SNP accepted
+iter 11 finished
+--------------------------------
+12 60983 0
+rs7012665 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.287696648366e-49
+Joint b, se, max pJ: 0.022211322134 0.001508437755 2.236624511074e-49
+rs7012665 New candidate SNP accepted
+iter 12 finished
+--------------------------------
+13 60982 0
+rs11778018 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.472810531399e-48
+Joint b, se, max pJ: -0.019618500941 0.001354340178 7.464925509242e-48
+rs11778018 New candidate SNP accepted
+iter 13 finished
+--------------------------------
+14 60981 0
+rs7827315 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.033682222559e-41
+Joint b, se, max pJ: 0.068316174876 0.004805628432 3.652056901653e-46
+rs7827315 New candidate SNP accepted
+iter 14 finished
+--------------------------------
+15 60980 0
+rs2012592 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.697487249239e-40
+Joint b, se, max pJ: -0.018046256882 0.001359526774 1.639710384368e-40
+rs2012592 New candidate SNP accepted
+iter 15 finished
+--------------------------------
+16 60979 0
+rs526693 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.826241266879e-39
+Joint b, se, max pJ: 0.020541819823 0.001568700174 1.762938700869e-39
+rs526693 New candidate SNP accepted
+iter 16 finished
+--------------------------------
+17 60978 0
+rs2979510 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.111045963857e-39
+Joint b, se, max pJ: -0.016965471121 0.001296808908 2.073546678259e-39
+rs2979510 New candidate SNP accepted
+iter 17 finished
+--------------------------------
+18 60977 0
+rs16939034 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.108817418660e-36
+Joint b, se, max pJ: 0.029311090022 0.002288820543 7.568533750993e-38
+rs16939034 New candidate SNP accepted
+iter 18 finished
+--------------------------------
+19 60976 0
+rs2721940 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.206134342501e-36
+Joint b, se, max pJ: 0.017261788113 0.001375862029 2.086238109355e-36
+rs2721940 New candidate SNP accepted
+iter 19 finished
+--------------------------------
+20 60975 0
+rs3802266 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.255358411528e-35
+Joint b, se, max pJ: 0.016289338643 0.001312983395 1.206964929197e-35
+rs3802266 New candidate SNP accepted
+iter 20 finished
+--------------------------------
+21 60974 0
+rs12541381 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.606477823770e-32
+Joint b, se, max pJ: -0.020680110922 0.001697336170 1.894509702409e-34
+rs12541381 New candidate SNP accepted
+iter 21 finished
+--------------------------------
+22 60973 0
+rs7825555 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.049625399219e-30
+Joint b, se, max pJ: 0.017281444623 0.001515569455 2.028886645151e-30
+rs7825555 New candidate SNP accepted
+iter 22 finished
+--------------------------------
+23 60972 0
+rs7003175 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.057600055328e-30
+Joint b, se, max pJ: 0.021397711016 0.001898323131 9.031334330790e-30
+rs7003175 New candidate SNP accepted
+iter 23 finished
+--------------------------------
+24 60971 0
+rs7011172 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.943899620298e-28
+Joint b, se, max pJ: 0.016113613308 0.001474757613 4.315778740748e-28
+rs7011172 New candidate SNP accepted
+iter 24 finished
+--------------------------------
+25 60970 0
+rs6471570 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.916895105845e-29
+Joint b, se, max pJ: -0.014790407713 0.001327863948 4.074173027139e-29
+rs6471570 New candidate SNP accepted
+iter 25 finished
+--------------------------------
+26 60969 0
+rs10505628 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.746863973308e-27
+Joint b, se, max pJ: -0.014982361372 0.001370235519 3.957187070940e-28
+rs10505628 New candidate SNP accepted
+iter 26 finished
+--------------------------------
+27 60968 0
+rs7013038 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.755321205408e-27
+Joint b, se, max pJ: 0.017315628210 0.001619985373 5.745093899580e-27
+rs7013038 New candidate SNP accepted
+iter 27 finished
+--------------------------------
+28 60967 0
+rs10101476 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.828859317214e-27
+Joint b, se, max pJ: 0.017315628210 0.001619985373 5.745093899580e-27
+rs10101476 New candidate SNP accepted
+iter 28 finished
+--------------------------------
+29 60966 0
+rs4736702 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.868639312009e-26
+Joint b, se, max pJ: 0.016874309304 0.001613716458 6.819248994856e-26
+rs4736702 New candidate SNP accepted
+iter 29 finished
+--------------------------------
+30 60965 0
+rs12682345 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.859870926640e-26
+Joint b, se, max pJ: -0.015155359765 0.001451037716 7.763777840709e-26
+rs12682345 New candidate SNP accepted
+iter 30 finished
+--------------------------------
+31 60964 0
+rs7009693 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.885279094584e-24
+Joint b, se, max pJ: 0.013362071529 0.001327184706 3.826616597686e-24
+rs7009693 New candidate SNP accepted
+iter 31 finished
+--------------------------------
+32 60963 0
+rs4518624 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.817607630717e-23
+Joint b, se, max pJ: 0.013362071529 0.001327184706 3.826616597686e-24
+rs4518624 New candidate SNP accepted
+iter 32 finished
+--------------------------------
+33 60962 0
+rs7003470 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.902682792883e-23
+Joint b, se, max pJ: -0.017865951724 0.001829275685 7.824759123196e-23
+rs7003470 New candidate SNP accepted
+iter 33 finished
+--------------------------------
+34 60961 0
+rs17833457 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.240849613074e-22
+Joint b, se, max pJ: 0.017313990473 0.001781067417 1.225216544424e-22
+rs17833457 New candidate SNP accepted
+iter 34 finished
+--------------------------------
+35 60960 0
+rs4737527 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.580048326817e-22
+Joint b, se, max pJ: 0.013943143017 0.001437227116 1.486665371693e-22
+rs4737527 New candidate SNP accepted
+iter 35 finished
+--------------------------------
+36 60959 0
+rs16939031 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.925495771608e-22
+Joint b, se, max pJ: 0.013943143017 0.001437227116 1.486665371693e-22
+rs16939031 New candidate SNP accepted
+iter 36 finished
+--------------------------------
+37 60958 0
+rs9693980 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.206271672358e-22
+Joint b, se, max pJ: 0.013922555625 0.001437243701 1.712478574687e-22
+rs9693980 New candidate SNP accepted
+iter 37 finished
+--------------------------------
+38 60957 0
+rs16920935 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.081132713276e-23
+Joint b, se, max pJ: 0.013769445496 0.001437326067 4.856766902044e-22
+rs16920935 New candidate SNP accepted
+iter 38 finished
+--------------------------------
+39 60956 0
+rs1074553 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.759357503710e-21
+Joint b, se, max pJ: 0.013769445496 0.001437326067 4.856766902044e-22
+rs1074553 New candidate SNP accepted
+iter 39 finished
+--------------------------------
+40 60955 0
+rs7825742 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.325164389400e-21
+Joint b, se, max pJ: -0.016200791235 0.001727318774 3.325164389400e-21
+rs7825742 New candidate SNP accepted
+iter 40 finished
+--------------------------------
+41 60954 0
+rs1011158 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.736128060396e-20
+Joint b, se, max pJ: 0.012489857965 0.001369391106 3.730712108587e-20
+rs1011158 New candidate SNP accepted
+iter 41 finished
+--------------------------------
+42 60953 0
+rs2046193 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.880588993467e-20
+Joint b, se, max pJ: 0.012774086373 0.001402382542 4.163149844112e-20
+rs2046193 New candidate SNP accepted
+iter 42 finished
+--------------------------------
+43 60952 0
+rs10955866 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.378262720565e-19
+Joint b, se, max pJ: 0.012028528624 0.001338557956 1.279811808227e-19
+rs10955866 New candidate SNP accepted
+iter 43 finished
+--------------------------------
+44 60951 0
+rs16935095 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.845908251470e-19
+Joint b, se, max pJ: 0.016558269995 0.001884785470 7.802388433765e-19
+rs16935095 New candidate SNP accepted
+iter 44 finished
+--------------------------------
+45 60950 0
+rs4733789 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.695569905398e-18
+Joint b, se, max pJ: -0.011175705739 0.001310480391 7.448465503781e-18
+rs4733789 New candidate SNP accepted
+iter 45 finished
+--------------------------------
+46 60949 0
+rs2609996 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.828451534692e-18
+Joint b, se, max pJ: -0.011175705739 0.001310480391 7.448465503781e-18
+rs2609996 New candidate SNP accepted
+iter 46 finished
+--------------------------------
+47 60948 0
+rs11783663 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.241223477047e-17
+Joint b, se, max pJ: -0.011450953017 0.001352145313 1.240419316831e-17
+rs11783663 New candidate SNP accepted
+iter 47 finished
+--------------------------------
+48 60947 0
+rs882083 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.339166638031e-17
+Joint b, se, max pJ: -0.011450953017 0.001352145313 1.240419316831e-17
+rs882083 New candidate SNP accepted
+iter 48 finished
+--------------------------------
+49 60946 0
+rs13275868 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.795121396062e-17
+Joint b, se, max pJ: 0.012837990016 0.001523445492 1.774046054589e-17
+rs13275868 New candidate SNP accepted
+iter 49 finished
+--------------------------------
+50 60945 0
+rs13253108 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.437438071096e-17
+Joint b, se, max pJ: -0.011518394731 0.001379473938 3.417605823492e-17
+rs13253108 New candidate SNP accepted
+iter 50 finished
+--------------------------------
+51 60944 0
+rs2249015 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.987273743402e-17
+Joint b, se, max pJ: -0.011518400707 0.001379473938 3.417480493953e-17
+rs2249015 New candidate SNP accepted
+iter 51 finished
+--------------------------------
+52 60943 0
+rs10092747 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.435293544815e-18
+Joint b, se, max pJ: -0.011518380321 0.001379473938 3.417908110098e-17
+rs10092747 New candidate SNP accepted
+iter 52 finished
+--------------------------------
+53 60942 0
+rs6651255 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.025334001637e-16
+Joint b, se, max pJ: -0.011518119311 0.001379473939 3.423387941320e-17
+rs6651255 New candidate SNP accepted
+iter 53 finished
+--------------------------------
+54 60941 0
+rs9886448 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.610234984755e-16
+Joint b, se, max pJ: -0.015850729626 0.001937815564 1.422881016698e-16
+rs9886448 New candidate SNP accepted
+iter 54 finished
+--------------------------------
+55 60940 0
+rs16897581 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.111472949617e-16
+Joint b, se, max pJ: -0.017779735698 0.002199132859 3.111150714085e-16
+rs16897581 New candidate SNP accepted
+iter 55 finished
+--------------------------------
+56 60939 0
+rs7836586 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.518547564158e-16
+Joint b, se, max pJ: -0.012335490720 0.001533871628 4.416958845172e-16
+rs7836586 New candidate SNP accepted
+iter 56 finished
+--------------------------------
+57 60938 0
+rs17424078 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.491493885815e-16
+Joint b, se, max pJ: -0.033993532044 0.004227666584 4.465185719698e-16
+rs17424078 New candidate SNP accepted
+iter 57 finished
+--------------------------------
+58 60937 0
+rs2304790 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.232525487791e-16
+Joint b, se, max pJ: -0.011686637266 0.001456877087 5.214395353846e-16
+rs2304790 New candidate SNP accepted
+iter 58 finished
+--------------------------------
+59 60936 0
+rs3133755 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.372668476391e-15
+Joint b, se, max pJ: -0.010916156773 0.001387072936 1.774302308667e-15
+rs3133755 New candidate SNP accepted
+iter 59 finished
+--------------------------------
+60 60935 0
+rs1005502 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.567911533157e-15
+Joint b, se, max pJ: 0.012817721664 0.001630963510 1.936256051361e-15
+rs1005502 New candidate SNP accepted
+iter 60 finished
+--------------------------------
+61 60934 0
+rs10283108 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.676886111600e-15
+Joint b, se, max pJ: 0.012817681190 0.001630963589 1.936645485997e-15
+rs10283108 New candidate SNP accepted
+iter 61 finished
+--------------------------------
+62 60933 0
+rs2003259 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.093853184770e-15
+Joint b, se, max pJ: 0.012817237539 0.001630963628 1.940858058244e-15
+rs2003259 New candidate SNP accepted
+iter 62 finished
+--------------------------------
+63 60932 0
+rs17778003 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.998644373436e-15
+Joint b, se, max pJ: 0.012817477730 0.001630963651 1.938579543741e-15
+rs17778003 New candidate SNP accepted
+iter 63 finished
+--------------------------------
+64 60931 0
+rs3808527 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.399111294415e-15
+Joint b, se, max pJ: 0.012817477730 0.001630963651 1.938579543741e-15
+rs3808527 New candidate SNP accepted
+iter 64 finished
+--------------------------------
+65 60930 0
+rs13254935 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.075521364151e-13
+Joint b, se, max pJ: 0.015842631409 0.002158378668 1.067481428401e-13
+rs13254935 New candidate SNP accepted
+iter 65 finished
+--------------------------------
+66 60929 0
+rs3925 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.307324808917e-13
+Joint b, se, max pJ: -0.011506633393 0.001573446354 1.306090178274e-13
+rs3925 New candidate SNP accepted
+iter 66 finished
+--------------------------------
+67 60928 0
+rs3891281 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.959906481684e-13
+Joint b, se, max pJ: 0.011611875847 0.001597643798 1.822548521481e-13
+rs3891281 New candidate SNP accepted
+iter 67 finished
+--------------------------------
+68 60927 0
+rs931002 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.378121262424e-13
+Joint b, se, max pJ: -0.017962022235 0.002483244112 2.357173995072e-13
+rs931002 New candidate SNP accepted
+iter 68 finished
+--------------------------------
+69 60926 0
+rs6997668 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.719297732040e-13
+Joint b, se, max pJ: 0.014771111490 0.002052188113 3.060991173254e-13
+rs6997668 New candidate SNP accepted
+iter 69 finished
+--------------------------------
+70 60925 0
+rs11203495 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.728105730754e-13
+Joint b, se, max pJ: 0.014771111490 0.002052188113 3.060991173234e-13
+rs11203495 New candidate SNP accepted
+iter 70 finished
+--------------------------------
+71 60924 0
+rs1528628 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.719508146180e-13
+Joint b, se, max pJ: 0.014771111490 0.002052188113 3.060991173238e-13
+rs1528628 New candidate SNP accepted
+iter 71 finished
+--------------------------------
+72 60923 0
+rs7840746 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.637971474731e-13
+Joint b, se, max pJ: 0.010906900123 0.001533068011 5.618945149444e-13
+rs7840746 New candidate SNP accepted
+iter 72 finished
+--------------------------------
+73 60922 0
+rs7834086 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.827003819347e-13
+Joint b, se, max pJ: 0.015901415163 0.002236500634 5.804109380194e-13
+rs7834086 New candidate SNP accepted
+iter 73 finished
+--------------------------------
+74 60921 0
+rs1060832 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.221345833791e-13
+Joint b, se, max pJ: 0.013599348484 0.001914449722 6.080555291598e-13
+rs1060832 New candidate SNP accepted
+iter 74 finished
+--------------------------------
+75 60920 0
+rs3015689 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.793528992391e-13
+Joint b, se, max pJ: -0.015391469625 0.002182204442 8.744039398199e-13
+rs3015689 New candidate SNP accepted
+iter 75 finished
+--------------------------------
+76 60919 0
+rs1036266 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.456329032542e-12
+Joint b, se, max pJ: -0.015391469625 0.002182204442 8.744039399085e-13
+rs1036266 New candidate SNP accepted
+iter 76 finished
+--------------------------------
+77 60918 0
+rs2856802 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.740205263761e-12
+Joint b, se, max pJ: -0.010157441023 0.001459802151 1.724531696766e-12
+rs2856802 New candidate SNP accepted
+iter 77 finished
+--------------------------------
+78 60917 0
+rs17785796 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.860897091568e-12
+Joint b, se, max pJ: -0.010157441012 0.001459802151 1.724531787003e-12
+rs17785796 New candidate SNP accepted
+iter 78 finished
+--------------------------------
+79 60916 0
+rs7832896 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.081990627439e-12
+Joint b, se, max pJ: -0.009836227691 0.001418974495 2.075730179136e-12
+rs7832896 New candidate SNP accepted
+iter 79 finished
+--------------------------------
+80 60915 0
+rs289605 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.404327515925e-12
+Joint b, se, max pJ: 0.008913093027 0.001476413762 7.850841302249e-10
+rs289605 New candidate SNP accepted
+iter 80 finished
+--------------------------------
+81 60914 0
+rs6988827 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.823941423079e-12
+Joint b, se, max pJ: 0.008914188527 0.001476413771 7.814838274049e-10
+rs6988827 New candidate SNP accepted
+iter 81 finished
+--------------------------------
+82 60913 0
+rs16921032 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.382929815785e-12
+Joint b, se, max pJ: 0.008133135975 0.001763103940 1.984830119831e-06
+rs16921032 New candidate SNP added, start backward selection
+rs16920935 Candidate SNP removed
+Joint b, se, max pJ: 0.008914188527 0.001476413771 7.814838273890e-10
+Backward selection successful!
+iter 82 finished
+--------------------------------
+82 60912 1
+rs980812 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.150281929815e-11
+Joint b, se, max pJ: 0.008914169290 0.001476413771 7.815469175759e-10
+rs980812 New candidate SNP accepted
+iter 83 finished
+--------------------------------
+83 60911 1
+rs28399587 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.209254397412e-11
+Joint b, se, max pJ: 0.008914169290 0.001476413771 7.815469175759e-10
+rs28399587 New candidate SNP accepted
+iter 84 finished
+--------------------------------
+84 60910 1
+rs429433 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.301738433336e-11
+Joint b, se, max pJ: 0.008969694774 0.001476435152 6.190202527400e-10
+rs429433 New candidate SNP accepted
+iter 85 finished
+--------------------------------
+85 60909 1
+rs6472910 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.314059923309e-11
+Joint b, se, max pJ: 0.008969694774 0.001476435152 6.190202527400e-10
+rs6472910 New candidate SNP accepted
+iter 86 finished
+--------------------------------
+86 60908 1
+rs4736612 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.935051773329e-11
+Joint b, se, max pJ: 0.008969694774 0.001476435152 6.190202527400e-10
+rs4736612 New candidate SNP accepted
+iter 87 finished
+--------------------------------
+87 60907 1
+rs1899048 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.429770131219e-11
+Joint b, se, max pJ: 0.008969694774 0.001476435152 6.190202527407e-10
+rs1899048 New candidate SNP accepted
+iter 88 finished
+--------------------------------
+88 60906 1
+rs10104997 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.989152611177e-11
+Joint b, se, max pJ: 0.008969694774 0.001476435152 6.190202527408e-10
+rs10104997 New candidate SNP accepted
+iter 89 finished
+--------------------------------
+89 60905 1
+rs10503429 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.525008296106e-11
+Joint b, se, max pJ: 0.009046450723 0.001476486868 4.477274848053e-10
+rs10503429 New candidate SNP accepted
+iter 90 finished
+--------------------------------
+90 60904 1
+rs3739238 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.448275494211e-11
+Joint b, se, max pJ: 0.009046450723 0.001476486868 4.477274848053e-10
+rs3739238 New candidate SNP accepted
+iter 91 finished
+--------------------------------
+91 60903 1
+rs10091931 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.716141617627e-11
+Joint b, se, max pJ: 0.009046450723 0.001476486868 4.477274848053e-10
+rs10091931 New candidate SNP accepted
+iter 92 finished
+--------------------------------
+92 60902 1
+rs6996845 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.454521445731e-11
+Joint b, se, max pJ: 0.009046827150 0.001476486870 4.470109341073e-10
+rs6996845 New candidate SNP accepted
+iter 93 finished
+--------------------------------
+93 60901 1
+rs1982970 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.356667282284e-11
+Joint b, se, max pJ: 0.009046827150 0.001476486870 4.470109341073e-10
+rs1982970 New candidate SNP accepted
+iter 94 finished
+--------------------------------
+94 60900 1
+rs10090871 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.463531102050e-11
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs10090871 New candidate SNP accepted
+iter 95 finished
+--------------------------------
+95 60899 1
+rs2290472 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.659606495617e-11
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs2290472 New candidate SNP accepted
+iter 96 finished
+--------------------------------
+96 60898 1
+rs2514841 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.830559992851e-11
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs2514841 New candidate SNP accepted
+iter 97 finished
+--------------------------------
+97 60897 1
+rs490125 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.889168134770e-11
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs490125 New candidate SNP accepted
+iter 98 finished
+--------------------------------
+98 60896 1
+rs2515045 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.269328056165e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs2515045 New candidate SNP accepted
+iter 99 finished
+--------------------------------
+99 60895 1
+rs11987041 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.314881719287e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs11987041 New candidate SNP accepted
+iter 100 finished
+--------------------------------
+100 60894 1
+rs7462131 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.369358275259e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055503e-10
+rs7462131 New candidate SNP accepted
+iter 101 finished
+--------------------------------
+101 60893 1
+rs10090702 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.575995375199e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055505e-10
+rs10090702 New candidate SNP accepted
+iter 102 finished
+--------------------------------
+102 60892 1
+rs1531590 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.128491608452e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055505e-10
+rs1531590 New candidate SNP accepted
+iter 103 finished
+--------------------------------
+103 60891 1
+rs2170788 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.310417123136e-11
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055505e-10
+rs2170788 New candidate SNP accepted
+iter 104 finished
+--------------------------------
+104 60890 1
+rs1044714 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.142796303469e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055505e-10
+rs1044714 New candidate SNP accepted
+iter 105 finished
+--------------------------------
+105 60889 1
+rs16936922 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.675030239423e-10
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055505e-10
+rs16936922 New candidate SNP accepted
+iter 106 finished
+--------------------------------
+106 60888 1
+rs16937472 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.308980399675e-12
+Joint b, se, max pJ: 0.009046901572 0.001476486871 4.468694055505e-10
+rs16937472 New candidate SNP accepted
+iter 107 finished
+--------------------------------
+107 60887 1
+rs4319045 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.649376221022e-10
+Joint b, se, max pJ: 0.009046905377 0.001476486871 4.468621719983e-10
+rs4319045 New candidate SNP accepted
+iter 108 finished
+--------------------------------
+108 60886 1
+rs2600514 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.665852673515e-10
+Joint b, se, max pJ: 0.009046566529 0.001476486872 4.475069578876e-10
+rs2600514 New candidate SNP accepted
+iter 109 finished
+--------------------------------
+109 60885 1
+rs1478268 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.328553321384e-10
+Joint b, se, max pJ: 0.009048649070 0.001476496867 4.436741662890e-10
+rs1478268 New candidate SNP accepted
+iter 110 finished
+--------------------------------
+110 60884 1
+rs888345 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.725369605452e-10
+Joint b, se, max pJ: 0.009048649070 0.001476496867 4.436741662890e-10
+rs888345 New candidate SNP accepted
+iter 111 finished
+--------------------------------
+111 60883 1
+rs4876621 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.973893933875e-10
+Joint b, se, max pJ: 0.009048649070 0.001476496867 4.436741662890e-10
+rs4876621 New candidate SNP accepted
+iter 112 finished
+--------------------------------
+112 60882 1
+rs2648844 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.822250114664e-10
+Joint b, se, max pJ: 0.009048649070 0.001476496867 4.436741662890e-10
+rs2648844 New candidate SNP accepted
+iter 113 finished
+--------------------------------
+113 60881 1
+rs17397530 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.935553322820e-10
+Joint b, se, max pJ: -0.011603419639 0.001905822075 5.701998645303e-10
+rs17397530 New candidate SNP accepted
+iter 114 finished
+--------------------------------
+114 60880 1
+rs4961237 Screened SNP with the most significant conditional pC
+Conditional min pC: 6.829676037555e-10
+Joint b, se, max pJ: -0.011603419639 0.001905822075 5.701998645303e-10
+rs4961237 New candidate SNP accepted
+iter 115 finished
+--------------------------------
+115 60879 1
+rs1901090 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.125875402964e-10
+Joint b, se, max pJ: 0.008439451017 0.001397464689 7.748052788395e-10
+rs1901090 New candidate SNP accepted
+iter 116 finished
+--------------------------------
+116 60878 1
+rs6472471 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.138656075153e-09
+Joint b, se, max pJ: 0.009596854115 0.001604890917 1.117368968367e-09
+rs6472471 New candidate SNP accepted
+iter 117 finished
+--------------------------------
+117 60877 1
+rs9643215 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.296434078744e-09
+Joint b, se, max pJ: -0.007827767003 0.001313914439 1.279902988159e-09
+rs9643215 New candidate SNP accepted
+iter 118 finished
+--------------------------------
+118 60876 1
+rs2942202 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.888077624229e-09
+Joint b, se, max pJ: -0.007827767003 0.001313914439 1.279902988159e-09
+rs2942202 New candidate SNP accepted
+iter 119 finished
+--------------------------------
+119 60875 1
+rs1042992 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.777420424331e-09
+Joint b, se, max pJ: -0.007827767003 0.001313914439 1.279902988159e-09
+rs1042992 New candidate SNP accepted
+iter 120 finished
+--------------------------------
+120 60874 1
+rs2467680 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.706659765461e-10
+Joint b, se, max pJ: -0.007827767003 0.001313914439 1.279902988159e-09
+rs2467680 New candidate SNP accepted
+iter 121 finished
+--------------------------------
+121 60873 1
+rs12548378 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.150410730539e-09
+Joint b, se, max pJ: 0.008514288438 0.001443769162 1.847887401013e-09
+rs12548378 New candidate SNP accepted
+iter 122 finished
+--------------------------------
+122 60872 1
+rs16905254 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.303814397760e-09
+Joint b, se, max pJ: 0.013160732036 0.002232615513 1.876134718940e-09
+rs16905254 New candidate SNP accepted
+iter 123 finished
+--------------------------------
+123 60871 1
+rs10090889 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.395613165126e-09
+Joint b, se, max pJ: -0.008200292877 0.001400098867 2.357388901659e-09
+rs10090889 New candidate SNP accepted
+iter 124 finished
+--------------------------------
+124 60870 1
+rs10957373 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.298021741202e-09
+Joint b, se, max pJ: 0.009404444825 0.001618320200 3.100615086671e-09
+rs10957373 New candidate SNP accepted
+iter 125 finished
+--------------------------------
+125 60869 1
+rs10095540 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.697018116297e-09
+Joint b, se, max pJ: -0.007610982730 0.001315800899 3.640817403498e-09
+rs10095540 New candidate SNP accepted
+iter 126 finished
+--------------------------------
+126 60868 1
+rs17125481 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.854206366928e-09
+Joint b, se, max pJ: 0.018601759793 0.003219582279 3.786578878233e-09
+rs17125481 New candidate SNP accepted
+iter 127 finished
+--------------------------------
+127 60867 1
+rs1542721 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.271767524652e-09
+Joint b, se, max pJ: 0.018601759330 0.003219582279 3.786582113600e-09
+rs1542721 New candidate SNP accepted
+iter 128 finished
+--------------------------------
+128 60866 1
+rs12546890 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.819969152485e-09
+Joint b, se, max pJ: 0.010878531331 0.001895911564 4.793177198437e-09
+rs12546890 New candidate SNP accepted
+iter 129 finished
+--------------------------------
+129 60865 1
+rs2515481 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.462787854026e-09
+Joint b, se, max pJ: 0.018601585471 0.003219582328 3.787799209953e-09
+rs2515481 New candidate SNP accepted
+iter 130 finished
+--------------------------------
+130 60864 1
+rs7006696 Screened SNP with the most significant conditional pC
+Conditional min pC: 5.330135520742e-09
+Joint b, se, max pJ: 0.007529290757 0.001311434884 4.698689019064e-09
+rs7006696 New candidate SNP accepted
+iter 131 finished
+--------------------------------
+131 60863 1
+rs17384485 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.717057401093e-09
+Joint b, se, max pJ: 0.007529290757 0.001311434884 4.698689019064e-09
+rs17384485 New candidate SNP accepted
+iter 132 finished
+--------------------------------
+132 60862 1
+rs3824191 Screened SNP with the most significant conditional pC
+Conditional min pC: 7.961715418038e-09
+Joint b, se, max pJ: 0.007529295891 0.001311434884 4.698580369159e-09
+rs3824191 New candidate SNP accepted
+iter 133 finished
+--------------------------------
+133 60861 1
+rs6468864 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.339491514394e-09
+Joint b, se, max pJ: -0.009439243852 0.001672097582 8.251801871638e-09
+rs6468864 New candidate SNP accepted
+iter 134 finished
+--------------------------------
+134 60860 1
+rs4391429 Screened SNP with the most significant conditional pC
+Conditional min pC: 8.569616146358e-09
+Joint b, se, max pJ: -0.009439243852 0.001672097582 8.251801871638e-09
+rs4391429 New candidate SNP accepted
+iter 135 finished
+--------------------------------
+135 60859 1
+rs16917695 Screened SNP with the most significant conditional pC
+Conditional min pC: 9.828426809085e-09
+Joint b, se, max pJ: 0.010657306496 0.001896933277 9.649149730372e-09
+rs16917695 New candidate SNP accepted
+iter 136 finished
+--------------------------------
+136 60858 1
+rs3847171 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.147808215984e-08
+Joint b, se, max pJ: 0.010657306496 0.001896933277 9.649149730372e-09
+rs3847171 New candidate SNP accepted
+iter 137 finished
+--------------------------------
+137 60857 1
+rs724066 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.197994680700e-08
+Joint b, se, max pJ: -0.008906575116 0.001594961147 1.173921313348e-08
+rs724066 New candidate SNP accepted
+iter 138 finished
+--------------------------------
+138 60856 1
+rs7838499 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.323644490433e-08
+Joint b, se, max pJ: -0.008907571496 0.001594961182 1.169710302069e-08
+rs7838499 New candidate SNP accepted
+iter 139 finished
+--------------------------------
+139 60855 1
+rs3134488 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.396527822523e-08
+Joint b, se, max pJ: 0.010356521833 0.001862629299 1.347616858893e-08
+rs3134488 New candidate SNP accepted
+iter 140 finished
+--------------------------------
+140 60854 1
+rs10100356 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.523473804832e-08
+Joint b, se, max pJ: 0.010356521833 0.001862629299 1.347616858729e-08
+rs10100356 New candidate SNP accepted
+iter 141 finished
+--------------------------------
+141 60853 1
+rs10095184 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.717512161306e-08
+Joint b, se, max pJ: 0.008480923967 0.001535587115 1.667062941787e-08
+rs10095184 New candidate SNP accepted
+iter 142 finished
+--------------------------------
+142 60852 1
+rs1900077 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.120848902448e-08
+Joint b, se, max pJ: -0.008660427981 0.001595291483 2.837611737174e-08
+rs1900077 New candidate SNP accepted
+iter 143 finished
+--------------------------------
+143 60851 1
+rs10086776 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.764204054203e-08
+Joint b, se, max pJ: -0.008660217966 0.001595291490 2.839705629007e-08
+rs10086776 New candidate SNP accepted
+iter 144 finished
+--------------------------------
+144 60850 1
+rs7833624 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.793550665547e-08
+Joint b, se, max pJ: -0.008660217966 0.001595291490 2.839705629066e-08
+rs7833624 New candidate SNP accepted
+iter 145 finished
+--------------------------------
+145 60849 1
+rs12114131 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.503380649104e-08
+Joint b, se, max pJ: -0.008660217966 0.001595291490 2.839705631376e-08
+rs12114131 New candidate SNP accepted
+iter 146 finished
+--------------------------------
+146 60848 1
+rs7813146 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.583804564979e-08
+Joint b, se, max pJ: -0.008660217966 0.001595291490 2.839705631376e-08
+rs7813146 New candidate SNP accepted
+iter 147 finished
+--------------------------------
+147 60847 1
+rs6998432 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.875881950456e-08
+Joint b, se, max pJ: -0.008660217942 0.001595291490 2.839705872248e-08
+rs6998432 New candidate SNP accepted
+iter 148 finished
+--------------------------------
+148 60846 1
+rs11779518 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.164487975621e-08
+Joint b, se, max pJ: -0.009696956368 0.001791382657 3.096922441602e-08
+rs11779518 New candidate SNP accepted
+iter 149 finished
+--------------------------------
+149 60845 1
+rs881301 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.211669149984e-08
+Joint b, se, max pJ: -0.009696956369 0.001791382657 3.096922435093e-08
+rs881301 New candidate SNP accepted
+iter 150 finished
+--------------------------------
+150 60844 1
+rs4262299 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.593046226015e-08
+Joint b, se, max pJ: -0.010461963678 0.001941586393 3.555204197026e-08
+rs4262299 New candidate SNP accepted
+iter 151 finished
+--------------------------------
+151 60843 1
+rs3107041 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.649444579564e-08
+Joint b, se, max pJ: -0.010461938885 0.001941586416 3.555458037944e-08
+rs3107041 New candidate SNP accepted
+iter 152 finished
+--------------------------------
+152 60842 1
+rs7817104 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.110051744026e-08
+Joint b, se, max pJ: 0.015405009333 0.002867136511 3.872729193702e-08
+rs7817104 New candidate SNP accepted
+iter 153 finished
+--------------------------------
+153 60841 1
+rs3943520 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.188525161818e-08
+Joint b, se, max pJ: 0.007318789239 0.001363698198 4.005765646630e-08
+rs3943520 New candidate SNP accepted
+iter 154 finished
+--------------------------------
+154 60840 1
+rs11781752 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.404513157731e-08
+Joint b, se, max pJ: 0.008188826139 0.001526318095 4.045558002448e-08
+rs11781752 New candidate SNP accepted
+iter 155 finished
+--------------------------------
+155 60839 1
+rs2915621 Screened SNP with the most significant conditional pC
+Conditional min pC: 4.880634024326e-08
+Joint b, se, max pJ: 0.007307209816 0.001363714259 4.200097354220e-08
+rs2915621 New candidate SNP accepted
+iter 156 finished
+--------------------------------
+156 60838 1
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs13251967 5.356348894744e-08
+iter 157 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/Height/chr8.jma.cojo]
+
+MDISA for Cohort 1
+156 60839 0
+rs2445007 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.639380234018e-08
+Joint b, se, max pJ: 0.014729178541 0.003060215000 7.429642416109e-07
+rs2445007 skipped, fixed candidate SNP exceeds p-value threshold
+rs9325661 Screened SNP with the most significant conditional pC
+Conditional min pC: 1.753123056569e-08
+Joint b, se, max pJ: 0.014729178541 0.003060215000 7.429642416109e-07
+rs9325661 skipped, fixed candidate SNP exceeds p-value threshold
+rs7461524 Screened SNP with the most significant conditional pC
+Conditional min pC: 2.195939515034e-08
+Joint b, se, max pJ: 0.014729178541 0.003060215000 7.429642416109e-07
+rs7461524 skipped, fixed candidate SNP exceeds p-value threshold
+rs10958731 Screened SNP with the most significant conditional pC
+Conditional min pC: 3.389003484962e-08
+Joint b, se, max pJ: 0.014729178541 0.003060215000 7.429642416109e-07
+rs10958731 skipped, fixed candidate SNP exceeds p-value threshold
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs3736652 5.787611781940e-08
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/Height/chr8.MDISA.cohort1.jma.cojo]
+
+MDISA for Cohort 2
+156 60839 0
+Warning: Calculation finished, NoNewSNP-aboveSigThreshold
+rs4961102 4.405031087236e-07
+iter 0 finished
+--------------------------------
+Results saved into [/users/visscher-wray/agg287/R_to_Cplusplus/results_1015_macojo_gcta/Height/chr8.MDISA.cohort2.jma.cojo]
+
+All calculations finished!
+Total running time: 97.83 seconds
