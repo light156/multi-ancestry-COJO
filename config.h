@@ -22,7 +22,7 @@ struct HyperParams {
     bool if_gcta_COJO = false;
     bool if_LD_mode = false;
     bool if_cojo_joint = false;
-    bool if_skip_MDISA = false;
+    bool if_MDISA = false;
     bool if_keep_NA = false;
     // bool if_fast_inv = false;
 };

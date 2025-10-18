@@ -488,7 +488,7 @@ void MACOJO::output_user_hyperparameters()
             << (cohorts.size() > 1 ? 
                 (params.if_freq_mode_and ? "SNP frequency mode: AND\n" : "SNP frequency mode: OR\n") : "")
             << (params.if_LD_mode ? "Use .ld files for calculation\n" : "")
-            << (params.if_skip_MDISA ? "Do not run MDISA after MACOJO\n" : "")
+            << (params.if_MDISA ? "Run MDISA after MACOJO\n" : "")
             << (params.if_keep_NA ? "Do not fill NA with mean genotype values\n" : "")
             << (params.if_gcta_COJO ? "Use GCTA-COJO model selection criteria\n" : "")
             << "===========================================" << endl << endl;

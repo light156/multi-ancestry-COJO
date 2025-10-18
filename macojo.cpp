@@ -19,7 +19,7 @@ void MACOJO::entry_function(string savename)
     }
 
     initialize_main_loop();
-    
+
     fixed_candidate_SNP_num = candidate_SNP.size();
     if (fixed_candidate_SNP_num > 0)
         LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
@@ -27,7 +27,7 @@ void MACOJO::entry_function(string savename)
     main_loop();
     output_results_to_file(savename+".jma.cojo");
 
-    if (cohorts.size() > 1 && !params.if_skip_MDISA) {
+    if (cohorts.size() > 1 && params.if_MDISA) {
         // backup SNPs for MDISA
         fixed_candidate_SNP_num = candidate_SNP.size();
         candidate_SNP_backup = candidate_SNP;
