@@ -46,13 +46,10 @@ void MACOJO::read_SNP_only(string filename, vector<string> &SNP_list, bool if_su
 
     if (if_sumstat) getline(sFile, str_buf); // sumstat files have header line
 
-    while (sFile) {
-        getline(sFile, str_buf);
-        if (sFile.eof()) break;
+    while (getline(sFile, str_buf)) {
         if (str_buf.empty()) continue; // skip empty lines
 
         istringstream iss(str_buf);
-
         if (if_bim) 
             iss >> temp >> SNP_buf; // bim file: chr, SNP, cm, pos, A1, A2
         else    
@@ -110,12 +107,12 @@ void MACOJO::set_reference_from_bim(string PLINKfile)
     if (!Bim) LOGGER.e(0, "cannot open BIM file [" + bimFile + "] to read");
 
     // Read bim file
-    int ibuf = 0, ref_index;
+    int chr_buf, ibuf, ref_index;
     string SNP_buf, A1_buf = "0", A2_buf = "0", str_buf;
     map<string, int>::iterator iter;
     
     while (Bim) {
-        Bim >> str_buf;
+        Bim >> chr_buf;
         if (Bim.eof()) break;
         Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
 
@@ -126,6 +123,7 @@ void MACOJO::set_reference_from_bim(string PLINKfile)
         to_upper(A2_buf);
 
         ref_index = iter->second;
+        shared.chr_ref[ref_index] = chr_buf;
         shared.A1_ref[ref_index] = A1_buf;
         shared.A2_ref[ref_index] = A2_buf;
         shared.SNP_pos_ref[ref_index] = ibuf;
@@ -142,7 +140,7 @@ void Cohort::read_sumstat(string sumstatfile)
     if (!Meta) LOGGER.e(0, "cannot open the file [" + sumstatfile + "] to read");
 
     string SNP_buf, A1_buf, A2_buf, freq_buf, b_buf, se_buf, p_buf, N_buf, str_buf;
-    double freq, b, se, p, N;
+    double freq, b, se, p, N, h;
 
     vector<string> vs_buf;
     getline(Meta, str_buf); // the header line
@@ -177,8 +175,8 @@ void Cohort::read_sumstat(string sumstatfile)
             continue;
         } 
 
-        double h = 2 * freq * (1 - freq);
-        Vp_gcta_list.push_back(h * N * se * se + h * b * b * N / (N - 1.0));
+        h = 2 * freq * (1 - freq);
+        Vp_gcta_list.push_back(h * N * (se * se + b * b / (N - 1.0)));
 
         if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) 
             continue;
@@ -299,7 +297,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         }
 
         double SNP_avg = SNP_sum/not_NA_indi_num;
-        if (abs(sumstat_screened(ref_index, 3) - SNP_avg/2) > 0.2) {
+        if (abs(sumstat_screened(ref_index, 3) - SNP_avg/2) > params.freq_diff_threshold) {
             // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
             bad_freq_count++;
             shared.commonSNP_index_map.erase(iter);
@@ -432,7 +430,7 @@ void Cohort::calc_adjusted_N()
         Vp = median(Vp_gcta_list);
     }
 
-    s.col(4) = (Vp - s.col(5)*square(s.col(0))) / (s.col(5)*s.col(1)) + 1;
+    s.col(4) = (Vp / s.col(5) - square(s.col(0))) / s.col(1) + 1;
     s.col(6) = s.col(4) * s.col(5);
 
     if (!params.if_gcta_COJO) {
@@ -444,8 +442,18 @@ void Cohort::calc_adjusted_N()
 
 void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num, string extract_file) 
 {   
-    // Step 1: get common SNPs across all cohorts
     vector<string> commonSNP_all_cohorts;
+
+    // if user provides extract SNP file, read file and initialize common SNPs
+    if (!extract_file.empty()) {
+        read_SNP_only(extract_file, commonSNP_all_cohorts);
+        if (commonSNP_all_cohorts.size() == 0)
+            LOGGER.e(0, "Input extract SNP file has no SNPs", extract_file);
+
+        LOGGER.i(0, "SNPs initialized by the user\n", to_string(commonSNP_all_cohorts.size()));
+    }
+
+    // Step 1: get common SNPs across all cohorts
     clock_t tStart;
 
     for (int n=0; n<cohort_num; n++) {
@@ -453,43 +461,34 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num, string extr
         tStart = clock();
 
         auto &c = cohorts[n];
-        vector<string> SNP_sumstat, SNP_PLINK, SNP_common;
+        vector<string> SNP_sumstat, SNP_PLINK, temp;
 
         string sumstat_file = filenames[n*2], PLINK_file = filenames[n*2+1];
-        read_SNP_only(sumstat_file, SNP_sumstat, true, false);
         read_SNP_only(PLINK_file+".bim", SNP_PLINK, false, true);
         c.skim_fam(PLINK_file+".fam");
 
-        set_intersection(SNP_sumstat.begin(), SNP_sumstat.end(), 
-            SNP_PLINK.begin(), SNP_PLINK.end(), back_inserter(SNP_common));
-
-        if (n==0)
-            commonSNP_all_cohorts = SNP_common;
+        if (n == 0 && commonSNP_all_cohorts.size() == 0)
+            commonSNP_all_cohorts = SNP_PLINK;
         else {
-            vector<string> temp;
             set_intersection(commonSNP_all_cohorts.begin(), commonSNP_all_cohorts.end(), 
-                SNP_common.begin(), SNP_common.end(), back_inserter(temp));
+                SNP_PLINK.begin(), SNP_PLINK.end(), back_inserter(temp));
             commonSNP_all_cohorts.swap(temp);
         }
-   
+
+        vector<string>().swap(temp); // clear temp
+        read_SNP_only(sumstat_file, SNP_sumstat, true, false);
+        set_intersection(commonSNP_all_cohorts.begin(), commonSNP_all_cohorts.end(), 
+            SNP_sumstat.begin(), SNP_sumstat.end(), back_inserter(temp));
+        commonSNP_all_cohorts.swap(temp);
+        
         LOGGER.i(0, "common SNPs after including Cohort "+to_string(n+1), to_string(commonSNP_all_cohorts.size()));
         LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
     } 
 
-    // if user provides extract SNP file, read file and intersect with common SNPs
-    if (!extract_file.empty()) {
-        vector<string> all_SNP, temp;
-
-        read_SNP_only(extract_file, all_SNP);
-        set_intersection(all_SNP.begin(), all_SNP.end(), 
-            commonSNP_all_cohorts.begin(), commonSNP_all_cohorts.end(), back_inserter(temp));
-        commonSNP_all_cohorts.swap(temp);
-        
-        LOGGER.i(0, "The user has initialized SNPs for analysis");
-        LOGGER.i(0, "common SNPs after user-given SNPs", to_string(commonSNP_all_cohorts.size()));
-    }
+    if (commonSNP_all_cohorts.size() == 0)
+        LOGGER.e(0, "Input data has no common SNPs across all cohorts");
     
-    // Step 2: set reference based on BIM file of cohort 1
+        // Step 2: set reference based on BIM file of cohort 1
     tStart = clock();
 
     int temp_index = 0;
@@ -499,6 +498,7 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num, string extr
         temp_index++;
     }
 
+    shared.chr_ref.resize(temp_index);
     shared.A1_ref.resize(temp_index);
     shared.A2_ref.resize(temp_index);
     shared.SNP_pos_ref.resize(temp_index);
@@ -566,7 +566,10 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num, string extr
         LOGGER << "Time taken: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl << endl;
     }
 
-    shared.commonSNP_total_num = shared.commonSNP_index_map.size();
+    shared.commonSNP_total_num = shared.commonSNP_index_map.size();    
+    if (shared.commonSNP_index_map.size() == 0)
+        LOGGER.e(0, "Input data has no qualified SNPs");
+
     LOGGER.i(0, "common SNPs at last for iterative selection", to_string(shared.commonSNP_total_num));
 
     // Step 5: clean sumstat for all cohorts and finalize common SNP list

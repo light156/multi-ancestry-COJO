@@ -24,7 +24,7 @@ struct HyperParams {
     bool if_cojo_joint = false;
     bool if_skip_MDISA = false;
     bool if_keep_NA = false;
-    bool if_fast_inv = false;
+    // bool if_fast_inv = false;
 };
 
 
@@ -32,7 +32,7 @@ struct SharedData {
     uint64_t commonSNP_total_num = 0;
     std::map<std::string,int> commonSNP_index_map;
     std::vector<std::string> A1_ref, A2_ref;
-    std::vector<int> SNP_pos_ref;
+    std::vector<int> SNP_pos_ref, chr_ref;
     std::vector<int> final_commonSNP_index;
     std::vector<std::string> final_commonSNP;
 };

@@ -42,17 +42,21 @@ void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int s
 
     if (params.if_LD_mode) {
         for (int j = 0; j < SNP_list.size(); j++) {
-            if (abs(shared.SNP_pos_ref[shared.final_commonSNP_index[SNP_list[j]]] - temp_SNP_pos) < params.window_size)
-                r_temp_vec(j) = LD_matrix(shared.final_commonSNP_index[SNP_list[j]], temp_index);
+            int sweep_index = shared.final_commonSNP_index[SNP_list[j]];
+            if (shared.chr_ref[sweep_index] == shared.chr_ref[temp_index] &&
+                abs(shared.SNP_pos_ref[sweep_index] - temp_SNP_pos) < params.window_size)
+                r_temp_vec(j) = LD_matrix(sweep_index, temp_index);
         }
     } else {
         get_vector_from_bed_matrix(temp_index, X_temp_vec);
         
         #pragma omp parallel for
         for (int j = 0; j < SNP_list.size(); j++) {
-            if (abs(shared.SNP_pos_ref[shared.final_commonSNP_index[SNP_list[j]]] - temp_SNP_pos) < params.window_size) {
+            int sweep_index = shared.final_commonSNP_index[SNP_list[j]];
+            if (shared.chr_ref[sweep_index] == shared.chr_ref[temp_index] &&
+                abs(shared.SNP_pos_ref[sweep_index] - temp_SNP_pos) < params.window_size) {
                 ArrayXd vec_in_list;
-                get_vector_from_bed_matrix(shared.final_commonSNP_index[SNP_list[j]], vec_in_list);
+                get_vector_from_bed_matrix(sweep_index, vec_in_list);
                 r_temp_vec(j) = calc_inner_product(X_temp_vec, vec_in_list, params.if_keep_NA);
             }       
         }
@@ -125,8 +129,8 @@ bool Cohort::calc_joint_effects()
 
 bool Cohort::calc_R_inv() 
 {   
-    if (params.if_fast_inv) 
-        return calc_R_inverse_fast(R_inv_pre, r_temp_vec, 1.0, params.iter_colinear_threshold, R_inv_post);
+    // if (params.if_fast_inv) 
+    //    return calc_R_inverse_fast(R_inv_pre, r_temp_vec, 1.0, params.iter_colinear_threshold, R_inv_post);
     
     ArrayXd scaling_vector;
     if (params.if_keep_NA || params.if_LD_mode || !params.if_gcta_COJO) 
@@ -134,7 +138,7 @@ bool Cohort::calc_R_inv()
     else 
         scaling_vector = sumstat_candidate.col(8);
 
-    return calc_R_inverse_exact(R_pre, r_temp_vec, 1.0, params.iter_colinear_threshold, R_post, R_inv_post, true, scaling_vector);
+    return calc_R_inverse_forward(R_pre, r_temp_vec, 1.0, params.iter_colinear_threshold, R_post, R_inv_post, true, scaling_vector);
 }
 
 
@@ -143,10 +147,11 @@ void Cohort::calc_R_inv_gcta(int screened_index)
     r_temp_vec_gcta = r_gcta.row(screened_index).transpose();
     double lower_right_corner = sumstat_screened(screened_index, 6);
 
-    if (params.if_fast_inv) 
-        calc_R_inverse_fast(R_inv_pre_gcta, r_temp_vec_gcta, lower_right_corner, params.iter_colinear_threshold, R_inv_post_gcta);
-    else
-        calc_R_inverse_exact(R_pre_gcta, r_temp_vec_gcta, lower_right_corner, params.iter_colinear_threshold, R_post_gcta, R_inv_post_gcta, false);
+    calc_R_inverse_forward(R_pre_gcta, r_temp_vec_gcta, lower_right_corner, params.iter_colinear_threshold, 
+                    R_post_gcta, R_inv_post_gcta, false);
+
+    // if (params.if_fast_inv) 
+    //    calc_R_inverse_fast(R_inv_pre_gcta, r_temp_vec_gcta, lower_right_corner, params.iter_colinear_threshold, R_inv_post_gcta);
 }
 
 
@@ -160,10 +165,12 @@ bool Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, const ArrayXX
 
     if (params.if_LD_mode) {
         for (int i = 0; i < total_num; i++) {
+            int index_i = shared.final_commonSNP_index[SNP_list[i]];
             for (int j = 0; j < i; j++) {
-                if (abs(shared.SNP_pos_ref[shared.final_commonSNP_index[SNP_list[i]]] - 
-                        shared.SNP_pos_ref[shared.final_commonSNP_index[SNP_list[j]]]) < params.window_size) {
-                    R_post(i, j) = LD_matrix(shared.final_commonSNP_index[SNP_list[i]], shared.final_commonSNP_index[SNP_list[j]]);
+                int index_j = shared.final_commonSNP_index[SNP_list[j]];
+                if (shared.chr_ref[index_i] == shared.chr_ref[index_j] &&
+                    abs(shared.SNP_pos_ref[index_i] - shared.SNP_pos_ref[index_j]) < params.window_size) {
+                    R_post(i, j) = LD_matrix(index_i, index_j);
                     R_post(j, i) = R_post(i, j);
                 }
             }
@@ -177,9 +184,11 @@ bool Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, const ArrayXX
         }
 
         for (int i = 0; i < total_num; i++) {
+            int index_i = shared.final_commonSNP_index[SNP_list[i]];
             for (int j = 0; j < i; j++) {
-                if (abs(shared.SNP_pos_ref[shared.final_commonSNP_index[SNP_list[i]]] - 
-                        shared.SNP_pos_ref[shared.final_commonSNP_index[SNP_list[j]]]) < params.window_size) {
+                int index_j = shared.final_commonSNP_index[SNP_list[j]];
+                if (shared.chr_ref[index_i] == shared.chr_ref[index_j] &&
+                    abs(shared.SNP_pos_ref[index_i] - shared.SNP_pos_ref[index_j]) < params.window_size) {
                     R_post(i, j) = calc_inner_product(X_new_model[i], X_new_model[j], params.if_keep_NA);
                     R_post(j, i) = R_post(i, j);
                 }
@@ -218,9 +227,13 @@ void MACOJO::accept_SNP_as_candidate(int screened_index)
     for (int n : current_calculation_list) {
         auto &c = cohorts[n];
         remove_row(c.sumstat_screened, screened_index);
+        remove_row(c.r, screened_index);
+        if (params.if_gcta_COJO) 
+            remove_row(c.r_gcta, screened_index);
+        
+        if (screened_SNP.size() == 0) continue;
 
         c.calc_inner_product_with_SNP_list(screened_SNP, candidate_index);
-        remove_row(c.r, screened_index);
         append_column(c.r, c.r_temp_vec);
 
         if (params.if_gcta_COJO) {
@@ -228,8 +241,6 @@ void MACOJO::accept_SNP_as_candidate(int screened_index)
             double V_new = c.sumstat_candidate(c.sumstat_candidate.rows()-1, 5);
             c.r_temp_vec_gcta = c.r_temp_vec.array() * c.sumstat_screened.col(4).min(N_new) * \
                 sqrt(c.sumstat_screened.col(5)) * sqrt(V_new);
-
-            remove_row(c.r_gcta, screened_index);
             append_column(c.r_gcta, c.r_temp_vec_gcta);
         }
     }
@@ -379,29 +390,39 @@ void MACOJO::output_results_to_file(string filepath)
     ofstream jmaCOJO(filepath.c_str());
     if (!jmaCOJO) LOGGER.e(0, "cannot open the file [" + filepath + "] to write.");
     
-    jmaCOJO << "SNP" 
+    jmaCOJO << "Chr"
+            << "\t" << "SNP" 
             << "\t" << "bp" 
             << "\t" << "A1" 
             << "\t" << "A2";
 
-    for (int n : current_calculation_list)
-        jmaCOJO << "\t" << "freq." << to_string(n+1) 
-                << "\t" << "b." << to_string(n+1) 
-                << "\t" << "se." << to_string(n+1) 
-                << "\t" << "p." << to_string(n+1) 
-                << "\t" << "N." << to_string(n+1) 
-                << "\t" << "bJ." << to_string(n+1) 
-                << "\t" << "seJ." << to_string(n+1) 
-                << "\t" << "pJ." << to_string(n+1);
-
-    // calculate joint output   
-    if (current_calculation_list.size() > 1) {
+    if (current_calculation_list.size() == 1) {
+        jmaCOJO << "\t" << "freq"
+                << "\t" << "b"
+                << "\t" << "se"
+                << "\t" << "p"
+                << "\t" << "n"
+                << "\t" << "bJ"
+                << "\t" << "bJ_se"
+                << "\t" << "pJ";
+    } else {
+        for (int n : current_calculation_list) {
+            jmaCOJO << "\t" << "freq." << to_string(n+1) 
+                    << "\t" << "b." << to_string(n+1) 
+                    << "\t" << "se." << to_string(n+1) 
+                    << "\t" << "p." << to_string(n+1) 
+                    << "\t" << "n." << to_string(n+1) 
+                    << "\t" << "bJ." << to_string(n+1) 
+                    << "\t" << "bJ_se." << to_string(n+1) 
+                    << "\t" << "pJ." << to_string(n+1);
+        }
+    
         jmaCOJO << "\t" << "bJ.ma"  
-                << "\t" << "seJ.ma" 
+                << "\t" << "bJ_se.ma" 
                 << "\t" << "pJ.ma";
                 
         inverse_var_meta_joint(); 
-    } 
+    }
     
     jmaCOJO << "\n";
 
@@ -418,10 +439,12 @@ void MACOJO::output_results_to_file(string filepath)
 
     for (auto iter = SNP_ref_order_pair.begin(); iter != SNP_ref_order_pair.end(); iter++) {
         index = iter->second;
-        jmaCOJO << shared.final_commonSNP[index] 
+        int ref_index = shared.final_commonSNP_index[candidate_SNP[index]];
+        jmaCOJO << shared.chr_ref[ref_index]
+                << "\t" << shared.final_commonSNP[candidate_SNP[index]] 
                 << "\t" << iter->first 
-                << "\t" << shared.A1_ref[shared.final_commonSNP_index[candidate_SNP[index]]] 
-                << "\t" << shared.A2_ref[shared.final_commonSNP_index[candidate_SNP[index]]];
+                << "\t" << shared.A1_ref[ref_index] 
+                << "\t" << shared.A2_ref[ref_index];
 
         for (int n : current_calculation_list) {
             auto &c = cohorts[n];
@@ -432,6 +455,7 @@ void MACOJO::output_results_to_file(string filepath)
                     << "\t" << sqrt(c.sumstat_candidate(index, 1)) 
                     << "\t" << c.sumstat_candidate(index, 2) 
                     << "\t" << c.sumstat_candidate(index, 4) 
+
                     << "\t" << c.output_b(index) 
                     << "\t" << sqrt(c.output_se2(index)) 
                     << "\t" << erfc(abs(c.output_b(index)) / sqrt(c.output_se2(index)) / sqrt(2));
@@ -455,13 +479,14 @@ void MACOJO::output_results_to_file(string filepath)
 void MACOJO::output_user_hyperparameters() 
 {   
     LOGGER << endl << "=========== MACOJO CONFIGURATION ===========" << endl;
-    LOGGER << "Threshold: 5e-8" << endl
+    LOGGER << "p-value Threshold: " << params.threshold << endl
             << "Colinearity threshold: " << params.colinear_threshold << endl
             << "R2 incremental threshold: " << params.R2_incremental_threshold << endl
             << "R2 incremental threshold backwards: " << params.R2_incremental_threshold_backwards << endl
             << "SNP position window (+/-): " << params.window_mb << "Mb" << endl
             << "SNP frequency threshold: " << params.freq_threshold << endl
-            << "SNP frequency mode: " << (params.if_freq_mode_and ? "AND" : "OR") << endl
+            << (cohorts.size() > 1 ? 
+                (params.if_freq_mode_and ? "SNP frequency mode: AND\n" : "SNP frequency mode: OR\n") : "")
             << (params.if_LD_mode ? "Use .ld files for calculation\n" : "")
             << (params.if_skip_MDISA ? "Do not run MDISA after MACOJO\n" : "")
             << (params.if_keep_NA ? "Do not fill NA with mean genotype values\n" : "")

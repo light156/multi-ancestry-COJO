@@ -36,6 +36,7 @@ Below are the original comments:
 #include <string>
 #include <map>
 #include <fstream>
+#include <sstream>
 #include <ios>
 #include <chrono>
 #include <iostream>
@@ -103,5 +104,7 @@ private:
 
 void to_upper(string &str);
 int split_string(const string &str, std::vector<string> &vec_str, string separator=" ,\t;\n");
+int getMemPeakKB();
+int getVMPeakKB();
 
 #endif //GCTA2_LOGGER_H

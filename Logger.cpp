@@ -223,7 +223,6 @@ void to_upper(string &str)
 	}
 }
 
-
 int split_string(const string &str, vector<string> &vec_str, string separator)
 {
 	if(str.empty()) return 0;
@@ -255,4 +254,42 @@ int split_string(const string &str, vector<string> &vec_str, string separator)
 	if(look) vec_str.push_back(str_buf);
 
 	return vec_str.size();
+}
+
+int getMemPeakKB() {
+    std::ifstream file("/proc/self/status");
+    if (!file.is_open()) return -1;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.rfind("VmHWM:", 0) == 0) { // starts with "VmHWM:"
+            auto pos = line.find_first_of("0123456789");
+            if (pos == std::string::npos) return -1;
+
+            std::istringstream iss(line.substr(pos));
+            int value = 0;
+            iss >> value;
+            return value;
+        }
+    }
+    return -1;
+}
+
+int getVMPeakKB() {
+    std::ifstream file("/proc/self/status");
+    if (!file.is_open()) return -1;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.rfind("VmPeak:", 0) == 0) { // starts with "VmPeak:"
+            auto pos = line.find_first_of("0123456789");
+            if (pos == std::string::npos) return -1;
+
+            std::istringstream iss(line.substr(pos));
+            int value = 0;
+            iss >> value;
+            return value;
+        }
+    }
+    return -1;
 }

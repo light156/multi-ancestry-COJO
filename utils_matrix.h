@@ -14,6 +14,7 @@ double median(const std::vector<double> &v);
 double median(const ArrayXd &eigen_vector);
 double calc_inner_product(const ArrayXd &vec1, const ArrayXd &vec2, bool if_keep_NA);
 
+/*
 // Fast Schur-complement-based block inverse update
 bool calc_R_inverse_fast(
     const MatrixXd& R_inv_pre,
@@ -21,9 +22,10 @@ bool calc_R_inverse_fast(
     double lower_right_corner,
     double iter_colinear_threshold,
     MatrixXd& R_inv_post);
+*/
 
-// Exact LDLT-based block inverse (GCTA-style)
-bool calc_R_inverse_exact(
+// LDLT-based block inverse (GCTA-style)
+bool calc_R_inverse_forward(
     const MatrixXd& R_pre,
     const VectorXd& r_temp_vec,
     double lower_right_corner,
@@ -38,8 +40,7 @@ void calc_R_inverse_backward(
     const MatrixXd& R_inv_pre,
     int remove_index,
     MatrixXd& R_post,
-    MatrixXd& R_inv_post,
-    bool if_fast_inv);
+    MatrixXd& R_inv_post);
 
 // template functions for matrix manipulation   
 // Append a row: row must be 1 × N and match matrix.cols()

@@ -8,19 +8,21 @@ void MACOJO::entry_function(string savename)
     for (int n = 0; n < cohorts.size(); n++)
         current_calculation_list.push_back(n);
 
-    initialize_main_loop();
-
     if (params.if_cojo_joint){
         LOGGER.i(0, "COJO-Joint analysis only, no iterative selection");
+        fixed_candidate_SNP = shared.final_commonSNP;
+        initialize_main_loop();
 
-        if (fixed_candidate_SNP_num == 0)
-            LOGGER.w(0, "No candidate SNPs provided for COJO-Joint analysis, program exit!");
-        else {
-            output_results_to_file(savename+".jma.cojo.fixedSNP");
-            LOGGER.i(0, "Calculation finished with fixed candidate SNPs, program exit!");
-        }
+        output_results_to_file(savename+".jma.cojo");
+        LOGGER.i(0, "Calculation finished for COJO-Joint analysis, program exit!");
         return;
     }
+
+    initialize_main_loop();
+    
+    fixed_candidate_SNP_num = candidate_SNP.size();
+    if (fixed_candidate_SNP_num > 0)
+        LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
 
     main_loop();
     output_results_to_file(savename+".jma.cojo");
@@ -58,11 +60,8 @@ void MACOJO::initialize_main_loop()
     for (int i = 0; i < shared.commonSNP_total_num; i++)
         screened_SNP[i] = i;
 
-    if (fixed_candidate_SNP.size() == 0)
-        return;
+    if (fixed_candidate_SNP.size() == 0) return;
     
-    LOGGER.i(0, "The user has provided fixed candidate SNPs for analysis");
-
     list<int> candidate_SNP_temp;
     for (const auto &SNP_name : fixed_candidate_SNP) {
         int single_index = distance(shared.final_commonSNP.begin(), find(shared.final_commonSNP.begin(), shared.final_commonSNP.end(), SNP_name));
@@ -105,8 +104,6 @@ void MACOJO::initialize_main_loop()
 
         c.save_temp_model();
     }
-    
-    LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
 }
 
 
@@ -124,11 +121,16 @@ void MACOJO::main_loop()
         
         LOGGER << candidate_SNP.size() << " " << screened_SNP.size() << " " << removed_SNP.size() << endl;
 
+        if (screened_SNP.size() == 0) {
+            LOGGER.i(0, "No more screened SNPs, calculation finished");
+            break;
+        }
+
         if (candidate_SNP.size() == 0) {
             LOGGER.i(0, "No candidate SNPs, using the most significant SNP as the first candidate");
 
             inverse_var_meta_init();
-            min_pC = erfc(abs_zC.maxCoeff(&min_screened_index) / sqrt(2)) / 2;
+            min_pC = erfc(abs_zC.maxCoeff(&min_screened_index) / sqrt(2));
             if (min_pC > params.threshold)
                 LOGGER.e(0, "Input data has no significant SNPs");
 
@@ -158,7 +160,7 @@ void MACOJO::main_loop()
             backward_success_flag = true;
 
             // select minimal conditional SNP
-            min_pC = erfc(abs_zC.maxCoeff(&min_screened_index) / sqrt(2)) / 2;
+            min_pC = erfc(abs_zC.maxCoeff(&min_screened_index) / sqrt(2));
             current_SNP_name = shared.final_commonSNP[screened_SNP[min_screened_index]];
 
             if (abs_zC(min_screened_index) < 0 || min_pC > params.threshold) {
@@ -167,8 +169,6 @@ void MACOJO::main_loop()
                 loop_break_indicator = true;
                 break;
             }
-
-            LOGGER.i(0, "Screened SNP with the most significant conditional pC", current_SNP_name);
 
             // temporarily update sumstat_candidate for calculating joint effects
             for (int n : current_calculation_list) 
@@ -234,7 +234,7 @@ void MACOJO::main_loop()
             // calculate joint p-value and decide whether to accept this SNP
             inverse_var_meta_joint();
 
-            max_pJ = erfc(abs_zJ.minCoeff(&max_joint_index) / sqrt(2)) / 2;
+            max_pJ = erfc(abs_zJ.minCoeff(&max_joint_index) / sqrt(2));
             LOGGER << "Joint b, se, max pJ: " 
                     << bJ(max_joint_index) << " " << sqrt(se2J(max_joint_index)) << " " << scientific << max_pJ << fixed << endl;
             
@@ -293,10 +293,9 @@ void MACOJO::main_loop()
                 for (int n : current_calculation_list) {
                     auto &c = cohorts[n];
                     // do not need to check colinearity because it is guaranteed in forward step
-                    calc_R_inverse_backward(c.R_pre, c.R_inv_pre, max_joint_index, c.R_post, c.R_inv_post, params.if_fast_inv);
+                    calc_R_inverse_backward(c.R_pre, c.R_inv_pre, max_joint_index, c.R_post, c.R_inv_post);
                     if (params.if_gcta_COJO)
-                        calc_R_inverse_backward(c.R_pre_gcta, c.R_inv_pre_gcta, max_joint_index, 
-                                                c.R_post_gcta, c.R_inv_post_gcta, params.if_fast_inv);
+                        calc_R_inverse_backward(c.R_pre_gcta, c.R_inv_pre_gcta, max_joint_index, c.R_post_gcta, c.R_inv_post_gcta);
 
                     if (!c.calc_joint_effects()) {
                         LOGGER.i(0, "Backward selection failed, joint se too small after removing " + current_SNP_name);
@@ -309,7 +308,7 @@ void MACOJO::main_loop()
 
                 inverse_var_meta_joint();
 
-                max_pJ = erfc(abs_zJ.minCoeff(&max_joint_index) / sqrt(2)) / 2;
+                max_pJ = erfc(abs_zJ.minCoeff(&max_joint_index) / sqrt(2));
                 LOGGER << "Joint b, se, max pJ: " 
                         << bJ(max_joint_index) << " " << sqrt(se2J(max_joint_index)) << " " << scientific << max_pJ << fixed << endl;
 

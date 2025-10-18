@@ -24,6 +24,7 @@ double calc_inner_product(const ArrayXd &vec1, const ArrayXd &vec2, bool if_keep
 }
 
 
+/*
 bool calc_R_inverse_fast(
     const MatrixXd& R_inv_pre,
     const VectorXd& r_temp_vec,
@@ -44,9 +45,10 @@ bool calc_R_inverse_fast(
 
     return R_inv_post.cwiseAbs().maxCoeff() < iter_colinear_threshold;
 }
+*/
 
 
-bool calc_R_inverse_exact(
+bool calc_R_inverse_forward(
     const MatrixXd& R_pre,
     const VectorXd& r_temp_vec,
     double lower_right_corner,
@@ -88,23 +90,22 @@ void calc_R_inverse_backward(
     const MatrixXd& R_inv_pre,
     int remove_index,
     MatrixXd& R_post,
-    MatrixXd& R_inv_post,
-    bool if_fast_inv)
+    MatrixXd& R_inv_post)
 {
     int dim = R_inv_pre.rows();
     if (remove_index < 0 || remove_index >= dim)
         throw std::invalid_argument("calc_block_inverse_fast: remove_index out of range.");
-
+    /*
     if (if_fast_inv) {
         R_inv_post = R_inv_pre - R_inv_pre.col(remove_index) * R_inv_pre.row(remove_index) / R_inv_pre(remove_index, remove_index);
         remove_row(R_inv_post, remove_index);
         remove_column(R_inv_post, remove_index);
-    } else {
-        R_post = R_pre;
-        remove_row(R_post, remove_index);
-        remove_column(R_post, remove_index);
-        R_inv_post = R_post.ldlt().solve(MatrixXd::Identity(dim - 1, dim - 1));
-    }
+    }*/
+
+    R_post = R_pre;
+    remove_row(R_post, remove_index);
+    remove_column(R_post, remove_index);
+    R_inv_post = R_post.ldlt().solve(MatrixXd::Identity(dim - 1, dim - 1));
 }
 
 
