@@ -16,7 +16,7 @@ Or simply download the `manc_cojo` binary to your server.
 ## Usage & Example Commands
 
 ```bash
-<program_path> <cohort_num> <sumstat_file1> <PLINK_file1> [<sumstat_file2> <PLINK_file2> ...] <output_file> [options]
+<program_path> <cohort_num> <sumstat_file1> <PLINK_file1> [<sumstat_file2> <PLINK_file2> ...] --out <output_file> [options]
 ```
   
 For two cohorts, your command should be like
