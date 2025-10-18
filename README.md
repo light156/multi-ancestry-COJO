@@ -21,21 +21,27 @@ Or simply download the `manc_cojo` binary to your server.
   
 For two cohorts, your command should be like
 ```bash
-./manc_cojo 2 GWAS_Cohort1_path LD_reference_Cohort1_path GWAS_Cohort2_path LD_reference_Cohort2_path Output_directory_and_name -colinear 0.9
+./manc_cojo 2 \
+GWAS_Cohort1_path LD_ref_Cohort1_path \
+GWAS_Cohort2_path LD_ref_Cohort2_path \
+--out Output_directory_and_name
 ```
 
 For one cohort, your command should be like
 ```bash
-./manc_cojo 1 GWAS_path LD_reference_path Output_directory_and_name -window 10 --LD -extract Included_SNP_path
+./manc_cojo 1 GWAS_path LD_ref_path \
+--out Output_directory_and_name
 ```
 
 ## Notes
 
 1. The first parameter indicates the number of cohorts, which should be a positive integer.
-2. Any folders in the result save path will not be created; please ensure they already exist.
-3. Please place all options at the end, after `Output_directory_and_name`.
-4. GWAS inputs should be in standard GCTA format: `SNP A1 A2 freq b se N`.
+2. The next 2*N parameters are file paths of GWAS summary statistics and PLINK files for N cohorts, respectively.
+3. All options must be placed after the above parameters.
+4. The directory specified in the output path (after --out) must already exist.
+   (You can create it in advance, for example with 'mkdir -p <folder_path>')
 5. LD reference files should be in PLINK format: `.bim`, `.fam`, `.bed` (or `.bim`, `.fam`, `.ld` for using LD inputs, indicated by --LD).
+
 
 ## Options
 
@@ -65,11 +71,10 @@ For one cohort, your command should be like
 /users/your_name/cohort2_LD_ref \
 /users/your_name/cohort3_sumstat.linear_gcta_format \
 /users/your_name/cohort3_LD_ref \
-/users/your_name/output_filename \
--colinear 0.9 \
--extract HapMap3.SNPlist \
--window 20 \
---no_MDISA
+--out /users/your_name/output_filename \
+--cojo-collinear 0.99 \
+--extract HapMap3.SNPlist \
+--window 20
 ```
 
 ---
