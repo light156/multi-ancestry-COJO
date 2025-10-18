@@ -42,7 +42,7 @@ int main(int argc, char** argv)
     app.add_flag("--freq-mode-and", macojo.params.if_freq_mode_and, "Use AND mode for frequency threshold");
     app.add_flag("--LD", macojo.params.if_LD_mode, "Use .ld files for calculation");
     app.add_flag("--cojo-joint", macojo.params.if_cojo_joint, "Only output for provided fixed candidate SNPs and exit");
-    app.add_flag("--skip-MDISA", macojo.params.if_skip_MDISA, "Disable MDISA after COJO");
+    app.add_flag("--MDISA", macojo.params.if_MDISA, "Run MDISA after MACOJO");
     app.add_flag("--keep-NA", macojo.params.if_keep_NA, "Do not fill NA with mean values");
     app.add_flag("--gcta", macojo.params.if_gcta_COJO, "Use GCTA-COJO model selection criteria");
     // app.add_flag("--fast-inv", macojo.params.if_fast_inv, "Incremental matrix inverse based on last iteration");
