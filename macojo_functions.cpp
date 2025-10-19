@@ -4,29 +4,30 @@
 void Cohort::get_vector_from_bed_matrix(int index, ArrayXd &vec)
 {
     vec.setZero(indi_num);
-    uint64_t X_start_index = uint64_t(index) * indi_num;
-    uint64_t start_word = X_start_index >> 6;
-    uint64_t start_bit  = X_start_index & 63;
-
-    double SNP_avg = X_avg(index);
+    
+    const uint64_t words_per_snp = (indi_num + 63) / 64;
+    const uint64_t base_word_index = uint64_t(index) * words_per_snp;
+    
+    const double SNP_avg = X_avg(index);
     int i = 0;
 
-    while (i < indi_num) {
-        uint64_t wordA1 = X_A1.data_[start_word];
-        uint64_t wordA2 = X_A2.data_[start_word];
+    for (uint64_t w = 0; w < words_per_snp; w++) {
+        uint64_t wordA1 = X_A1[base_word_index + w];
+        uint64_t wordA2 = X_A2[base_word_index + w];
+        int bits_this_word = min(64, indi_num - i);
 
-        for (uint64_t b = start_bit; b < 64 && i < indi_num; b++, i++) {
+        for (int b = 0; b < bits_this_word; b++, i++) {
             bool A1 = (wordA1 >> b) & 1ULL;
             bool A2 = (wordA2 >> b) & 1ULL;
 
-            if (params.if_keep_NA)
-                vec(i) = (!A1 || A2) ? double(A1) + double(A2) : -9;
-            else
-                vec(i) = (!A1 || A2) ? double(A1) + double(A2) - SNP_avg : 0;
-        }
+            double geno  = double(A1) + double(A2);
+            double valid = double((!A1) || A2); // 1.0 if valid, 0.0 otherwise
 
-        start_word++;
-        start_bit = 0;
+            if (params.if_keep_NA)
+                vec(i) = valid * geno + (1.0 - valid) * -9;
+            else
+                vec(i) = (geno - SNP_avg) * valid;
+        }
     }
 
     if (!params.if_keep_NA)
@@ -38,27 +39,32 @@ void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int s
 {      
     r_temp_vec.setZero(SNP_list.size());
     int temp_index = shared.final_commonSNP_index[single_index];
-    int temp_SNP_pos = shared.SNP_pos_ref[temp_index];
 
     if (params.if_LD_mode) {
         for (int j = 0; j < SNP_list.size(); j++) {
             int sweep_index = shared.final_commonSNP_index[SNP_list[j]];
             if (shared.chr_ref[sweep_index] == shared.chr_ref[temp_index] &&
-                abs(shared.SNP_pos_ref[sweep_index] - temp_SNP_pos) < params.window_size)
+                abs(shared.SNP_pos_ref[sweep_index] - shared.SNP_pos_ref[temp_index]) < params.window_size)
                 r_temp_vec(j) = LD_matrix(sweep_index, temp_index);
         }
-    } else {
-        get_vector_from_bed_matrix(temp_index, X_temp_vec);
-        
-        #pragma omp parallel for
-        for (int j = 0; j < SNP_list.size(); j++) {
+        return;
+    }
+
+    get_vector_from_bed_matrix(temp_index, X_temp_vec);
+    
+    #pragma omp parallel
+    {
+        ArrayXd vec_in_list(indi_num);
+
+        #pragma omp for schedule(dynamic)
+        for (int j = 0; j < SNP_list.size(); ++j) {
             int sweep_index = shared.final_commonSNP_index[SNP_list[j]];
+
             if (shared.chr_ref[sweep_index] == shared.chr_ref[temp_index] &&
-                abs(shared.SNP_pos_ref[sweep_index] - temp_SNP_pos) < params.window_size) {
-                ArrayXd vec_in_list;
+                abs(shared.SNP_pos_ref[sweep_index] - shared.SNP_pos_ref[temp_index]) < params.window_size) {
                 get_vector_from_bed_matrix(sweep_index, vec_in_list);
                 r_temp_vec(j) = calc_inner_product(X_temp_vec, vec_in_list, params.if_keep_NA);
-            }       
+            }  
         }
     }
 }

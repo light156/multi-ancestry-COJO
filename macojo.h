@@ -1,6 +1,5 @@
 #pragma once
 #include "config.h"
-#include "BitArray.h"
 #include "LD.h"
 #include "Logger.h"
 #include "utils_matrix.h"
@@ -43,7 +42,7 @@ public:
     ArrayXXd sumstat_candidate, sumstat_screened, sumstat_removed;
     
     // X or LD matrix, depend on which mode is used
-    BitArray X_A1, X_A2;
+    vector<uint64_t> X_A1, X_A2;
     LDPacked LD_matrix;
     ArrayXd X_avg, X_square;
 
@@ -59,7 +58,7 @@ public:
     // output 
     ArrayXd conditional_beta, beta, beta_var, output_b, output_se2;
     double Vp, R2, previous_R2 = 0.0;
-    uint64_t indi_num;
+    int indi_num;
 
 private:
     const HyperParams& params;

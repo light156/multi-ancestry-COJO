@@ -59,7 +59,6 @@ void MACOJO::read_SNP_only(string filename, vector<string> &SNP_list, bool if_su
         SNP_num++;
     }
 
-    sFile.clear();
     sFile.close();
 
     sort(SNP_list.begin(), SNP_list.end());
@@ -76,20 +75,15 @@ void Cohort::skim_fam(string famFile)
     ifstream Fam(famFile.c_str());
     if (!Fam) LOGGER.e(0, "cannot open FAM file [" + famFile + "] to read");
 
-    string str_buf1, str_buf2;
+    string FID, IID, str_buf;
     vector<string> indi_ids;
     indi_num = 0;
 
-    while (Fam) {
-        Fam >> str_buf1;
-        if (Fam.eof()) break;
-        Fam >> str_buf2;
-        indi_ids.push_back(str_buf1+':'+str_buf2);
-        Fam >> str_buf1 >> str_buf1 >> str_buf1 >> str_buf1;
+    while (Fam >> FID >> IID >> str_buf >> str_buf >> str_buf >> str_buf) {
+        indi_ids.push_back(FID+':'+IID);
         indi_num++;
     }
 
-    Fam.clear();
     Fam.close();
 
     sort(indi_ids.begin(), indi_ids.end());
@@ -111,14 +105,10 @@ void MACOJO::set_reference_from_bim(string PLINKfile)
     string SNP_buf, A1_buf = "0", A2_buf = "0", str_buf;
     map<string, int>::iterator iter;
     
-    while (Bim) {
-        Bim >> chr_buf;
-        if (Bim.eof()) break;
-        Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
+    while (Bim >> chr_buf >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf) {
+        iter = shared.commonSNP_index_map.find(SNP_buf);
+        if (iter == shared.commonSNP_index_map.end()) continue;
 
-        if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end())
-            continue;
-        
         to_upper(A1_buf);
         to_upper(A2_buf);
 
@@ -129,7 +119,6 @@ void MACOJO::set_reference_from_bim(string PLINKfile)
         shared.SNP_pos_ref[ref_index] = ibuf;
     }
 
-    Bim.clear();
     Bim.close();
 }
 
@@ -152,11 +141,8 @@ void Cohort::read_sumstat(string sumstatfile)
     sumstat_screened.resize(shared.commonSNP_total_num, 9);
     sumstat_screened.col(8).setOnes(); // col 8: X_norm_square, initialized as 1
     vector<double> Vp_gcta_list;
-    
-    while (Meta) {
-        Meta >> SNP_buf;
-        if (Meta.eof()) break;
-        Meta >> A1_buf >> A2_buf >> freq_buf >> b_buf >> se_buf >> p_buf >> N_buf;
+
+    while (Meta >> SNP_buf >> A1_buf >> A2_buf >> freq_buf >> b_buf >> se_buf >> p_buf >> N_buf) {
 
         to_upper(A1_buf);
         to_upper(A2_buf);
@@ -168,7 +154,8 @@ void Cohort::read_sumstat(string sumstatfile)
         
         if ((b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
             p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || N < 10)) { 
-            if ((iter = shared.commonSNP_index_map.find(SNP_buf)) != shared.commonSNP_index_map.end()) {
+            iter = shared.commonSNP_index_map.find(SNP_buf);
+            if (iter != shared.commonSNP_index_map.end()) {
                 LOGGER.w(1, "removed, invalid value in sumstat file [" + sumstatfile + "]", SNP_buf);
                 shared.commonSNP_index_map.erase(iter);
             }
@@ -178,12 +165,12 @@ void Cohort::read_sumstat(string sumstatfile)
         h = 2 * freq * (1 - freq);
         Vp_gcta_list.push_back(h * N * (se * se + b * b / (N - 1.0)));
 
-        if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) 
-            continue;
+        iter = shared.commonSNP_index_map.find(SNP_buf);
+        if (iter == shared.commonSNP_index_map.end()) continue;
 
         ref_index = iter->second;
 
-        if (shared.A1_ref[ref_index] == A1_buf || shared.A2_ref[ref_index] == A2_buf);
+        if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
         else {
             LOGGER.w(1, "removed, A1 and A2 different from ref BIM file, please check", SNP_buf);
@@ -199,7 +186,6 @@ void Cohort::read_sumstat(string sumstatfile)
         sumstat_screened(ref_index, 4) = N;
     }
 
-    Meta.clear();
     Meta.close();
     Vp = median(Vp_gcta_list);
 }
@@ -212,41 +198,41 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
     if (!Bim) LOGGER.e(0, "cannot open BIM file [" + bimFile + "] to read");
     LOGGER << "Reading PLINK BIM file from [" + bimFile + "]..." << endl;
 
-    string bedFile = PLINKfile+".bed";
-    fstream Bed(bedFile.c_str(), ios::in | ios::binary);
-    if (!Bed) LOGGER.e(0, "cannot open BED file [" + bedFile + "] to read");
-    LOGGER << "Reading PLINK BED file from [" + bedFile + "] in SNP-major format ..." << endl;
-
-    // Read bim file
     int ibuf = 0;
     string SNP_buf, A1_buf = "0", A2_buf = "0", str_buf;
 
-    // Read bed file
-    char ch[1];
-    for (int i=0; i<3; i++) {Bed.read(ch, 1);} // skip the first three bytes
-    
-    map<string, int>::iterator iter;
-    uint64_t ref_index, X_start_index;
+    // check bed file header
+    string bedFile = PLINKfile+".bed";
+    fstream Bed(bedFile.c_str(), ios::in | ios::binary);
+    if (!Bed) LOGGER.e(0, "cannot open BED file [" + bedFile + "] to read");
 
-    X_A1.resize(shared.commonSNP_total_num * indi_num);
-    X_A2.resize(shared.commonSNP_total_num * indi_num);
+    char ch[3];
+    for (int i=0; i<3; i++) {Bed.read(&ch[i], 1);} 
+    if (!Bed || ch[0] != 0x6C || ch[1] != 0x1B || ch[2] != 0x01)
+        LOGGER.e(0, "PLINK BED file [" + bedFile + "] not in SNP-major mode, please check");
+        
+    LOGGER << "Reading PLINK BED file from [" + bedFile + "] in SNP-major format ..." << endl;
 
-    int bytes_per_snp = (indi_num + 3) / 4;
+    const uint64_t words_per_snp = (indi_num + 63) / 64;
+    const int bytes_per_snp = (indi_num + 3) / 4;
+    const int full_bytes = indi_num / 4;
+    const int remainder  = indi_num % 4;
+
+    X_A1.resize(shared.commonSNP_total_num * words_per_snp);
+    X_A2.resize(shared.commonSNP_total_num * words_per_snp);
     vector<unsigned char> buffer(bytes_per_snp);
 
     int bad_freq_count = 0;
 
-    while (Bim) {
-        Bim >> str_buf;
-        if (Bim.eof()) break;
-        Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
-
+    while (Bim >> str_buf >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf) {
+  
         Bed.read(reinterpret_cast<char*>(buffer.data()), bytes_per_snp);
+        if (!Bed) break;
 
-        if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) continue;
+        auto iter = shared.commonSNP_index_map.find(SNP_buf);
+        if (iter == shared.commonSNP_index_map.end()) continue;
 
-        ref_index = iter->second;
-        X_start_index = ref_index * indi_num;
+        int ref_index = iter->second;
         bool swap = false;
         
         // check allele and position in BIM file with reference cohort
@@ -254,9 +240,8 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
             to_upper(A1_buf);
             to_upper(A2_buf);
 
-            if (shared.A1_ref[ref_index] == A1_buf || shared.A2_ref[ref_index] == A2_buf);
-            else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf)
-                swap = true;
+            if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
+            else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {swap = true;}
             else {
                 LOGGER.w(1, "removed, A1 and A2 different between two BIM files, please check", SNP_buf);
                 shared.commonSNP_index_map.erase(iter);
@@ -272,24 +257,64 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         
         // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
         const auto& LUT = swap ? LUT_swapped : LUT_normal;
+        const uint64_t base_word_index = uint64_t(ref_index) * words_per_snp;
+
         double SNP_sum = 0, SNP_square_sum = 0, not_NA_indi_num = 0;
+        uint64_t wordA1 = 0ULL, wordA2 = 0ULL, word_index = 0;
 
-        int i = 0;
-        for (int j = 0; j < bytes_per_snp; j++) {
+        int bit_index  = 0;
+        for (int j = 0; j < full_bytes; j++) {
             unsigned char b = buffer[j];
-            for (int k = 0; k < 4 && i < indi_num; k++, i++) {
-                auto e = LUT[b][k];
-                X_A1.set(X_start_index + i, e.A1);
-                X_A2.set(X_start_index + i, e.A2);
+            const auto &lut = LUT[b];
 
-                if (e.valid) {
-                    SNP_sum += e.geno;
-                    SNP_square_sum += e.geno * e.geno;
-                    not_NA_indi_num++;
+            // unrolled 4 genotypes
+            for (int k = 0; k < 4; k++) {
+                const auto &e = lut[k];
+                const uint64_t mask = 1ULL << (bit_index & 63);
+                wordA1 |= uint64_t(e.A1) * mask;
+                wordA2 |= uint64_t(e.A2) * mask;
+
+                const double g = e.geno;
+                const double v = double(e.valid);
+                SNP_sum += g * v;
+                SNP_square_sum += g * g * v;
+                not_NA_indi_num += v;
+
+                bit_index++;
+                if ((bit_index & 63ULL) == 0ULL) {
+                    X_A1[base_word_index + word_index] = wordA1;
+                    X_A2[base_word_index + word_index] = wordA2;
+                    wordA1 = wordA2 = 0ULL;
+                    word_index++;
                 }
+            }        
+        }
+
+        // Tail: remaining 1–3 individuals
+        if (remainder > 0) {
+            unsigned char b = buffer[full_bytes];
+            const auto &lut = LUT[b];
+            for (int k = 0; k < remainder; k++) {
+                const auto &e = lut[k];
+                const uint64_t mask = 1ULL << (bit_index & 63);
+                wordA1 |= uint64_t(e.A1) * mask;
+                wordA2 |= uint64_t(e.A2) * mask;
+
+                const double g = e.geno;
+                const double v = double(e.valid);
+                SNP_sum += g * v;
+                SNP_square_sum += g * g * v;
+                not_NA_indi_num += v;
+                bit_index++;
             }
         }
-        
+
+        // handle leftover partial word
+        if ((bit_index & 63ULL) != 0ULL) {
+            X_A1[base_word_index + word_index] = wordA1;
+            X_A2[base_word_index + word_index] = wordA2;
+        }
+
         if (not_NA_indi_num == 0) {
             LOGGER.w(1, "removed, all values are NA in bedfile", SNP_buf);
             shared.commonSNP_index_map.erase(iter);
@@ -297,7 +322,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         }
 
         double SNP_avg = SNP_sum/not_NA_indi_num;
-        if (abs(sumstat_screened(ref_index, 3) - SNP_avg/2) > params.freq_diff_threshold) {
+        if (fabs(sumstat_screened(ref_index, 3) - SNP_avg/2) > params.freq_diff_threshold) {
             // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
             bad_freq_count++;
             shared.commonSNP_index_map.erase(iter);
@@ -317,9 +342,7 @@ void Cohort::read_PLINK(string PLINKfile, bool is_ref_cohort)
         }
     }
 
-    Bim.clear();
     Bim.close();
-    Bed.clear();
     Bed.close();
 
     LOGGER << "Finished reading PLINK file" << endl;
@@ -342,10 +365,7 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
 
     LD_matrix.resize(shared.commonSNP_total_num);
 
-    while (Ld) {
-        Ld >> SNP1_buf;
-        if (Ld.eof()) break;
-        Ld >> SNP2_buf >> r_buf;
+    while (Ld >> SNP1_buf >> SNP2_buf >> r_buf) {
 
         if ((iter = shared.commonSNP_index_map.find(SNP1_buf)) == shared.commonSNP_index_map.end()) continue;
         SNP1_index = iter->second;
@@ -356,7 +376,6 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
         LD_matrix(SNP1_index, SNP2_index) = atof(r_buf.c_str()); 
     }
 
-    Ld.clear();
     Ld.close();
 
     if (!is_ref_cohort) {
@@ -371,10 +390,7 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
     
         vector<int> swap_array(shared.commonSNP_total_num, 0);
 
-        while (Bim) {
-            Bim >> str_buf;
-            if (Bim.eof()) break;
-            Bim >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf;
+        while (Bim >> str_buf >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf) {
 
             if ((iter = shared.commonSNP_index_map.find(SNP_buf)) == shared.commonSNP_index_map.end()) continue;
             
@@ -384,9 +400,8 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
             to_upper(A1_buf);
             to_upper(A2_buf);
 
-            if (shared.A1_ref[ref_index] == A1_buf || shared.A2_ref[ref_index] == A2_buf);
-            else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf)
-                swap_array[ref_index] = 1;
+            if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
+            else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {swap_array[ref_index] = 1;}
             else {
                 LOGGER.w(1, "removed, A1 and A2 different between two BIM files, please check", SNP_buf);
                 shared.commonSNP_index_map.erase(iter);
@@ -400,7 +415,6 @@ void Cohort::read_PLINK_LD(string PLINKfile, bool is_ref_cohort)
             }
         }
             
-        Bim.clear();
         Bim.close();
     
         // adjust LD_packed according to allele coding
@@ -593,7 +607,6 @@ void MACOJO::read_cojo_PLINK_files(char** filenames, int cohort_num, string extr
     }
 
     LOGGER << "--------------------------------" << endl << endl;
-    
     /*
     // check if X and LD give same results
     for (auto &c : cohorts) {

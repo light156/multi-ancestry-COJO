@@ -154,8 +154,8 @@ void MACOJO::main_loop()
             cohorts[n].calc_conditional_effects();
 
         inverse_var_meta_conditional();
-        
-        while (true) {
+
+        while (screened_SNP.size() > 0) {
             skip_flag = false;
             backward_success_flag = true;
 
