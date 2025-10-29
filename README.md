@@ -14,7 +14,7 @@ chmod +x manc_cojo
 ```
 
 If it still fails to run, your system may not be compatible with the precompiled binary. 
-In that case, please follow the build steps below or contact us for assistance.
+In that case, please follow the build steps (which is quite simple) below or contact us for assistance.
 
 ## Usage & Example Commands
 
