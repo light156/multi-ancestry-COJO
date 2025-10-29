@@ -1,5 +1,4 @@
 #include "macojo.h"
-#include <Eigen/Sparse>
 
 
 void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int index, VectorXd &r_temp_vec)
