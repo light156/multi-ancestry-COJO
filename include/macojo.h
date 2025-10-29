@@ -1,11 +1,12 @@
 #pragma once
+
 #include "CLI11.hpp"
 #include "Logger.h"
 #include "Geno.h"
 #include "LD.hpp"
 #include "utils_matrix.hpp"
 #include "config.h"
-#include <omp.h>
+#include "omp_compat.h"
 #include <map>
 #include <vector>
 #include <list>

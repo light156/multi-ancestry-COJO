@@ -15,7 +15,7 @@ void Cohort::calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int i
         return;
     }
     
-    #pragma omp parallel for schedule(dynamic)
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < SNP_list.size(); i++) {
         int sweep_index = SNP_list[i];
         if (shared.chr_ref[sweep_index] == shared.chr_ref[index] &&

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Eigen/Dense>
 using Eigen::PlainObjectBase;
 using Eigen::DenseBase;

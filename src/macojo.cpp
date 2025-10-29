@@ -429,7 +429,13 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
         LOGGER.e(0, e.what());
     }
 
-    omp_set_num_threads(thread_num);
+    #if HAS_OPENMP
+        omp_set_num_threads(thread_num);
+    #else
+        if (thread_num > 1)
+            LOGGER.w(0, "OpenMP is not available, running in single-threaded mode");
+    #endif
+
     params.window_size = (params.window_kb < 0 ? INT_MAX : params.window_kb * 1000);
     params.iter_collinear_threshold = 1.0 / (1.0 - params.collinear);
     LOGGER.open(output_name + ".log");
@@ -443,7 +449,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     }
 
     // output_user_hyperparameters
-    LOGGER << "=========== MACOJO CONFIGURATION ===========" << endl
+    LOGGER << "\n=========== MACOJO CONFIGURATION ===========" << endl
             << (params.if_cojo_joint ? "COJO-Joint analysis only\n" : "COJO iterative selection\n")
             << "p-value Threshold: " << params.p << endl
             << "Collinearity threshold: " << params.collinear << endl
