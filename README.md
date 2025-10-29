@@ -6,11 +6,7 @@ Note that our program can also perform single-ancestry COJO and reproduce the re
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
 ![time_comparison_HDL.png](time_comparison_HDL.png)
 
-We recommend cloning the repository and building `manc_cojo` from source on your system:
-
-```bash
-git clone https://github.com/light156/multi-ancestry-COJO.git
-```
+We recommend cloning the repository and building `manc_cojo` from source on your system.
 
 Alternatively, you can download the precompiled `manc_cojo` binary for 64-bit Intel Linux.
 If it doesn’t run properly on your system, just follow the simple build steps below or drop us an email for help.
@@ -138,7 +134,8 @@ If you’d like the fastest performance or plan to modify the code, clone the re
 ### Linux
 
 ```bash
-cd manc_cojo
+git clone https://github.com/light156/multi-ancestry-COJO.git
+cd multi-ancestry-COJO
 
 g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
     -I external/Eigen -I external -I data -I include \
@@ -152,7 +149,8 @@ macOS’s default compiler (**Apple Clang**) does **not** include OpenMP support
 However, since using single thread is already fast enough as shown above, it is straightforward to build a single-threaded version.
 
 ```bash
-cd manc_cojo
+git clone https://github.com/light156/multi-ancestry-COJO.git
+cd multi-ancestry-COJO
 
 clang++ -std=c++11 -O3 -march=native -DNDEBUG \
     -I external/Eigen -I external -I data -I include \
