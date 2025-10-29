@@ -4,7 +4,7 @@
 Note that our program can also perform single-ancestry COJO and reproduce the result of [original GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), but runs much faster.
 
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
-![time_comparison_HDL.png](time_comparison_HDL.png)
+![time_comparison_HDL.png](bin_macOS_win/time_comparison_HDL.png)
 
 You can clone this repo or directly download the `manc_cojo` binary for immediate use on 64-bit Intel Linux.  
 If it doesn’t run immediately, make sure it has execution permission:
@@ -15,6 +15,10 @@ chmod +x manc_cojo
 
 If it still fails to run, your system may not be compatible with the precompiled binary. 
 In that case, please follow the build steps (which is quite simple) below or contact us for assistance.
+
+Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11. 
+
+If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
 ## Usage & Example Commands
 
@@ -167,7 +171,6 @@ clang++ -std=c++11 -O3 -march=native -DNDEBUG \
 Since large computing clusters primarily run on Linux, we do not specifically target Windows.
 However, if there is a real need to run on Windows, you can install [MinGW-w64](https://www.msys2.org/) by following the official guide.
 After successful installation, you can compile the source code with GCC using the same commands as on Linux to obtain the executable file.
-If you require further assistance with Windows compatibility, please contact us and we will be happy to help.
 
 ### After Compilation
 
