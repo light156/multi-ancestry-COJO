@@ -18,7 +18,7 @@ In that case, please follow the build steps (which is quite simple) below or con
 
 ## Usage & Example Commands
 
-The usage is basically the same as original GCTA COJO, while extended to multiple cohorts. Nevertheless, there are two major differences:
+The usage is basically the same as original GCTA COJO, while `--bfile` and `--cojo-file` are extended to multiple cohorts. Nevertheless, there are two major differences:
 > 1. We do not have `--cojo-slct` flag, since the program is designed for performing COJO only.
 > 2. Our model is slightly different from original GCTA version. If you want to **reproduce original GCTA results or use GCTA-COJO criteria on multiple cohorts**, please use flag `--gcta`.
 
@@ -68,7 +68,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 
 Please refer to the descriptions for all supported options and flags below.
 ### Original GCTA Options/Flags 
-Please refer to [https://yanglab.westlake.edu.cn/software/gcta/#COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO) for original definitions.
+These options and flags are functionally identical to those in the original GCTA. Please refer to [https://yanglab.westlake.edu.cn/software/gcta/#COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO) for detailed definitions.
 
 | Option             | Description                                                  | Default          |
 | ------------------ | ------------------------------------------------------------ | ---------------- |
