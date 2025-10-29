@@ -67,7 +67,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 
 
 Please refer to the descriptions for all supported options and flags below.
-## Original GCTA Options/Flags
+### Original GCTA Options/Flags
 
 | Option             | Description                                                  | Default          |
 | ------------------ | ------------------------------------------------------------ | ---------------- |
@@ -86,7 +86,7 @@ Please refer to the descriptions for all supported options and flags below.
 | ------------------ | --------------------------------------------------------------- |               
 | `--cojo-joint`     | Output joint results for given SNPs and exit<br>Only valid when `--extract` is used|
 
-## Multi-ancestry COJO Options/Flags
+### Multi-ancestry COJO Options/Flags
 
 | Option       | Description                                                       | Default             |
 | ------------ | ----------------------------------------------------------------- | ------------------- |
@@ -99,7 +99,7 @@ Please refer to the descriptions for all supported options and flags below.
 | `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort |
 | `--MDISA`          | Run MDISA after Manc-COJO<br> By default, only run COJO selection on multiple cohorts and exit |
 
-## Main logic Options/Flags
+### Main logic Options/Flags
 
 | Option             | Description                                                    | Default       |
 | ------------------ | -------------------------------------------------------------- | ------------- |
