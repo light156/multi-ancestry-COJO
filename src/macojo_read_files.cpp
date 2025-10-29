@@ -220,7 +220,7 @@ void Cohort::skim_frq(string PLINKfile)
             continue;
         } 
 
-        if (fabs(sumstat(ref_index, 3) - freq) > params.diff_freq) {
+        if (abs(sumstat(ref_index, 3) - freq) > params.diff_freq) {
             // LOGGER.w(1, "removed, allele frequency too different between sumstat and bedfile", SNP_buf);
             shared.goodSNP_index_map.erase(SNP_buf);
             continue;

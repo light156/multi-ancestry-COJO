@@ -6,14 +6,14 @@ Note that our program can also perform single-ancestry COJO and reproduce the re
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
 ![time_comparison_HDL.png](time_comparison_HDL.png)
 
-We highly recommend cloning the repository and building `manc_cojo` from source to achieve optimal performance on your system:
+We highly recommend cloning the repository and building `manc_cojo` from source on your system:
 
 ```bash
 git clone https://github.com/light156/multi-ancestry-COJO.git
 ```
 
-Alternatively, you can download the precompiled `manc_cojo` binary for 64-bit Linux.
-It should be portable but will run 2–3× slower than a native build (for example, ~1 minute vs. ~3 minutes on chromosome 1).
+Alternatively, you can download the precompiled `manc_cojo` binary for 64-bit Intel Linux.
+If it doesn’t run properly on your system, just follow the simple build steps below or drop us an email for help.
 
 ## Usage & Example Commands
 
@@ -128,11 +128,12 @@ The code for logging is modified from
 
 ## Building from Source
 
-If you’d like to compile `manc_cojo` yourself or make local modifications, you can build it directly from the command line. The following examples show minimal working commands for **Linux** and **macOS**.
+If you’d like the fastest performance or plan to modify the code, clone the repository and build it yourself from the command line. Below are simple example commands for **Linux** and **macOS**.
 
 > **Requirements**
 > - A C++11-compatible compiler (`GCC ≥ 4.8.1` or `Clang ≥ 3.3`)
 > - Optional: OpenMP for multithreading (default on Linux; not included with Apple Clang)
+> - If you require Windows compatibility, please contact us and we are happy to help.
 
 ### Linux
 
