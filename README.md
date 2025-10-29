@@ -6,7 +6,7 @@ Note that our program can also perform single-ancestry COJO and reproduce the re
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
 ![time_comparison_HDL.png](time_comparison_HDL.png)
 
-We highly recommend cloning the repository and building `manc_cojo` from source on your system:
+We recommend cloning the repository and building `manc_cojo` from source on your system:
 
 ```bash
 git clone https://github.com/light156/multi-ancestry-COJO.git
