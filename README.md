@@ -124,7 +124,7 @@ The code for logging is modified from
 
 ## Building from Source
 
-If you’d like the fastest performance or plan to modify the code, clone the repository and build it yourself from the command line. Below are simple example commands for **Linux** and **macOS**.
+If you’d like the fastest performance or plan to modify the code, please clone the repository and build it yourself from the command line. Below are simple example commands for **Linux** and **macOS**.
 
 > **Requirements**
 > - A C++11-compatible compiler (`GCC ≥ 4.8.1` or `Clang ≥ 3.3`)
