@@ -127,11 +127,11 @@ The code for logging is modified from
 
 ## Building from Source
 
-If you’d like to compile **`manc_cojo`** yourself or make local modifications, you can build it directly from the command line.  
+If you’d like to compile `manc_cojo` yourself or make local modifications, you can build it directly from the command line.  
 The following examples show minimal working commands for **Linux** and **macOS**.
 
 > **Requirements**
-> - A C++11-compatible compiler (`g++ ≥ 6.0` or `clang++ ≥ 8.0`)
+> - A C++11-compatible compiler (`GCC ≥ 4.8.1` or `Clang ≥ 3.3`)
 > - Optional: OpenMP for multithreading (default on Linux; not included with Apple Clang)
 
 ### Linux
@@ -146,10 +146,9 @@ g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
 ```
 
 ### macOS
-MacOS’s default compiler (**Apple Clang**) does **not** include OpenMP support.  
-You can either install LLVM via Homebrew for full OpenMP support, or build a single-threaded version as shown below.
+macOS’s default compiler (**Apple Clang**) does **not** include OpenMP support, so you need to install LLVM via Homebrew for full OpenMP support.
 
-Using single thread is actually fast enough unless you are working with a very large individual number (>100,000).
+However, since using single thread is already fast enough as shown above, it is straightforward to build a single-threaded version.
 
 ```bash
 cd manc_cojo
