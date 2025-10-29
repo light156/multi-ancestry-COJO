@@ -68,7 +68,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 
 Please refer to the descriptions for all supported options and flags below.
 ### Original GCTA Options/Flags 
-[https://yanglab.westlake.edu.cn/software/gcta/#COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO)
+Please refer to [https://yanglab.westlake.edu.cn/software/gcta/#COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO) for original definitions.
 
 | Option             | Description                                                  | Default          |
 | ------------------ | ------------------------------------------------------------ | ---------------- |
