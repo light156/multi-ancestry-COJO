@@ -135,7 +135,6 @@ If you’d like the fastest performance or plan to modify the code, please clone
 > **Requirements**
 > - A C++11-compatible compiler (`GCC ≥ 4.8.1` or `Clang ≥ 3.3`)
 > - Optional: OpenMP for multithreading (default on Linux; not included with Apple Clang)
-> - If you require Windows compatibility, please contact us and we are happy to help.
 
 ### Linux
 
@@ -163,6 +162,12 @@ clang++ -std=c++11 -O3 -march=native -DNDEBUG \
     external/Logger.cpp data/Geno.cpp src/*.cpp \
     -o manc_cojo
 ```
+
+### Windows
+Since large computing clusters primarily run on Linux, we do not specifically target Windows.
+However, if there is a real need to run on Windows, you can install [MinGW-w64](https://www.msys2.org/) by following the official guide.
+After successful installation, you can compile the source code with GCC using the same commands as on Linux to obtain the executable file.
+If you require further assistance with Windows compatibility, please contact us and we will be happy to help.
 
 ### After Compilation
 
