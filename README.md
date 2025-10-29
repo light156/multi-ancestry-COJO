@@ -127,8 +127,7 @@ The code for logging is modified from
 
 ## Building from Source
 
-If you’d like to compile `manc_cojo` yourself or make local modifications, you can build it directly from the command line.  
-The following examples show minimal working commands for **Linux** and **macOS**.
+If you’d like to compile `manc_cojo` yourself or make local modifications, you can build it directly from the command line. The following examples show minimal working commands for **Linux** and **macOS**.
 
 > **Requirements**
 > - A C++11-compatible compiler (`GCC ≥ 4.8.1` or `Clang ≥ 3.3`)
