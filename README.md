@@ -173,4 +173,4 @@ Once built, run:
 to verify that the binary executes correctly and prints its usage information.
 
 ---
-Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions.
+Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries and bug reports, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions.
