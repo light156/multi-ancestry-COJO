@@ -13,7 +13,7 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 ```
 
 Alternatively, you can download the precompiled `manc_cojo` binary for 64-bit Linux.
-This version should be portable but will run 2–3× slower than a native build (for example, ~1 minute vs. ~3 minutes on chromosome 1).
+It should be portable but will run 2–3× slower than a native build (for example, ~1 minute vs. ~3 minutes on chromosome 1).
 
 ## Usage & Example Commands
 
