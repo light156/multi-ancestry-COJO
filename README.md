@@ -19,8 +19,8 @@ In that case, please follow the build steps (which is quite simple) below or con
 ## Usage & Example Commands
 
 The usage is basically the same as original GCTA COJO, while `--bfile` and `--cojo-file` are extended to multiple cohorts. Nevertheless, there are two major differences:
-> 1. We do not have `--cojo-slct` flag, since the program is designed for performing COJO only.
-> 2. Our model is slightly different from original GCTA version. If you want to **reproduce original GCTA results or use GCTA-COJO criteria on multiple cohorts**, please use flag `--gcta`.
+1. We do not have `--cojo-slct` flag, since the program is designed for performing COJO only.
+2. Our model is slightly different from original GCTA version. If you want to **reproduce original GCTA results or use GCTA-COJO criteria on multiple cohorts**, please use flag `--gcta`.
 
 For example, if you want to obtain the **same** result as original GCTA-COJO for a single cohort, your command should be like
 
