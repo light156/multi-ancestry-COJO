@@ -125,4 +125,49 @@ The code for logging is modified from
 
 ---
 
+## Building from Source
+
+If you’d like to compile **`manc_cojo`** yourself or make local modifications, you can build it directly from the command line.  
+The following examples show minimal working commands for **Linux** and **macOS**.
+
+> **Requirements**
+> - A C++11-compatible compiler (`g++ ≥ 6.0` or `clang++ ≥ 8.0`)
+> - Optional: OpenMP for multithreading (default on Linux; not included with Apple Clang)
+
+### Linux
+
+```bash
+cd manc_cojo
+
+g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
+    -I external/Eigen -I external -I data -I include \
+    external/Logger.cpp data/Geno.cpp src/*.cpp \
+    -o manc_cojo
+```
+
+### macOS
+MacOS’s default compiler (**Apple Clang**) does **not** include OpenMP support.  
+You can either install LLVM via Homebrew for full OpenMP support, or build a single-threaded version as shown below.
+
+Using single thread is actually fast enough unless you are working with a very large individual number (>100,000).
+
+```bash
+cd manc_cojo
+
+clang++ -std=c++11 -O3 -march=native -DNDEBUG \
+    -I external/Eigen -I external -I data -I include \
+    external/Logger.cpp data/Geno.cpp src/*.cpp \
+    -o manc_cojo
+```
+
+### After Compilation
+
+Once built, run:
+
+```bash
+./manc_cojo --help
+```
+to verify that the binary executes correctly and prints its usage information.
+
+---
 Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions.
