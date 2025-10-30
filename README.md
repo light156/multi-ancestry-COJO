@@ -17,7 +17,7 @@ chmod +x manc_cojo
 ```
 You may also build the program by yourself by following the steps below (which is quite simple).
 
-### Verify installation
+### Verify Installation
 
 After building or downloading the executable, you can confirm that it runs correctly by checking its usage information:
 
@@ -84,7 +84,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 
 Please refer to the descriptions for all supported options and flags below.
 ### Original GCTA Options/Flags 
-These options and flags are functionally identical to those in the original GCTA. Please refer to [https://yanglab.westlake.edu.cn/software/gcta/#COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO) for detailed definitions.
+These options and flags are functionally identical to those in the original GCTA. You can find more detailed definitions at [https://yanglab.westlake.edu.cn/software/gcta/#COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO).
 
 | Option             | Description                                                  | Default          |
 | ------------------ | ------------------------------------------------------------ | ---------------- |
@@ -116,7 +116,7 @@ These options and flags are functionally identical to those in the original GCTA
 | `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort |
 | `--MDISA`          | Run MDISA after Manc-COJO<br> By default, only run COJO selection on multiple cohorts and exit |
 
-### Main logic Options/Flags
+### Main Logic Options/Flags
 
 | Option             | Description                                                    | Default       |
 | ------------------ | -------------------------------------------------------------- | ------------- |
@@ -130,7 +130,7 @@ These options and flags are functionally identical to those in the original GCTA
 | `--remove-NA`      | Remove NA in genotype data for correlation calculation, only work for PLINK.bed files<br>By default, use mean imputation on NA genotypes   | 
 
 ---
-## Third-Party Libraries
+## Third-party Libraries
 This project includes or depends on some third-party open source libraries as follows.
 
 Throughout the program, all matrix computations are based on Eigen 
