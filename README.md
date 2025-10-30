@@ -153,9 +153,7 @@ g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
 ```
 
 ### macOS
-macOS’s default compiler (**Apple Clang**) does **not** include OpenMP support, so you need to install LLVM via Homebrew for full OpenMP support.
-
-However, since using single thread is already fast enough as shown above, it is straightforward to build a single-threaded version.
+macOS’s default compiler (Apple Clang) does not include OpenMP support. Although you can install LLVM via Homebrew for full OpenMP functionality, in practice, the single-threaded version is already fast enough, as shown above. So it is fine to just build a single-threaded version for simplicity:
 
 ```bash
 git clone https://github.com/light156/multi-ancestry-COJO.git
