@@ -182,14 +182,5 @@ Since large computing clusters primarily run on Linux, we do not specifically ta
 However, if there is a real need to run on Windows, you can install [mingw-w64](https://www.msys2.org/) by following the official guide.
 After successful installation, you can compile the source code with GCC using the same commands as on Linux to obtain the executable file.
 
-### After Compilation
-
-Once built, run:
-
-```bash
-./manc_cojo --help
-```
-to verify that the binary executes correctly and prints its usage information.
-
 ---
 Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries and bug reports, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions.
