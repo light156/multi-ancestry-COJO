@@ -6,7 +6,7 @@ Note that our program can also perform single-ancestry COJO and reproduce the re
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
 ![time_comparison_HDL.png](bin_macOS_win/time_comparison_HDL.png)
 
-You can clone this repo or directly download the `manc_cojo` binary for immediate use on 64-bit Intel Linux.  
+You can clone this repo or directly download the executable `manc_cojo` for immediate use on 64-bit Intel Linux.  
 If it doesn’t run immediately, make sure it has execution permission:
 
 ```bash
@@ -15,6 +15,17 @@ chmod +x manc_cojo
 
 If it still fails to run, your system may not be compatible with the precompiled binary. 
 In that case, please follow the build steps (which is quite simple) below or contact us for assistance.
+
+### Verify installation
+
+After building or downloading the executable, you can confirm that it runs correctly by checking its usage information:
+
+```bash
+./manc_cojo --help
+```
+
+If the program is installed properly, it will print the list of available options and a brief description of each.
+
 
 > Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11. 
 
@@ -153,7 +164,8 @@ g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
 ```
 
 ### macOS
-macOS’s default compiler (Apple Clang) does not include OpenMP support. Although you can install LLVM via Homebrew for full OpenMP functionality, in practice, the single-threaded version is already fast enough, as shown above. So it is fine to just build a single-threaded version for simplicity:
+macOS’s default compiler (Apple Clang) does not include OpenMP support. Although you can install LLVM via Homebrew for full OpenMP functionality, using one thread is already fast enough as shown above.
+So it is fine to just build a single-threaded version for simplicity:
 
 ```bash
 git clone https://github.com/light156/multi-ancestry-COJO.git
