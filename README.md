@@ -138,10 +138,8 @@ This project includes or depends on some third-party open source libraries as fo
 
 Throughout the program, all matrix computations are based on Eigen 
 - [Eigen 3.4.1](https://eigen.tuxfamily.org): external/Eigen
-
 The code for parsing command line options is modified from
 - [CLI11](https://github.com/CLIUtils/CLI11): external/CLI11.hpp
-
 The code for logging is modified from
 - [GCTA](https://github.com/jianyangqt/gcta/blob/master/include/Logger.h): external/LOGGER.h, external/LOGGER.cpp
 
