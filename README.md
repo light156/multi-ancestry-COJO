@@ -15,7 +15,7 @@ If it doesn’t run immediately, make sure it has execution permission:
 ```bash
 chmod +x manc_cojo
 ```
-You may also build the program by yourself by following [the steps below](#Building from Source) (which is quite simple).
+You may also build the program by yourself by following [the steps below](#Building-from-Source) (which is quite simple).
 
 ### Verify Installation
 
