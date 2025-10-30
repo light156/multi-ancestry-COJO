@@ -6,17 +6,16 @@ Note that our program can also perform single-ancestry COJO and reproduce the re
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
 ![time_comparison_HDL.png](bin_macOS_win/time_comparison_HDL.png)
 
+
+## Installation
+
 You can clone this repo or directly download the executable `manc_cojo` for immediate use on 64-bit Intel Linux.  
 If it doesn’t run immediately, make sure it has execution permission:
 
 ```bash
 chmod +x manc_cojo
 ```
-
-or choose to build the program by yourself by following the steps below (which is quite simple), or contact us for assistance.
-
-Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11.
-If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
+or choose to build the program by yourself by following the steps below (which is quite simple).
 
 ### Verify installation
 
@@ -27,6 +26,10 @@ After building or downloading the executable, you can confirm that it runs corre
 ```
 
 If the program is installed properly, it will print the list of available options and a brief description of each.
+
+Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11.
+If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
+
 
 ## Usage & Example Commands
 
