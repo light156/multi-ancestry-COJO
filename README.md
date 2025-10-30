@@ -134,14 +134,16 @@ These options and flags are functionally identical to those in the original GCTA
 
 ---
 ## Third-party Libraries
-This project includes or depends on some third-party open source libraries as follows.
+This project includes or depends on several third-party open-source libraries:
 
-Throughout the program, all matrix computations are based on Eigen 
-- [Eigen 3.4.1](https://eigen.tuxfamily.org): external/Eigen
-The code for parsing command line options is modified from
-- [CLI11](https://github.com/CLIUtils/CLI11): external/CLI11.hpp
-The code for logging is modified from
-- [GCTA](https://github.com/jianyangqt/gcta/blob/master/include/Logger.h): external/LOGGER.h, external/LOGGER.cpp
+- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations  
+  *Path:* `external/Eigen`
+
+- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options  
+  *Path:* `external/CLI11.hpp`
+
+- **[GCTA Logger](https://github.com/jianyangqt/gcta/blob/master/include/Logger.h)** – Modified for logging  
+  *Path:* `external/LOGGER.h`, `external/LOGGER.cpp`
 
 ---
 
