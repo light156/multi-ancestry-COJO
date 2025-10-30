@@ -6,6 +6,9 @@ Note that our program can also perform single-ancestry COJO and reproduce the re
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
 ![time_comparison_HDL.png](bin_macOS_win/time_comparison_HDL.png)
 
+The memory usage is essentially the same as that of GCTA-COJO during iterative selection. You can approximate the memory footprint using the formula **MN / 4000** GB, where M is the number of SNPs (in thousands) and N is the number of individuals (in thousands) in the `.bed` file. In our study, the largest case involves ~500 k SNPs and ~76 k individuals on chromosome 2, corresponding to 500 × 76 / 4000 ≈ 9.5 GB of memory.
+
+The memory usage will be significantly lower when you use ``--extract``, since our program only loads the SNPs for analysis into memory, which is different from GCTA-COJO. 
 
 ## Installation
 
