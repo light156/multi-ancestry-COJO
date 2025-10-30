@@ -169,7 +169,7 @@ clang++ -std=c++11 -O3 -march=native -DNDEBUG \
 
 ### Windows
 Since large computing clusters primarily run on Linux, we do not specifically target Windows.
-However, if there is a real need to run on Windows, you can install [MinGW-w64](https://www.msys2.org/) by following the official guide.
+However, if there is a real need to run on Windows, you can install [mingw-w64](https://www.msys2.org/) by following the official guide.
 After successful installation, you can compile the source code with GCC using the same commands as on Linux to obtain the executable file.
 
 ### After Compilation
