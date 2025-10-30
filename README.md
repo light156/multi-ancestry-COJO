@@ -29,7 +29,7 @@ If the program is installed properly, it will print the list of available option
 
 > Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11. 
 
-If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
+> If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
 ## Usage & Example Commands
 
