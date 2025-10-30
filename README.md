@@ -13,8 +13,10 @@ If it doesn’t run immediately, make sure it has execution permission:
 chmod +x manc_cojo
 ```
 
-If it still fails to run, your system may not be compatible with the precompiled binary. 
-In that case, please follow the build steps (which is quite simple) below or contact us for assistance.
+or choose to build the program by yourself by following the steps below (which is quite simple), or contact us for assistance.
+
+Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11.
+If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
 ### Verify installation
 
@@ -25,11 +27,6 @@ After building or downloading the executable, you can confirm that it runs corre
 ```
 
 If the program is installed properly, it will print the list of available options and a brief description of each.
-
-
-> Our program mainly targets Linux servers, but we also include ready-to-use executables for macOS and Windows in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11. 
-
-> If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
 ## Usage & Example Commands
 
