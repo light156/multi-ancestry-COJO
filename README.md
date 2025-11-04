@@ -96,6 +96,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 ```
 
 (`--cojo-collinear 0.99` and `--diff-freq 1` for including all given SNPs)
+
 ---
 ## Supported Command-line Options
 
