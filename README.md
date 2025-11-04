@@ -107,13 +107,6 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 | `--bfile`   | PLINK binary file prefix for each cohort [`.bim` `.bed` `.fam`]    |
 | `--ld`      | PLINK LD file prefix for each cohort [`.bim` `.ld` `(.frq)`]       |
 
-### Algorithm Options
-
-| Option | Allowed Values | Default | Description |
-| ------- | --------------- | -------- | ------------ |
-| `--slct-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Iterative SNP selection method |
-| `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
-
 ### Analysis Mode (exactly one required)
 
 | Name            | Type     | Description                                                   |
@@ -152,6 +145,13 @@ These options and flags are functionally identical to those in the original GCTA
 | `--MDISA`    | Run MDISA after Manc-COJO<br> By default, only run COJO selection on multiple cohorts and exit | *flag* |
 | `--iter`           | Maximum number of iterations                                   | `10000`       |
 | `--thread-num`     | Number of thread to use (One thread is actually fast enough)   | `1`           | 
+
+### Algorithm Options
+
+| Option | Allowed Values | Default | Description |
+| ------- | --------------- | -------- | ------------ |
+| `--slct-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Iterative SNP selection method |
+| `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
 
 ---
 ## Third-party Libraries
