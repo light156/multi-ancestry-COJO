@@ -32,7 +32,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     // app.add_option("--bgen", params.if_bgen_mode, "PLINK BGEN file prefix for each cohort (.bim .bgen .fam)")->group(input_group);
     
     string mode_group = "Algorithm Options/Flags";
-    auto *slct_mode_option = app.add_option("--slct-mode", slct_mode, "Iterative selection method")
+    auto *slct_mode_option = app.add_option("--slct-mode", slct_mode, "Iterative SNP selection method")
         ->check(CLI::IsMember({"GCTA", "removeNA", "imputeNA"}))->default_val("GCTA")->group(mode_group);
     app.add_option("--effect-size-mode", params.effect_size_mode, "Effect size estimation method")
         ->check(CLI::IsMember({"GCTA", "removeNA", "imputeNA"}))->default_val("GCTA")->group(mode_group);

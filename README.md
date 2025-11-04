@@ -142,7 +142,7 @@ These options and flags are functionally identical to those in the original GCTA
 | `--R2`       | R² threshold for forward selection                                | `-1` (none)         |
 | `--R2back`   | R² threshold for backward selection                               | `-1` (none)         |
 | `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort | *flag* |
-| `--MDISA`    | Run MDISA after Manc-COJO<br> By default, only run COJO selection on multiple cohorts and exit | *flag* |
+| `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit | *flag* |
 | `--iter`           | Maximum number of iterations                                   | `10000`       |
 | `--thread-num`     | Number of thread to use (One thread is actually fast enough)   | `1`           | 
 
