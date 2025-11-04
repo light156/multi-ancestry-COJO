@@ -170,7 +170,13 @@ void Logger::ts(string key){
     time_map[key] = std::chrono::steady_clock::now();
 }
 
-float Logger::tp(string key){
+void Logger::tp(string key){
+    #ifdef __linux__
+        float vmem = roundf(1000.0 * getVMPeakKB() / 1024/1024) / 1000.0; 
+        float mem = roundf(1000.0 * getMemPeakKB() / 1024/1024) / 1000.0;     
+        LOGGER << setprecision(3) << "Peak memory: " << mem << " GB; Virtual memory: " << vmem << " GB." << endl;
+    #endif
+
     auto end = std::chrono::steady_clock::now();
     float secs = 0.0;
     if(time_map.find(key) != time_map.end()){
@@ -179,7 +185,14 @@ float Logger::tp(string key){
     }else{
         m_pThis->w(2, "can't find key of time start");
     }
-    return secs;
+
+    int hours = (int) secs / 3600;
+    string time_str = (hours == 0) ? "" : (std::to_string(hours) + " hour" + ((hours == 1) ? " ": "s "));
+    int mins = (int) (secs - 3600 * hours) / 60;
+    time_str += (mins == 0) ? "" : (std::to_string(mins) + " minute" + ((mins == 1) ? " ": "s "));
+    float seconds = secs - 3600 * hours - 60 * mins;
+    time_str = time_str + std::to_string(seconds) + " seconds";
+    LOGGER << "Overall computational time: " << time_str << endl;
 }
 
 Logger& Logger::operator<<(Type type){

@@ -41,6 +41,7 @@ Below are the original comments:
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include <cmath>
 #define LOGGER (*Logger::GetLogger())
 #define LOGGER_P Logger::GetLogger()
 using std::string;
@@ -59,7 +60,7 @@ public:
     void m(int level, const string& message, const string& title = empty);
     void l(int level, const string& message, const string& title = empty);
     void ts(string marker);
-    float tp(string marker);
+    void tp(string marker);
     Logger& operator<<(Type type);
     Logger& operator<<(std::ostream& (*manip)(std::ostream&));
     Logger& operator<<(std::ios& (*pf)(std::ios&));

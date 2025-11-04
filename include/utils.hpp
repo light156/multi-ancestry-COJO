@@ -68,3 +68,22 @@ inline void remove_column(PlainObjectBase<Derived> &matrix, typename Derived::In
 
     matrix.conservativeResize(Eigen::NoChange, numCols);
 }
+
+
+inline double median(const vector<double> &v)
+{
+    int size = v.size();
+	if (size == 0) 
+        throw std::invalid_argument("median: empty vector");
+
+    vector<double> b(v);
+    sort(b.begin(), b.end());
+	return (size%2==1) ? b[(size-1)/2] : (b[size/2]+b[size/2-1])/2;
+}
+
+
+inline double median(const Eigen::ArrayXd &eigen_vector)
+{
+    vector<double> v(eigen_vector.data(), eigen_vector.data() + eigen_vector.size());
+    return median(v);
+}

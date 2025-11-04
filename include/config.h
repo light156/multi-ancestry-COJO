@@ -20,11 +20,17 @@ struct HyperParams {
     double iter_collinear_threshold; // 1 / (1 - collinear)
     int window_size; // in bp, window_kb*1e3
 
-    bool if_gcta_COJO = false;
-    bool if_LD_mode = false;
-    bool if_cojo_joint = false;
+    string effect_size_mode; // "GCTA", "removeNA", "imputeNA"
+    bool if_gcta_COJO, if_remove_NA;
+
+    bool if_joint_mode = false;
+    bool if_cond_mode = false;
     bool if_MDISA = false;
-    bool if_remove_NA = false;
+    bool if_LD_mode = false;
+
+    // filepaths
+    std::vector<std::string> bfile_list, cojo_file_list, keep_file_list, remove_file_list;
+    string output_name, extract_file, exclude_file, fixedSNP_file, cond_file;
 };
 
 
