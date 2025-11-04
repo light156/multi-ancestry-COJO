@@ -32,7 +32,7 @@ Our program mainly targets **Linux** servers, but we also include ready-to-use e
 
 If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
-
+---
 ## Usage & Example Commands
 
 The usage is largely consistent with the original GCTA COJO, but extended to handle **multiple cohorts**. Specifically,
@@ -96,7 +96,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 ```
 
 (`--cojo-collinear 0.99` and `--diff-freq 1` for including all given SNPs)
-
+---
 ## Supported Command-line Options
 
 ### Input Data Format Options (exactly one required)
@@ -104,7 +104,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 | Name        | Description                                                        |
 | ----------- | ------------------------------------------------------------------ |
 | `--bfile`   | PLINK binary file prefix for each cohort [`.bim` `.bed` `.fam`]    |
-| `--ld`      | PLINK LD file prefix for each cohort [`.bim` `.ld` (`.frq`)]       |
+| `--ld`      | PLINK LD file prefix for each cohort [`.bim` `.ld` `(.frq)`]       |
 
 ### Algorithm Options
 
