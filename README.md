@@ -35,8 +35,7 @@ If you run into compatibility issues on any system, feel free to reach out and w
 
 ## Usage & Example Commands
 
-The usage is largely consistent with the original GCTA COJO, but extended to handle **multiple cohorts**. 
-In most cases, you can simply replace the path to the GCTA executable with ours. Specifically,
+The usage is largely consistent with the original GCTA COJO, but extended to handle **multiple cohorts**. Specifically,
 1. We extend `--bfile` `--cojo-file` `--keep` `--remove` to multiple cohorts. 
   Please ensure that paths are correctly paired across cohorts.
 2. We support PLINK LD matrix inputs through the option `--ld` (as an alternative to ``--bfile``).
@@ -52,7 +51,7 @@ Nevertheless, there are some minor differences:
   Please refer to our paper for detailed algorithm descriptions.
 
 
-For example, to reproduce the **same** results as original GCTA-COJO for a single cohort, run:
+For example, to reproduce the **same results** as the original GCTA-COJO for a single cohort, simply replace the path to the GCTA executable with ours:
 
 ```bash
 ./manc_cojo
@@ -62,7 +61,7 @@ For example, to reproduce the **same** results as original GCTA-COJO for a singl
 --cojo-slct
 ```
 
-If you prefer to use PLINK LD matrix inputs, simply replace `--bfile` with `--ld`:
+If you prefer to use PLINK LD matrix inputs, replace `--bfile` with `--ld`:
 
 ```bash
 ./manc_cojo
