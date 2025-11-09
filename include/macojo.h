@@ -33,23 +33,21 @@ public:
 
     bool calc_R_inv_forward(int append_index);
     void calc_R_inv_backward(int remove_index);
-    void calc_inner_product_with_SNP_list(const vector<int> &SNP_list, int single_index, VectorXd &r_temp_vec);
-    void update_r(const vector<int>& screened_SNP, int append_index);
 
-    // convenient for both iterative selection and effect size calculation
-    bool calc_R_inv_from_SNP_list(const vector<int> &SNP_list, bool if_gcta_COJO, bool if_remove_NA);
-    bool calc_joint_effects(bool if_gcta_COJO);
+    void append_r(const vector<int>& SNP_list, int append_index, string mode);
+    bool calc_R_inv_from_SNP_list(const vector<int>& SNP_list, string mode);
+    void calc_cond_effects(const vector<int>& candidate_SNP, string mode);
+    bool calc_joint_effects(const vector<int>& candidate_SNP, string mode);
 
 // necessary information during calculation
 public:
     // sumstat: col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D
-    ArrayXXd sumstat, sumstat_candidate;
-
+    ArrayXXd sumstat;
     MatrixXd r, R_inv_post, R_inv_pre, R_post;
     MatrixXd r_gcta, R_inv_post_gcta, R_inv_pre_gcta; // only used when if_gcta_COJO == true
 
     ArrayXd beta, beta_var;
-    double Vp, R2, previous_R2;
+    double Vp, R2, previous_R2 = 0.0;
     int cohort_index;
 
 private:
@@ -63,47 +61,34 @@ private:
     vector<int> fam_keep_list;
     int valid_indi_num, fam_indi_num;
 
+public:
     // backup for temporary model during backward selection
     struct BackupState {
-        ArrayXXd sumstat_candidate;
-        MatrixXd r, R_inv_pre;
-        MatrixXd r_gcta, R_inv_pre_gcta;
+        MatrixXd r, r_gcta;
+        MatrixXd R_inv_pre, R_inv_pre_gcta;
         double previous_R2;
-    };
+    } backup;
 
-    BackupState backup;
-
-public:
     void save_state() {
-        backup.sumstat_candidate = sumstat_candidate;
         backup.r                 = r;
-        backup.R_inv_pre         = R_inv_pre;
         backup.r_gcta            = r_gcta;
+        backup.R_inv_pre         = R_inv_pre;
         backup.R_inv_pre_gcta    = R_inv_pre_gcta;
         backup.previous_R2       = previous_R2;
     };
 
     void restore_state() {
-        sumstat_candidate = backup.sumstat_candidate;
         r                 = backup.r;
-        R_inv_pre         = backup.R_inv_pre;
         r_gcta            = backup.r_gcta;
+        R_inv_pre         = backup.R_inv_pre;
         R_inv_pre_gcta    = backup.R_inv_pre_gcta;
         previous_R2       = backup.previous_R2;
-        backup            = BackupState(); // clear backup after restore
     };
 
-    void save_temp_model() 
-    {   
-        if (sumstat_candidate.rows() == 1) {
-            R_inv_pre = MatrixXd::Identity(1,1);
-            R_inv_pre_gcta = MatrixXd::Identity(1,1) / sumstat_candidate(0,6); // only used when if_gcta_COJO == true
-            previous_R2 = -1; // only used for if_gcta_COJO == false;
-        } else {
-            R_inv_pre = R_inv_post;
-            R_inv_pre_gcta = R_inv_post_gcta; // only used when if_gcta_COJO == true
-            previous_R2 = R2; // only used for if_gcta_COJO == false
-        }
+    void save_temp_model() {
+        R_inv_pre = R_inv_post;
+        R_inv_pre_gcta = R_inv_post_gcta;
+        previous_R2 = R2;
     };
 };
 
@@ -112,14 +97,17 @@ class MACOJO
 {
 public:
     int set_read_process_output_options(int argc, char** argv);
-    void read_cojo_PLINK_files();
-    void entry_function();
-    void output_cojo_cond(string savename);
-    void output_cojo_joint(string savename);
+    void read_input_files();
+    void initialize_candidate_SNP(string filename);
+    void slct_loop();
+    void inverse_var_meta(ArrayXd &bma, ArrayXd &se2ma, ArrayXd &abs_zma);
 
-    void main_loop();
-    void inverse_var_meta_conditional();
-    void inverse_var_meta_joint();
+    void entry_function();
+    void output_cma(string savename);
+    void output_jma(string savename);
+    void output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair, 
+        const ArrayXd& bma, const ArrayXd& se2ma, const ArrayXd& abs_zma);
+    void output_ld_matrix(string savename, const vector<int>& ordered_candidate, const Cohort& c);
 
 private:
     HyperParams params;
@@ -128,7 +116,7 @@ private:
     vector<Cohort> cohorts;
     vector<int> current_list;
     vector<int> bad_SNP, screened_SNP;
-    vector<int> candidate_SNP, removed_SNP, candidate_SNP_backup, removed_SNP_backup;
+    vector<int> candidate_SNP, collinear_SNP, backward_SNP, candidate_SNP_backup, backward_SNP_backup;
     int fixed_candidate_SNP_num = 0;
     
     ArrayXd bC, se2C, abs_zC;

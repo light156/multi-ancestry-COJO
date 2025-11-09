@@ -412,7 +412,7 @@ void Cohort::read_PLINK_LD()
 }
 
 
-void MACOJO::read_cojo_PLINK_files() 
+void MACOJO::read_input_files() 
 {   
     vector<string> commonSNP_all_cohorts;
 
@@ -557,6 +557,7 @@ void MACOJO::read_cojo_PLINK_files()
     set_difference(count_array.begin(), count_array.end(), 
         screened_SNP.begin(), screened_SNP.end(), back_inserter(bad_SNP));
 
-    LOGGER.i(0, "common SNPs at last for analysis", to_string(shared.goodSNP_index_map.size()));
+    LOGGER.i(0, "common SNPs removed during reading files", to_string(bad_SNP.size()));
+    LOGGER.i(0, "common SNPs at last for analysis", to_string(screened_SNP.size()));
     LOGGER << "--------------------------------" << endl << endl;
 }

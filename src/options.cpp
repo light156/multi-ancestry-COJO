@@ -23,7 +23,6 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     app.get_formatter()->right_column_width(75);
 
     int thread_num, cohort_num;
-    string slct_mode;
 
     // Main logic options
     string input_group = "Input Data Format Options";
@@ -32,7 +31,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     // app.add_option("--bgen", params.if_bgen_mode, "PLINK BGEN file prefix for each cohort (.bim .bgen .fam)")->group(input_group);
     
     string mode_group = "Algorithm Options/Flags";
-    auto *slct_mode_option = app.add_option("--slct-mode", slct_mode, "Iterative SNP selection method")
+    auto *slct_mode_option = app.add_option("--slct-mode", params.slct_mode, "Iterative SNP selection method")
         ->check(CLI::IsMember({"GCTA", "removeNA", "imputeNA"}))->default_val("GCTA")->group(mode_group);
     app.add_option("--effect-size-mode", params.effect_size_mode, "Effect size estimation method")
         ->check(CLI::IsMember({"GCTA", "removeNA", "imputeNA"}))->default_val("GCTA")->group(mode_group);
@@ -68,6 +67,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     app.add_flag("--MDISA", params.if_MDISA, "Run single-ancestry analysis after multi-ancestry COJO")->group(manc_group);
     auto *iter_option = app.add_option("--iter", params.max_iter_num, "Total iteration number")->default_val(10000)->check(CLI::PositiveNumber)->group(manc_group);
     app.add_option("--thread-num", thread_num, "Number of threads to use")->default_val(1)->check(CLI::Range(1,10))->group(manc_group);
+    app.add_flag("--output-all", params.if_output_all, "Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file")->group(manc_group);
 
     for (auto *opt : app.get_options())
         opt->multi_option_policy(CLI::MultiOptionPolicy::Throw);
@@ -81,6 +81,9 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
         if ((bfile->count() > 0) == (ld->count() > 0))
             throw CLI::ValidationError("Either --bfile or --ld must be provided for all cohorts");
 
+        if (*ld && (*keep_option || *remove_option))
+            throw CLI::ValidationError("--keep/--remove cannot be used with --ld");
+
         if (params.bfile_list.size() != cohort_num)
             throw CLI::ValidationError("Filepath numbers after --bfile/--ld and --cojo-file must be the same");
 
@@ -90,16 +93,13 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
         if (*remove_option && params.remove_file_list.size() != cohort_num)
             throw CLI::ValidationError("Filepath numbers after --cojo-file and --remove must be the same");
 
-        if ((*joint_flag || *cond_option) && cohort_num > 1)
-            throw CLI::ValidationError("--cojo-joint and --cojo-cond only output results for single cohorts");
-
         if (params.if_MDISA && cohort_num == 1)
             throw CLI::ValidationError("--MDISA are invalid options with single cohort");
 
-        if ((*joint_flag || *cond_option) && (*slct_mode_option || *p_option || *fixedSNP_option || *iter_option || *R2_option || *R2back_option))
-            throw CLI::ValidationError("--cojo-joint and --cojo-cond cannot be used with --slct-mode/--cojo-p/--fixed/--iter/--R2/--R2back, because it makes no sense");
+        if ((*joint_flag || *cond_option) && (*slct_mode_option || *p_option || *fixedSNP_option || *iter_option || *R2_option || *R2back_option || params.if_MDISA))
+            throw CLI::ValidationError("--cojo-joint and --cojo-cond cannot be used with --slct-mode/--cojo-p/--fixed/--iter/--R2/--R2back/--MDISA, because it makes no sense");
 
-        if (slct_mode == "gcta" && (*R2_option || *R2back_option))
+        if (params.slct_mode == "gcta" && (*R2_option || *R2back_option))
             throw CLI::ValidationError("--slct-mode GCTA cannot be used with --R2/--R2back, because GCTA-COJO does not check R2 increment");
     });
 
@@ -113,13 +113,10 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
         LOGGER.e(0, e.what());
     }
 
-    params.if_gcta_COJO = (slct_mode == "GCTA");
-    params.if_remove_NA = (slct_mode == "removeNA");
-
     params.if_joint_mode = joint_flag->count() > 0;
     params.if_cond_mode = cond_option->count() > 0;
+    params.if_LD_mode = ld->count() > 0;
 
-    params.if_LD_mode = bool(*ld);
     params.window_size = (params.window_kb < 0 ? INT_MAX : params.window_kb * 1000);
     params.iter_collinear_threshold = 1.0 / (1.0 - params.collinear);
     LOGGER.open(params.output_name + ".log");
@@ -131,7 +128,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     LOGGER << "\n=========== MACOJO CONFIGURATION ===========" << endl
             << (params.if_joint_mode ? "Program Mode: Joint analysis only\n" : 
                 (params.if_cond_mode ? "Program Mode: Conditional analysis only\n" : 
-                    "Program Mode: Stepwise iterative selection\nSelection method: " + slct_mode + "\n"))
+                    "Program Mode: Stepwise iterative selection\nSelection method: " + params.slct_mode + "\n"))
             << "Effect size estimation method: " << params.effect_size_mode << "\n"
             << (params.if_LD_mode ? "Input format: PLINK .ld files\n" : "Input format: PLINK .bed files\n")
             << "\n"

@@ -11,7 +11,7 @@ int main(int argc, char** argv)
     int code = macojo.set_read_process_output_options(argc, argv);
     if (code != 0) return code;
 
-    macojo.read_cojo_PLINK_files();
+    macojo.read_input_files();
     macojo.entry_function();
 
     LOGGER.tp("main");    
