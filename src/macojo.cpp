@@ -47,29 +47,30 @@ void MACOJO::entry_function()
     // COJO stepwise iterative selection, first deal with fixed candidate SNPs if provided
     if (!params.fixedSNP_file.empty()) {
         initialize_candidate_SNP(params.fixedSNP_file);
-        fixed_candidate_SNP_num = candidate_SNP.size();
         LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
 
-        for (size_t n = 0; n < cohorts.size(); n++) {
-            auto &c = cohorts[n];
+        bool success_flag = true;
 
+        for (auto &c : cohorts) {
             for (int index : candidate_SNP)
                 c.append_r(screened_SNP, index, params.slct_mode);
 
-            if (!c.calc_R_inv_from_SNP_list(candidate_SNP, params.slct_mode)) {
-                LOGGER << "R matrix for Cohort " << n+1 << ":" << endl << c.R_post << endl;
-                LOGGER.e(0, "Colinearity exceeds threshold when calculating R inverse for fixed candidate SNPs, please check"); 
-            }
-
-            if (!c.calc_joint_effects(candidate_SNP, params.slct_mode)) {
-                LOGGER << "R matrix for Cohort " << n+1 << ":" << endl << c.R_post << endl;
-                LOGGER.e(0, "Joint se too small for fixed candidate SNPs, please check");
-            }
-
+            success_flag &= c.calc_R_inv_from_SNP_list(candidate_SNP, params.slct_mode);
             c.save_temp_model();
+
+            if (candidate_SNP.size() == 0) {
+                LOGGER.i(0, "No valid fixed candidate SNPs after checking collinearity, program exit!");
+                return;
+            }
+        }
+
+        if (!success_flag) {
+            LOGGER.i(0, "Proceeding to stepwise selection with remaining fixed candidate SNPs");
+            params.output_name += ".warning";
         }
     }
 
+    fixed_candidate_SNP_num = candidate_SNP.size();
     slct_loop();
     output_jma(params.output_name);
     if (params.if_output_all)
@@ -106,7 +107,7 @@ void MACOJO::entry_function()
 void MACOJO::output_cma(string savename) 
 {   
     if (screened_SNP.size() == 0) {
-        LOGGER.i(0, "No screened SNPs, conditional analysis output file will not be generated.");
+        LOGGER.i(0, "No screened SNPs, conditional analysis output file will not be generated");
         return;
     }
 
@@ -120,25 +121,21 @@ void MACOJO::output_cma(string savename)
             // get r and r_gcta
             for (int index : candidate_SNP)
                 c.append_r(screened_SNP, index, params.effect_size_mode);
-
-            // get R_inv_post and R_inv_post_gcta
-            if (!c.calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode)) {
-                LOGGER.w(0, "Collinearity exceeds threshold when calculating R inverse, make sure this is what you want", "Cohort " + to_string(n+1));
-                success_flag = false;   
-            }
-
-            // check the validity of R_inv_post by calculating joint effects
-            if (!c.calc_joint_effects(candidate_SNP, params.effect_size_mode)) {
-                LOGGER.w(0, "Joint se too small, make sure this is what you want", "Cohort " + to_string(n+1));
-                success_flag = false;
-                break;
-            }
-
-            // get R_inv_pre and R_inv_pre_gcta for calculating conditional effects
+            
+            // get R_inv_pre and R_inv_pre_gcta from R_inv_post and R_inv_post_gcta
+            success_flag &= c.calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
             c.save_temp_model();
+
+            if (candidate_SNP.size() == 0) {
+                LOGGER.i(0, "No valid candidate SNPs after checking collinearity, conditional analysis output file will not be generated");
+                return;
+            }
         }
 
-        if (!success_flag) savename += ".warning";
+        if (!success_flag) {
+            LOGGER.i(0, "Some candidate SNPs were removed, please be aware of this");
+            savename += ".warning";
+        }
     }
 
     // since r and R_inv_pre are ready, calculate conditional effects
@@ -158,7 +155,7 @@ void MACOJO::output_cma(string savename)
 void MACOJO::output_jma(string savename) 
 {   
     if (candidate_SNP.size() == 0) {
-        LOGGER.i(0, "No candidate SNPs, joint analysis output file will not be generated.");
+        LOGGER.i(0, "No candidate SNPs, joint analysis output file will not be generated");
         return;
     }
 
@@ -166,18 +163,21 @@ void MACOJO::output_jma(string savename)
     bool success_flag = true;
 
     for (int n : current_list) {
-        if (!cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode)) {
-            LOGGER.w(0, "Collinearity exceeds threshold when calculating R inverse, make sure this is what you want", "Cohort " + to_string(n+1));
-            success_flag = false;
-        }
+        auto& c = cohorts[n];
+        
+        success_flag &= c.calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
+        c.save_temp_model();
 
-        if (!cohorts[n].calc_joint_effects(candidate_SNP, params.effect_size_mode)) {
-            LOGGER.w(0, "Joint se too small, make sure this is what you want", "Cohort " + to_string(n+1));
-            success_flag = false;
+        if (candidate_SNP.size() == 0) {
+            LOGGER.i(0, "No valid candidate SNPs after checking collinearity, joint analysis output file will not be generated");
+            return;
         }
     }
 
-    if (!success_flag) savename += ".warning";
+    if (!success_flag) {
+        LOGGER.i(0, "Some candidate SNPs were removed, please be aware of this");
+        savename += ".warning";
+    }
 
     inverse_var_meta(bJ, se2J, abs_zJ);
 
@@ -205,7 +205,7 @@ void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, 
                                 const ArrayXd& bma, const ArrayXd& se2ma, const ArrayXd& abs_zma) 
 {
     ofstream maCOJO(savename.c_str());
-    if (!maCOJO) LOGGER.e(0, "cannot open the file [" + savename + "] to write.");
+    if (!maCOJO) LOGGER.e(0, "cannot open the file [" + savename + "] to write");
 
     maCOJO.precision(12);
     maCOJO << "Chr\tSNP\tbp\tA1\tA2";
@@ -278,7 +278,7 @@ void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, 
 void MACOJO::output_ld_matrix(string savename, const vector<int>& ordered_candidate, const Cohort& c) 
 {   
     ofstream ldrCOJO(savename);
-    if (!ldrCOJO) LOGGER.e(0, "cannot open the file [" + savename + "] to write.");
+    if (!ldrCOJO) LOGGER.e(0, "cannot open the file [" + savename + "] to write");
 
     ldrCOJO.precision(12);
     ldrCOJO << "SNP";
