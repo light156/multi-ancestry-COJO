@@ -9,13 +9,12 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
         "\nMulti-ancestry conditional and joint analysis of GWAS summary statistics\n"
         "https://github.com/light156/multi-ancestry-COJO\n"
         "\nTIPS:\n"
-        "  1. Options are basically the same as original GCTA-COJO, while extended to multiple cohorts. \n"
-        "  2. Please make sure the paths are paired in --bfile and --cojo-file.\n"
+        "  1. The usage is largely consistent with the original GCTA COJO, while extended to multiple cohorts and LD inputs. \n"
+        "  2. Please make sure the paths are paired in --bfile/--ld and --cojo-file.\n"
         "     (e.g., --bfile xx1.sumstat xx2.sumstat xx3.sumstat --cojo-file yy1 yy2 yy3)\n"
         "  3. For using genotype data (--bfile), please provide (.bed .bim .fam) files.\n"
-        "  4. For using LD matrix (--LD), please provide at least (.bim .ld) files.\n"
-        "     If you want to exclude SNPs with too high MAF difference, please provide (.frq) files as well\n"
-        "  5. The folders in the output file path (which is after --out) must exist.\n"
+        "     For using LD matrix (--ld), please provide at least (.bim .ld) files.\n"
+        "  4. The folders in the output file path (which is after --out) must exist.\n"
         "     (You can easily create them with 'mkdir -p <folder_path>')"
     );
 

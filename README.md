@@ -35,7 +35,8 @@ If you run into compatibility issues on any system, feel free to reach out and w
 ---
 ## Usage & Example Commands
 
-The usage is largely consistent with the original GCTA COJO, but extended to handle **multiple cohorts**. Specifically,
+The usage is largely consistent with the original GCTA COJO, while extended to handle **multiple cohorts** and **PLINK LD matrix inputs**,
+Specifically,
 1. We extend `--bfile` `--cojo-file` `--keep` `--remove` to multiple cohorts. 
   Please ensure that paths are correctly paired across cohorts.
 2. We support PLINK LD matrix inputs through the option `--ld` (as an alternative to ``--bfile``).
