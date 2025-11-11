@@ -29,7 +29,7 @@ Below are the original comments:
 
 #ifndef GCTA2_LOGGER_H
 #define GCTA2_LOGGER_H
-#if !defined(_DEBUG) && defined(_WIN32)
+#if !defined(_DEBUG) && !defined(NDEBUG)
 #define NDEBUG
 #endif
 #include <mutex>
