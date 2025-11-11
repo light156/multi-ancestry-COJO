@@ -144,7 +144,8 @@ These options and flags are functionally identical to those in the original GCTA
 | `--iter`           | Maximum number of iterations                                   | `10000`       |
 | `--thread-num`     | Number of thread to use (One thread is actually fast enough)   | `1`           |
 
-| Flag         | Description                                                       | 
+| Flag         | Description                                                       |
+| ------------ | ----------------------------------------------------------------- |
 | `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort |
 | `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit |
 | `--output-all`     | Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file    |
