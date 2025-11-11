@@ -63,10 +63,10 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     auto *fixedSNP_option = app.add_option("--fixed", params.fixedSNP_file, "File path of fixed candidate SNPs")->check(CLI::ExistingFile)->group(manc_group);
     auto *R2_option = app.add_option("--R2", params.R2_threshold, "R2 incremental threshold (-1 for no threshold)")->default_val(-1)->group(manc_group);
     auto *R2back_option = app.add_option("--R2back", params.R2back_threshold, "R2 threshold for backward selection (-1 for no threshold)")->default_val(-1)->group(manc_group);
-    app.add_flag("--freq-mode-and", params.if_freq_mode_and, "Use AND mode for frequency threshold across cohorts")->group(manc_group);
-    app.add_flag("--MDISA", params.if_MDISA, "Run single-ancestry analysis after multi-ancestry COJO")->group(manc_group);
     auto *iter_option = app.add_option("--iter", params.max_iter_num, "Total iteration number")->default_val(10000)->check(CLI::PositiveNumber)->group(manc_group);
     app.add_option("--thread-num", thread_num, "Number of threads to use")->default_val(1)->check(CLI::Range(1,10))->group(manc_group);
+    app.add_flag("--freq-mode-and", params.if_freq_mode_and, "Use AND mode for frequency threshold across cohorts")->group(manc_group);
+    app.add_flag("--MDISA", params.if_MDISA, "Run single-ancestry analysis after multi-ancestry COJO")->group(manc_group);
     app.add_flag("--output-all", params.if_output_all, "Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file")->group(manc_group);
 
     for (auto *opt : app.get_options())

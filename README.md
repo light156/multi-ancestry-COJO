@@ -102,14 +102,14 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 
 ### Input Data Format Options (exactly one required)
 
-| Name        | Description                                                        |
+| Option      | Description                                                        |
 | ----------- | ------------------------------------------------------------------ |
 | `--bfile`   | PLINK binary file prefix for each cohort [`.bim` `.bed` `.fam`]    |
 | `--ld`      | PLINK LD file prefix for each cohort [`.bim` `.ld` `(.frq)`]       |
 
 ### Analysis Mode (exactly one required)
 
-| Name            | Type     | Description                                                   |
+| Mode name          | Type     | Description                                                   |
 | --------------- | -------- | ------------------------------------------------------------- |
 | `--cojo-slct`   | *flag*   | Stepwise iterative selection of independently associated SNPs |
 | `--cojo-joint`  | *flag*   | Calculate joint effects for provided SNPs and exit<br> Must be used with `--extract`|
@@ -119,7 +119,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 
 These options and flags are functionally identical to those in the original GCTA. You can find more detailed definitions at [https://yanglab.westlake.edu.cn/software/gcta](https://yanglab.westlake.edu.cn/software/gcta).
 
-| Name               | Description                                                    | Default          |
+| Option         | Description                                                    | Default          |
 | ------------------ | -------------------------------------------------------------- | ---------------- |
 | `--cojo-file`      | GWAS summary statistics file for each cohort                   | `Required`       |
 | `--out`            | Output file path prefix                                        | `Required`       |
@@ -136,16 +136,18 @@ These options and flags are functionally identical to those in the original GCTA
 
 ### Multi-ancestry COJO Options/Flags
 
-| Name         | Description                                                       | Default             |
+| Option         | Description                                                       | Default             |
 | ------------ | ----------------------------------------------------------------- | ------------------- |
 | `--fixed`    | File path for fixed candidate SNPs (non-removable in selection)   |                     |
 | `--R2`       | R² threshold for forward selection                                | `-1` (none)         |
 | `--R2back`   | R² threshold for backward selection                               | `-1` (none)         |
-| `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort | *flag* |
-| `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit | *flag* |
 | `--iter`           | Maximum number of iterations                                   | `10000`       |
-| `--thread-num`     | Number of thread to use (One thread is actually fast enough)   | `1`           | 
-| `--output-all`     | Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file    |               |
+| `--thread-num`     | Number of thread to use (One thread is actually fast enough)   | `1`           |
+
+| Flag         | Description                                                       | 
+| `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort |
+| `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit |
+| `--output-all`     | Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file    |
 
 ### Algorithm Options
 
