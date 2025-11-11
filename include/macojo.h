@@ -9,8 +9,6 @@
 #include "omp_compat.hpp"
 #include "logger.hpp"
 #include "utils.hpp"
-#include <map>
-#include <iomanip>
 #include <chrono>
 
 using namespace Eigen;

@@ -204,10 +204,8 @@ After successful installation, you can compile the source code with GCC using th
 This project is released under the **MIT License** (see the `LICENSE` file for details).  
 
 It includes or depends on the following third-party open-source libraries:
-
-- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`external/Eigen`)
-
-- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`external/CLI11.hpp`)
+- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`include/Eigen`)
+- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`include/CLI11.hpp`)
 
 ---
 
