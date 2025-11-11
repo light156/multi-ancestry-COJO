@@ -44,7 +44,7 @@ The usage is largely consistent with the original GCTA COJO, but extended to han
   To filter out SNPs with large MAF differences, please provide `.frq` files as well.
 
 Nevertheless, there are some minor differences:
-1. The program does **not** output `.cma.cojo` by default, as they can be very large. If you need conditional results, use `--cojo-cond`. This behavior may change in future releases depending on user feedback.
+1. The program does **not** output `.cma.cojo` and `.ldr.cojo` by default, as they can be very large. If you need all possible outputs, use `--output-all`. This behavior may change in future releases depending on user feedback.
 2. In `--cojo-joint` mode, users are required to specify `--extract` to avoid accidentally including all SNPs.
 3. Three algorithms are available for both stepwise selection (`--slct-mode`) and effect size estimation (`--effect-size-mode`):
 `GCTA`, `imputeNA`, and `removeNA`. In both cases, the default option is `GCTA` (original GCTA model). 
@@ -129,10 +129,10 @@ These options and flags are functionally identical to those in the original GCTA
 | `--diff-freq`      | Frequency diff threshold between sumstat and PLINK (`0-1`)     | `0.2`            |
 | `--maf`            | Minor allele frequency threshold (`1e-5-0.5`)                  | `0.01`           |
 | `--geno`           | Missingness threshold (`0-1`)                                  | `1` (none)       |
-| `--keep`           | File path of individuals to be included                        |                  |
-| `--remove`         | File path of individuals to be excluded                        |                  |
 | `--extract`        | File path of SNPs to be included                               |                  |
 | `--exclude`        | File path of SNPs to be excluded                               |                  |
+| `--keep`           | File path of individuals to be included                        |                  |
+| `--remove`         | File path of individuals to be excluded                        |                  |
 
 ### Multi-ancestry COJO Options/Flags
 
@@ -145,6 +145,7 @@ These options and flags are functionally identical to those in the original GCTA
 | `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit | *flag* |
 | `--iter`           | Maximum number of iterations                                   | `10000`       |
 | `--thread-num`     | Number of thread to use (One thread is actually fast enough)   | `1`           | 
+| `--output-all`     | Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file    |               |
 
 ### Algorithm Options
 

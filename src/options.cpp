@@ -49,12 +49,12 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     app.add_option("--diff-freq", params.diff_freq, "Frequency difference threshold between sumstat and PLINK (0-1)")->default_val(0.2)->check(CLI::PositiveNumber)->group(cojo_group);
 
     string data_group = "Original GCTA Data Options";
-    auto *keep_option = app.add_option("--keep", params.keep_file_list, "File path of individuals to be included")->check(CLI::ExistingFile)->group(data_group);
-    auto *remove_option = app.add_option("--remove", params.remove_file_list, "File path of individuals to be excluded")->check(CLI::ExistingFile)->group(data_group);
-    auto *extract_option = app.add_option("--extract", params.extract_file, "File path of SNPs to be included")->check(CLI::ExistingFile)->group(data_group);
-    auto *exclude_option = app.add_option("--exclude", params.exclude_file, "File path of SNPs to be excluded")->check(CLI::ExistingFile)->group(data_group);
     app.add_option("--maf", params.maf, "Minor Allele Frequency threshold")->default_val(0.01)->check(CLI::Range(1e-5, 0.5))->group(data_group);
     app.add_option("--geno", params.missingness, "Missingness threshold in PLINK .bed files(-1 for no threshold)")->default_val(1.0)->check(CLI::Range(0.0, 1.0))->group(data_group);
+    auto *extract_option = app.add_option("--extract", params.extract_file, "File path of SNPs to be included")->check(CLI::ExistingFile)->group(data_group);
+    auto *exclude_option = app.add_option("--exclude", params.exclude_file, "File path of SNPs to be excluded")->check(CLI::ExistingFile)->group(data_group);
+    auto *keep_option = app.add_option("--keep", params.keep_file_list, "File path of individuals to be included")->check(CLI::ExistingFile)->group(data_group);
+    auto *remove_option = app.add_option("--remove", params.remove_file_list, "File path of individuals to be excluded")->check(CLI::ExistingFile)->group(data_group);
     
     joint_flag->needs(extract_option);
     

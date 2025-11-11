@@ -139,7 +139,7 @@ bool Cohort::calc_R_inv_from_SNP_list(vector<int> &SNP_list, string mode)
         
         int delete_index;
 
-        if (R_inv_post.cwiseAbs().diagonal().maxCoeff(&delete_index) > params.iter_collinear_threshold) {
+        if (R_inv_post.cwiseAbs().diagonal().maxCoeff(&delete_index) > params.iter_collinear_threshold + 1e-8) {
             LOGGER.w(0, "Removing SNP " + shared.SNP_ref[SNP_list[delete_index]] + " due to collinearity when calculating R inverse");
             SNP_list.erase(SNP_list.begin() + delete_index);
             success_flag = false;
