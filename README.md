@@ -108,13 +108,19 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 | `--bfile`   | PLINK binary file prefix for each cohort [`.bim` `.bed` `.fam`]    |
 | `--ld`      | PLINK LD file prefix for each cohort [`.bim` `.ld` `(.frq)`]       |
 
-### Analysis Mode (exactly one required)
+### Main Settings 
 
-| Mode name          | Type     | Description                                                   |
+| Program mode    | Type     | Description (exactly one of these three is required)          |
 | --------------- | -------- | ------------------------------------------------------------- |
 | `--cojo-slct`   | *flag*   | Stepwise iterative selection of independently associated SNPs |
 | `--cojo-joint`  | *flag*   | Calculate joint effects for provided SNPs and exit<br> Must be used with `--extract`|
 | `--cojo-cond`   | *option* | Calculate conditional effects for provided SNPs and exit<br> Must provide a file with a list of SNPs |
+
+
+| Algorithm option | Allowed Values | Default | Description |
+| ------- | --------------- | -------- | ------------ |
+| `--slct-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Iterative SNP selection method |
+| `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
 
 ### Original GCTA Options
 
@@ -150,13 +156,6 @@ These options and flags are functionally identical to those in the original GCTA
 | `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort |
 | `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit |
 | `--output-all`     | Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file    |
-
-### Algorithm Options
-
-| Option | Allowed Values | Default | Description |
-| ------- | --------------- | -------- | ------------ |
-| `--slct-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Iterative SNP selection method |
-| `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
 
 ---
 
