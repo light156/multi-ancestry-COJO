@@ -159,16 +159,6 @@ These options and flags are functionally identical to those in the original GCTA
 | `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
 
 ---
-## Third-party Libraries
-This project includes or depends on several third-party open-source libraries:
-
-- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`external/Eigen`)
-
-- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`external/CLI11.hpp`)
-
-- **[GCTA Logger](https://github.com/jianyangqt/gcta/blob/master/include/Logger.h)** – Modified for logging  (`external/LOGGER.h`, `external/LOGGER.cpp`)
-
----
 
 ## Building from Source
 
@@ -185,9 +175,8 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 cd multi-ancestry-COJO
 
 g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
-    -I external/Eigen -I external -I data -I include \
-    external/Logger.cpp data/Geno.cpp src/*.cpp \
-    -o manc_cojo
+    -I data -I include -I include/Eigen \
+    data/Geno.cpp src/*.cpp -o manc_cojo
 ```
 
 ### macOS
@@ -199,9 +188,8 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 cd multi-ancestry-COJO
 
 clang++ -std=c++11 -O3 -march=native -DNDEBUG \
-    -I external/Eigen -I external -I data -I include \
-    external/Logger.cpp data/Geno.cpp src/*.cpp \
-    -o manc_cojo
+    -I data -I include -I include/Eigen \
+    data/Geno.cpp src/*.cpp -o manc_cojo
 ```
 
 ### Windows
@@ -212,4 +200,16 @@ After successful installation, you can compile the source code with GCC using th
 > Precompiled binaries for Linux, macOS, and Windows are all available in our GitHub repository.
 
 ---
+## License and Acknowledgments
+
+This project is released under the **MIT License** (see the `LICENSE` file for details).  
+
+It includes or depends on the following third-party open-source libraries:
+
+- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`external/Eigen`)
+
+- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`external/CLI11.hpp`)
+
+---
+
 Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries and bug reports, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions. We also welcome GitHub issues so that discussions are visible to all users.

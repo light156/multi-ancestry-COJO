@@ -140,7 +140,7 @@ bool Cohort::calc_R_inv_from_SNP_list(vector<int> &SNP_list, string mode)
         int delete_index;
 
         if (R_inv_post.cwiseAbs().diagonal().maxCoeff(&delete_index) > params.iter_collinear_threshold + 1e-8) {
-            LOGGER.w(0, "Removing SNP " + shared.SNP_ref[SNP_list[delete_index]] + " due to collinearity when calculating R inverse");
+            LOGGER.w("removed due to collinearity when calculating R inverse", shared.SNP_ref[SNP_list[delete_index]]);
             SNP_list.erase(SNP_list.begin() + delete_index);
             success_flag = false;
             continue;
@@ -148,7 +148,7 @@ bool Cohort::calc_R_inv_from_SNP_list(vector<int> &SNP_list, string mode)
 
         if (!calc_joint_effects(SNP_list, mode)) {
             beta_var.minCoeff(&delete_index);
-            LOGGER.w(0, "Removing SNP " + shared.SNP_ref[SNP_list[delete_index]] + " due to invalid joint se when calculating R inverse");
+            LOGGER.w("removed due to invalid joint se when calculating R inverse", shared.SNP_ref[SNP_list[delete_index]]);
             SNP_list.erase(SNP_list.begin() + delete_index);
             success_flag = false;
             continue;
@@ -276,7 +276,7 @@ void MACOJO::slct_loop()
             current_SNP_name = shared.SNP_ref[min_pC_index];
 
             if (min_pC > params.p) {
-                LOGGER.w(0, "Calculation finished, No more SNPs above p-threshold");
+                LOGGER.w("Calculation finished, No more SNPs above p-threshold");
                 LOGGER << current_SNP_name << " " << scientific << min_pC << fixed << endl;
                 loop_break_indicator = true;
                 break;
@@ -288,13 +288,13 @@ void MACOJO::slct_loop()
             // calculate R_inv and joint effects for all cohorts
             for (int n : current_list) {
                 if (!cohorts[n].calc_R_inv_forward(min_pC_index)) {
-                    // LOGGER.w(1, "skipped, colinearity exceeds threshold in Cohort " + to_string(n+1), current_SNP_name);
+                    // LOGGER.w("skipped, colinearity exceeds threshold in Cohort " + to_string(n+1), current_SNP_name);
                     success_flag = false;
                     break;
                 }
 
                 if (!cohorts[n].calc_joint_effects(candidate_SNP, params.slct_mode)) {
-                    LOGGER.w(1, "skipped, joint se too small in Cohort " + to_string(n+1), current_SNP_name);
+                    LOGGER.w("skipped, joint se too small in Cohort " + to_string(n+1), current_SNP_name);
                     success_flag = false;
                     break;
                 }
@@ -313,7 +313,7 @@ void MACOJO::slct_loop()
             if (params.slct_mode != "GCTA") {
                 for (int n : current_list) {
                     if (cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.w(1, "skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
+                        LOGGER.w("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
                         success_flag = false;
                     }
                 }
@@ -336,7 +336,7 @@ void MACOJO::slct_loop()
 
             // directly accept this SNP and next iteration
             if (max_pJ <= params.p) {
-                LOGGER.i(0, "New candidate SNP accepted", current_SNP_name);
+                LOGGER.i("New candidate SNP accepted", current_SNP_name);
                 screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
 
                 for (int n : current_list) {
@@ -348,7 +348,7 @@ void MACOJO::slct_loop()
             
             // trivial case for removing current SNP
             if (max_pJ_index < fixed_candidate_SNP_num || max_pJ_index == abs_zJ.rows()-1) {
-                LOGGER.i(0, "removed, because pJ exceeds p-value threshold", current_SNP_name);
+                LOGGER.i("removed, because pJ exceeds p-value threshold", current_SNP_name);
                 screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
                 backward_SNP.push_back(min_pC_index);
 
@@ -358,7 +358,7 @@ void MACOJO::slct_loop()
             } 
 
             // backward selection must happen now, save current model as backup, then accept the new candidate SNP
-            LOGGER.i(0, "New candidate SNP added, start backward selection", current_SNP_name);
+            LOGGER.i("New candidate SNP added, start backward selection", current_SNP_name);
 
             candidate_SNP_backup = candidate_SNP;
             backward_SNP_backup = backward_SNP;
@@ -371,14 +371,14 @@ void MACOJO::slct_loop()
 
             // backward selection
             while (true) {
-                LOGGER.i(0, "Candidate SNP removed", shared.SNP_ref[candidate_SNP[max_pJ_index]]);
+                LOGGER.i("Candidate SNP removed", shared.SNP_ref[candidate_SNP[max_pJ_index]]);
 
                 backward_SNP.push_back(candidate_SNP[max_pJ_index]);
                 candidate_SNP.erase(candidate_SNP.begin() + max_pJ_index);
 
                 // don't think this can happen, but just in case
                 if (candidate_SNP.size() == 0) {
-                    LOGGER.i(0, "Backward selection failed, no candidate SNPs left");
+                    LOGGER.i("Backward selection failed, no candidate SNPs left");
                     backward_success_flag = false;
                     break;
                 }
@@ -393,7 +393,7 @@ void MACOJO::slct_loop()
 
                     if (!cohorts[n].calc_joint_effects(candidate_SNP, params.slct_mode)) {
                         // don't think this can happen, but just in case
-                        LOGGER.i(0, "Backward selection failed, joint se too small after removing " + current_SNP_name);
+                        LOGGER.i("Backward selection failed, joint se too small after removing " + current_SNP_name);
                         backward_success_flag = false;
                         break;
                     }
@@ -410,7 +410,7 @@ void MACOJO::slct_loop()
 
                 if (max_pJ <= params.p) break;
                 if (max_pJ_index < fixed_candidate_SNP_num) {
-                    LOGGER.i(0, "Backward selection failed, fixed candidate SNP exceeds p-value threshold");
+                    LOGGER.i("Backward selection failed, fixed candidate SNP exceeds p-value threshold");
                     backward_success_flag = false;
                     break;
                 }
@@ -420,7 +420,7 @@ void MACOJO::slct_loop()
             if (backward_success_flag && params.slct_mode != "GCTA") {
                 for (int n : current_list) {
                     if (cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.w(1, "Backward selection failed, adjusted R2 lower than backward threshold", current_SNP_name);
+                        LOGGER.w("Backward selection failed, adjusted R2 lower than backward threshold", current_SNP_name);
                         backward_success_flag = false;
                     }
                 }
@@ -428,7 +428,7 @@ void MACOJO::slct_loop()
 
             // restore the last successful model before the newest candidate SNP is added
             if (!backward_success_flag) {
-                LOGGER.i(0, "Restore to the last successful model before adding " + current_SNP_name);
+                LOGGER.i("Restore to the last successful model before adding " + current_SNP_name);
                 candidate_SNP = candidate_SNP_backup;
                 backward_SNP = backward_SNP_backup;
 
@@ -442,7 +442,7 @@ void MACOJO::slct_loop()
 
             // successful backward selection, remove index from screened_SNP and proceed to next iteration
             screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
-            LOGGER.i(0, "Backward selection successful!");
+            LOGGER.i("Backward selection successful!");
             break;
         }
 

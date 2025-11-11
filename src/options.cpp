@@ -105,11 +105,11 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     try { 
         app.parse(argc, argv); 
     } catch (const CLI::CallForHelp &e) {
-        LOGGER << app.help() << endl;
+        LOGGER.i(app.help());
         return -1;
     } catch (const CLI::ParseError &e) {
-        LOGGER << app.help() << endl;
-        LOGGER.e(0, e.what());
+        LOGGER.i(app.help());
+        LOGGER.e(e.what());
     }
 
     params.if_joint_mode = joint_flag->count() > 0;
@@ -148,7 +148,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
         omp_set_num_threads(thread_num);
     #else
         if (thread_num > 1)
-            LOGGER.w(0, "OpenMP is not available, running in single-threaded mode");
+            LOGGER.w("OpenMP is not available, running in single-threaded mode");
     #endif
 
     return 0;

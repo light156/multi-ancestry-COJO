@@ -20,7 +20,7 @@ struct HyperParams {
     double iter_collinear_threshold; // 1 / (1 - collinear)
     int window_size; // in bp, window_kb*1e3
 
-    string slct_mode, effect_size_mode; // "GCTA", "removeNA", "imputeNA"
+    std::string slct_mode, effect_size_mode; // "GCTA", "removeNA", "imputeNA"
 
     bool if_joint_mode = false;
     bool if_cond_mode = false;
@@ -30,7 +30,7 @@ struct HyperParams {
 
     // filepaths
     std::vector<std::string> bfile_list, cojo_file_list, keep_file_list, remove_file_list;
-    string output_name, extract_file, exclude_file, fixedSNP_file, cond_file;
+    std::string output_name, extract_file, exclude_file, fixedSNP_file, cond_file;
 };
 
 

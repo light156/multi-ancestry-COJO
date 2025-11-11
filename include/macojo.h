@@ -1,18 +1,17 @@
 #pragma once
 
+#include <Eigen/Dense>
 #include "CLI11.hpp"
-#include "Logger.h"
+
 #include "Geno.h"
 #include "LD.hpp"
-#include "utils.hpp"
 #include "config.h"
-#include "omp_compat.h"
+#include "omp_compat.hpp"
+#include "logger.hpp"
+#include "utils.hpp"
 #include <map>
-#include <vector>
-#include <fstream>
-#include <Eigen/Dense>
 #include <iomanip>
-#include <cmath>
+#include <chrono>
 
 using namespace Eigen;
 using namespace std;

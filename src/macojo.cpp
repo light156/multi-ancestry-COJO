@@ -9,7 +9,7 @@ void MACOJO::initialize_candidate_SNP(string filename)
     for (const auto& SNP_name : temp) {
         auto iter = shared.goodSNP_index_map.find(SNP_name);
         if (iter == shared.goodSNP_index_map.end()){
-            LOGGER.w(0, "not found in + [ " + filename + " ] and will be ignored", SNP_name);
+            LOGGER.w("not found in + [ " + filename + " ] and will be ignored", SNP_name);
             continue;
         }
         candidate_SNP.push_back(iter->second);
@@ -17,13 +17,13 @@ void MACOJO::initialize_candidate_SNP(string filename)
     }
 
     if (candidate_SNP.size() == 0)
-        LOGGER.e(0, "None of the provided SNPs exist in data");
+        LOGGER.e("None of the provided SNPs exist in data");
 }
 
 
 void MACOJO::entry_function()
 {   
-    LOGGER.i(0, "Calculation started!");
+    LOGGER.i("Calculation started!");
 
     for (size_t n = 0; n < cohorts.size(); n++)
         current_list.push_back(n);
@@ -31,23 +31,23 @@ void MACOJO::entry_function()
     if (params.if_joint_mode) {
         candidate_SNP = screened_SNP; // screened SNP cannot be empty here, checked during reading files
         output_jma(params.output_name);
-        LOGGER.i(0, "Calculation finished for joint analysis, program exit!");
+        LOGGER.i("Calculation finished for joint analysis, program exit!");
         return;
     }  
 
     if (params.if_cond_mode) {
         initialize_candidate_SNP(params.cond_file);
-        LOGGER.i(0, "effective conditional SNPs provided by the user", to_string(candidate_SNP.size()));
+        LOGGER.i("effective conditional SNPs provided by the user", to_string(candidate_SNP.size()));
 
         output_cma(params.output_name);
-        LOGGER.i(0, "Calculation finished for conditional analysis, program exit!");
+        LOGGER.i("Calculation finished for conditional analysis, program exit!");
         return;
     }
     
     // COJO stepwise iterative selection, first deal with fixed candidate SNPs if provided
     if (!params.fixedSNP_file.empty()) {
         initialize_candidate_SNP(params.fixedSNP_file);
-        LOGGER.i(0, "effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
+        LOGGER.i("effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
 
         bool success_flag = true;
 
@@ -59,13 +59,13 @@ void MACOJO::entry_function()
             c.save_temp_model();
 
             if (candidate_SNP.size() == 0) {
-                LOGGER.i(0, "No valid fixed candidate SNPs after checking collinearity, program exit!");
+                LOGGER.i("No valid fixed candidate SNPs after checking collinearity, program exit!");
                 return;
             }
         }
 
         if (!success_flag) {
-            LOGGER.i(0, "Proceeding to stepwise selection with remaining fixed candidate SNPs");
+            LOGGER.i("Proceeding to stepwise selection with remaining fixed candidate SNPs");
             params.output_name += ".warning";
         }
     }
@@ -100,14 +100,14 @@ void MACOJO::entry_function()
         }
     }
 
-    LOGGER.i(0, "All calculations finished!");
+    LOGGER.i("All calculations finished!");
 }
 
 
 void MACOJO::output_cma(string savename) 
 {   
     if (screened_SNP.size() == 0) {
-        LOGGER.i(0, "No screened SNPs, conditional analysis output file will not be generated");
+        LOGGER.i("No screened SNPs, conditional analysis output file will not be generated");
         return;
     }
 
@@ -127,13 +127,13 @@ void MACOJO::output_cma(string savename)
             c.save_temp_model();
 
             if (candidate_SNP.size() == 0) {
-                LOGGER.i(0, "No valid candidate SNPs after checking collinearity, conditional analysis output file will not be generated");
+                LOGGER.i("No valid candidate SNPs after checking collinearity, conditional analysis output file will not be generated");
                 return;
             }
         }
 
         if (!success_flag) {
-            LOGGER.i(0, "Some candidate SNPs were removed, please be aware of this");
+            LOGGER.i("Some candidate SNPs were removed, please be aware of this");
             savename += ".warning";
         }
     }
@@ -155,7 +155,7 @@ void MACOJO::output_cma(string savename)
 void MACOJO::output_jma(string savename) 
 {   
     if (candidate_SNP.size() == 0) {
-        LOGGER.i(0, "No candidate SNPs, joint analysis output file will not be generated");
+        LOGGER.i("No candidate SNPs, joint analysis output file will not be generated");
         return;
     }
 
@@ -169,13 +169,13 @@ void MACOJO::output_jma(string savename)
         c.save_temp_model();
 
         if (candidate_SNP.size() == 0) {
-            LOGGER.i(0, "No valid candidate SNPs after checking collinearity, joint analysis output file will not be generated");
+            LOGGER.i("No valid candidate SNPs after checking collinearity, joint analysis output file will not be generated");
             return;
         }
     }
 
     if (!success_flag) {
-        LOGGER.i(0, "Some candidate SNPs were removed, please be aware of this");
+        LOGGER.i("Some candidate SNPs were removed, please be aware of this");
         savename += ".warning";
     }
 
@@ -205,7 +205,7 @@ void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, 
                                 const ArrayXd& bma, const ArrayXd& se2ma, const ArrayXd& abs_zma) 
 {
     ofstream maCOJO(savename.c_str());
-    if (!maCOJO) LOGGER.e(0, "cannot open the file [" + savename + "] to write");
+    if (!maCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
 
     maCOJO.precision(12);
     maCOJO << "Chr\tSNP\tbp\tA1\tA2";
@@ -271,14 +271,14 @@ void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, 
     }
 
     maCOJO.close();
-    LOGGER.i(0, "Results saved into [" + savename + "]");
+    LOGGER.i("Results saved into [" + savename + "]");
 }
 
 
 void MACOJO::output_ld_matrix(string savename, const vector<int>& ordered_candidate, const Cohort& c) 
 {   
     ofstream ldrCOJO(savename);
-    if (!ldrCOJO) LOGGER.e(0, "cannot open the file [" + savename + "] to write");
+    if (!ldrCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
 
     ldrCOJO.precision(12);
     ldrCOJO << "SNP";
@@ -300,5 +300,5 @@ void MACOJO::output_ld_matrix(string savename, const vector<int>& ordered_candid
     }
 
     ldrCOJO.close();
-    LOGGER.i(0, "Results saved into [" + savename + "]");
+    LOGGER.i("Results saved into [" + savename + "]");
 }
