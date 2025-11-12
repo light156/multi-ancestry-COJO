@@ -40,8 +40,8 @@ Specifically,
 1. We extend `--bfile` `--cojo-file` `--keep` `--remove` to multiple cohorts. 
   Please ensure that paths are correctly paired across cohorts.
 2. We support PLINK LD matrix inputs through the option `--ld` (as an alternative to ``--bfile``).
-- For using genotype data `--bfile`, please provide [.bim .bed .fam] files.
-- For using LD matrix `--ld`, please provide [.bim .ld] files. To filter out SNPs with large MAF differences, please provide .frq files as well.
+- For using genotype data `--bfile`, please provide `.bim .bed .fam` files.
+- For using LD matrix `--ld`, please provide `.bim .ld` files. To filter out SNPs with large MAF differences, please provide `.frq` files as well.
 
 Nevertheless, there are some minor differences:
 1. The program does **not** output `.cma.cojo` and `.ldr.cojo` by default, as they can be very large. If you need all possible outputs, use `--output-all`. This behavior may change in future releases depending on user feedback.
@@ -88,8 +88,8 @@ For multiple cohorts, if you want to remove genotype NAs when calculating SNP co
 
 | Option      | Description                                                        |
 | ----------- | ------------------------------------------------------------------ |
-| `--bfile`   | PLINK binary file prefix for each cohort [.bim .bed .fam]    |
-| `--ld`      | PLINK LD file prefix for each cohort [.bim .ld (.frq)]       |
+| `--bfile`   | PLINK binary file prefix for each cohort `.bim .bed .fam`    |
+| `--ld`      | PLINK LD file prefix for each cohort `.bim .ld (.frq)`       |
 
 ### Algorithm options
 
