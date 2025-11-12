@@ -103,8 +103,7 @@ public:
     void entry_function();
     void output_cma(string savename);
     void output_jma(string savename);
-    void output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair, 
-        const ArrayXd& bma, const ArrayXd& se2ma, const ArrayXd& abs_zma);
+    void output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair);
     void output_ld_matrix(string savename, const vector<int>& ordered_candidate, const Cohort& c);
 
 private:

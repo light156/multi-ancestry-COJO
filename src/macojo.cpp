@@ -202,14 +202,12 @@ void MACOJO::output_cma(string savename)
     // since r and R_inv_pre are ready, calculate conditional effects
     for (int n : current_list) 
         cohorts[n].calc_cond_effects(candidate_SNP, params.effect_size_mode);
-
-    inverse_var_meta(bC, se2C, abs_zC);
     
     map<int, int> SNP_ref_order_pair;
     for (int index : screened_SNP)
         SNP_ref_order_pair.insert(make_pair(shared.SNP_pos_ref[index], index));
 
-    output_inverse_var_meta(savename + ".cma.cojo", 'C', SNP_ref_order_pair, bC, se2C, abs_zC);
+    output_inverse_var_meta(savename + ".cma.cojo", 'C', SNP_ref_order_pair);
 }
 
 
@@ -230,13 +228,11 @@ void MACOJO::output_jma(string savename)
     for (int n : current_list) 
         cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
 
-    inverse_var_meta(bJ, se2J, abs_zJ);
-
     map<int, int> SNP_ref_order_pair;
     for (int num = 0; num < candidate_SNP.size(); num++)
         SNP_ref_order_pair.insert(make_pair(shared.SNP_pos_ref[candidate_SNP[num]], num));
 
-    output_inverse_var_meta(savename + ".jma.cojo", 'J', SNP_ref_order_pair, bJ, se2J, abs_zJ);
+    output_inverse_var_meta(savename + ".jma.cojo", 'J', SNP_ref_order_pair);
 
     if (params.if_output_all)  {
         vector<int> ordered_candidate;
@@ -253,11 +249,12 @@ void MACOJO::output_jma(string savename)
 }
 
 
-void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair, 
-                                const ArrayXd& bma, const ArrayXd& se2ma, const ArrayXd& abs_zma) 
+void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair) 
 {
     ofstream maCOJO(savename.c_str());
     if (!maCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
+
+    ArrayXd bma, se2ma, abs_zma;
 
     maCOJO.precision(12);
     maCOJO << "Chr\tSNP\tbp\tA1\tA2";
@@ -286,6 +283,8 @@ void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, 
         maCOJO << "\tb" << mode <<".ma"  
                 << "\tb" << mode << "_se.ma" 
                 << "\tp" << mode << ".ma";
+
+        inverse_var_meta(bma, se2ma, abs_zma);
     }
 
     maCOJO << "\n";
