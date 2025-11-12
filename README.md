@@ -55,48 +55,34 @@ Nevertheless, there are some minor differences:
 For example, to reproduce the **same results** as the original GCTA-COJO for a single cohort, simply replace the path to the GCTA executable with ours:
 
 ```bash
-./manc_cojo
---bfile LD_ref_path \
---cojo-file GWAS_sumstat_path \
---out Output_directory_and_name \
---cojo-slct
+./manc_cojo --bfile LD_ref_path --cojo-file GWAS_sumstat_path --out Output_directory_and_name --cojo-slct
 ```
 
 If you prefer to use PLINK LD matrix inputs, replace `--bfile` with `--ld`:
 
 ```bash
-./manc_cojo
---ld LD_ref_path \
---cojo-file GWAS_sumstat_path \
---out Output_directory_and_name \
---cojo-slct
+./manc_cojo --ld LD_ref_path --cojo-file GWAS_sumstat_path --out Output_directory_and_name --cojo-slct
+```
+
+For calculating joint effects of given SNPs on a single cohort using original GCTA-COJO model (`--cojo-collinear 0.99` and `--diff-freq 1` for including all given SNPs):
+
+```bash
+./manc_cojo --bfile myfolder/LD_ref --cojo-file myfolder/sumstat --out output_path/output_filename \
+--cojo-collinear 0.99 --diff-freq 1 \
+--extract given_SNP_path \
+--cojo-joint
 ```
 
 For multiple cohorts, if you want to remove genotype NAs when calculating SNP correlations, use:
 
 ```bash
-./manc_cojo
+./manc_cojo \
 --bfile LD_ref_path1 LD_ref_path2 ... LD_ref_pathN \
 --cojo-file GWAS_sumstat_path1 GWAS_sumstat_path2 ... GWAS_sumstat_pathN \
 --out Output_directory_and_name \
 --cojo-slct \
 --slct-mode removeNA
 ```
-
-For calculating joint effects of given SNPs on a single cohort using original GCTA-COJO model:
-
-```bash
-./manc_cojo \
---bfile myfolder/LD_ref
---cojofile myfolder/sumstat \
---out output_path/output_filename \
---diff-freq 1 \
---cojo-collinear 0.99 \
---extract given_SNP_path \
---cojo-joint
-```
-
-(`--cojo-collinear 0.99` and `--diff-freq 1` for including all given SNPs)
 
 ---
 ## Supported Command-line Options
