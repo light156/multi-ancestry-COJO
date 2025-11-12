@@ -21,6 +21,92 @@ void MACOJO::initialize_candidate_SNP(string filename)
 }
 
 
+int Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, string mode) 
+{   
+    if (SNP_list.size() == 0) return -1;
+
+    int total_num = SNP_list.size();
+    R_post = MatrixXd::Identity(total_num, total_num);
+
+    for (int i = 0; i < total_num; i++) {
+        for (int j = 0; j < i; j++) {
+            if (shared.chr_ref[SNP_list[i]] == shared.chr_ref[SNP_list[j]] &&
+                abs(shared.SNP_pos_ref[SNP_list[i]] - shared.SNP_pos_ref[SNP_list[j]]) < params.window_size) {
+                
+                if (params.if_LD_mode)
+                    R_post(i, j) = LD_matrix(SNP_list[i], SNP_list[j]);
+                else
+                    R_post(i, j) = genotype.calc_inner_product(SNP_list[i], SNP_list[j], mode == "removeNA");
+
+                R_post(j, i) = R_post(i, j);
+            }
+        }
+    }
+    
+    R_inv_post = R_post.ldlt().solve(MatrixXd::Identity(total_num, total_num));
+
+    if (mode == "GCTA") {
+        MatrixXd R_post_gcta = MatrixXd::Zero(total_num, total_num);
+
+        for (int i = 0; i < total_num; i++) {
+            R_post_gcta(i, i) = sumstat(SNP_list[i], 6);
+
+            for (int j = 0; j < i; j++) {
+                R_post_gcta(i, j) = R_post(i, j) * min(sumstat(SNP_list[i], 4), sumstat(SNP_list[j], 4)) * \
+                    sqrt(sumstat(SNP_list[i], 5) * sumstat(SNP_list[j], 5));
+                R_post_gcta(j, i) = R_post_gcta(i, j);
+            }
+        }
+
+        R_inv_post_gcta = R_post_gcta.ldlt().solve(MatrixXd::Identity(total_num, total_num));
+    }
+    
+    int delete_index;
+
+    if (R_inv_post.cwiseAbs().diagonal().maxCoeff(&delete_index) > params.iter_collinear_threshold) {
+        LOGGER.w("removed due to collinearity when calculating R inverse", shared.SNP_ref[SNP_list[delete_index]]);
+        return delete_index;
+    }
+
+    if (!calc_joint_effects(SNP_list, mode)) {
+        beta_var.minCoeff(&delete_index);
+        LOGGER.w("removed due to invalid joint se when calculating R inverse", shared.SNP_ref[SNP_list[delete_index]]);
+        return delete_index;
+    }
+
+    R_inv_pre = R_inv_post;
+    R_inv_pre_gcta = R_inv_post_gcta;
+    return -1;
+}
+
+
+// it is called check, but it will calculate R and R_inv from scratch and remove collinear SNPs
+bool MACOJO::check_candidate_SNP_collinearity(string mode)
+{
+    bool success_flag = true;
+
+    // get R_inv from scratch
+    while (true) {
+        int i;
+        for (i = 0; i < current_list.size(); i++) {
+            int delete_index = cohorts[current_list[i]].calc_R_inv_from_SNP_list(candidate_SNP, mode);
+            if (delete_index == -1) continue;
+
+            LOGGER.w("removed due to collinearity", shared.SNP_ref[candidate_SNP[delete_index]]);
+            candidate_SNP.erase(candidate_SNP.begin() + delete_index);
+            success_flag = false;
+            break;
+        }
+        if (i == current_list.size()) break;
+    }
+
+    if (candidate_SNP.size() == 0) 
+        LOGGER.e("No valid candidate SNPs after checking collinearity, program exit!");
+
+    return success_flag;
+}
+
+
 void MACOJO::entry_function()
 {   
     LOGGER.i("Calculation started!");
@@ -49,24 +135,12 @@ void MACOJO::entry_function()
         initialize_candidate_SNP(params.fixedSNP_file);
         LOGGER.i("effective fixed candidate SNPs provided by the user", to_string(fixed_candidate_SNP_num));
 
-        bool success_flag = true;
+        bool success_flag = check_candidate_SNP_collinearity(params.slct_mode);
+        if (!success_flag) params.output_name += ".warning";
 
         for (auto &c : cohorts) {
             for (int index : candidate_SNP)
                 c.append_r(screened_SNP, index, params.slct_mode);
-
-            success_flag &= c.calc_R_inv_from_SNP_list(candidate_SNP, params.slct_mode);
-            c.save_temp_model();
-
-            if (candidate_SNP.size() == 0) {
-                LOGGER.i("No valid fixed candidate SNPs after checking collinearity, program exit!");
-                return;
-            }
-        }
-
-        if (!success_flag) {
-            LOGGER.i("Proceeding to stepwise selection with remaining fixed candidate SNPs");
-            params.output_name += ".warning";
         }
     }
 
@@ -111,31 +185,17 @@ void MACOJO::output_cma(string savename)
         return;
     }
 
-    bool reuse_existing_results = (!params.if_cond_mode && params.slct_mode == params.effect_size_mode) ||
-        (!params.if_cond_mode && params.slct_mode == "GCTA" && params.effect_size_mode == "imputeNA");
-
     // calculate from scratch              
-    if (!reuse_existing_results) {
-        bool success_flag = true;
-        
+    if (params.if_cond_mode || params.slct_mode != params.effect_size_mode) {
+        bool success_flag = check_candidate_SNP_collinearity(params.effect_size_mode);
+        if (!success_flag) savename += ".warning";
+
+        // get r and r_gcta
         for (int n : current_list) {
-            // get r and r_gcta
+            cohorts[n].r.resize(0, 0);
+            cohorts[n].r_gcta.resize(0, 0);
             for (int index : candidate_SNP)
                 cohorts[n].append_r(screened_SNP, index, params.effect_size_mode);
-            
-            // get R_inv_pre and R_inv_pre_gcta from R_inv_post and R_inv_post_gcta
-            success_flag &= cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
-            cohorts[n].save_temp_model();
-
-            if (candidate_SNP.size() == 0) {
-                LOGGER.i("No valid candidate SNPs after checking collinearity, conditional analysis output file will not be generated");
-                return;
-            }
-        }
-
-        if (!success_flag) {
-            LOGGER.i("Some candidate SNPs were removed, please be aware of this");
-            savename += ".warning";
         }
     }
 
@@ -160,33 +220,15 @@ void MACOJO::output_jma(string savename)
         return;
     }
 
-    bool reuse_existing_results = (!params.if_joint_mode && params.slct_mode == params.effect_size_mode);
-
     // calculate from scratch              
-    if (!reuse_existing_results) {
-        bool success_flag = true;
+    if (params.if_joint_mode || params.slct_mode != params.effect_size_mode) {
+        bool success_flag = check_candidate_SNP_collinearity(params.effect_size_mode);
+        if (!success_flag) savename += ".warning";
+    } 
 
-        for (int n : current_list) {
-            success_flag &= cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
-            cohorts[n].save_temp_model();
-
-            if (candidate_SNP.size() == 0) {
-                LOGGER.i("No valid candidate SNPs after checking collinearity, joint analysis output file will not be generated");
-                return;
-            }
-        }
-    
-        if (!success_flag) {
-            LOGGER.i("Some candidate SNPs were removed, please be aware of this");
-            savename += ".warning";
-        }
-    } else {
-        for (int n : current_list) {
-            cohorts[n].R_inv_post = cohorts[n].R_inv_pre;
-            cohorts[n].R_inv_post_gcta = cohorts[n].R_inv_pre_gcta;
-            cohorts[n].calc_joint_effects(candidate_SNP, params.slct_mode);
-        }
-    }
+    // we may need output R, so a duplicate calculation simplifies the code structure here
+    for (int n : current_list) 
+        cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
 
     inverse_var_meta(bJ, se2J, abs_zJ);
 
@@ -203,9 +245,10 @@ void MACOJO::output_jma(string savename)
 
         if (current_list.size() == 1)
             output_ld_matrix(savename + ".ldr.cojo", ordered_candidate, cohorts[current_list[0]]);
-        else
+        else {
             for (int n : current_list)
                 output_ld_matrix(savename + ".cohort" + to_string(n+1) + ".ldr.cojo", ordered_candidate, cohorts[n]);
+        }
     }   
 }
 

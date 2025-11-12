@@ -2,6 +2,7 @@
 
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <ios>
 #include <iostream>
 #include <iomanip>
@@ -43,7 +44,8 @@ public:
     void e(const string& message, const string& title = "") {
         string head = title.empty() ? "Error: " : (title+" ");
         *this << ERROR << head << INFO << message << endl;
-        throw std::runtime_error("An error occurs, please check the options or data");
+        *this << "An error occurs, please check the options or data" << endl;
+        exit(EXIT_FAILURE);
     }
 
     void i(const string& message, const string& title = "") {
@@ -109,3 +111,43 @@ private:
     bool use_color;
     std::ofstream logFile;
 };
+
+
+inline int getMemPeakKB() {
+    std::ifstream file("/proc/self/status");
+    if (!file.is_open()) return -1;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.rfind("VmHWM:", 0) == 0) { // starts with "VmHWM:"
+            auto pos = line.find_first_of("0123456789");
+            if (pos == std::string::npos) return -1;
+
+            std::istringstream iss(line.substr(pos));
+            int value = 0;
+            iss >> value;
+            return value;
+        }
+    }
+    return -1;
+}
+
+
+inline int getVMPeakKB() {
+    std::ifstream file("/proc/self/status");
+    if (!file.is_open()) return -1;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.rfind("VmPeak:", 0) == 0) { // starts with "VmPeak:"
+            auto pos = line.find_first_of("0123456789");
+            if (pos == std::string::npos) return -1;
+
+            std::istringstream iss(line.substr(pos));
+            int value = 0;
+            iss >> value;
+            return value;
+        }
+    }
+    return -1;
+}

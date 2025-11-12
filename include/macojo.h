@@ -34,7 +34,7 @@ public:
     void append_r(const vector<int>& SNP_list, int append_index, string mode);
     void calc_cond_effects(const vector<int>& candidate_SNP, string mode);
     bool calc_joint_effects(const vector<int>& candidate_SNP, string mode);
-    bool calc_R_inv_from_SNP_list(vector<int>& SNP_list, string mode);
+    int calc_R_inv_from_SNP_list(const vector<int> &SNP_list, string mode); 
 
 // necessary information during calculation
 public:
@@ -98,6 +98,7 @@ public:
     void initialize_candidate_SNP(string filename);
     void slct_loop();
     void inverse_var_meta(ArrayXd &bma, ArrayXd &se2ma, ArrayXd &abs_zma);
+    bool check_candidate_SNP_collinearity(string mode);
 
     void entry_function();
     void output_cma(string savename);

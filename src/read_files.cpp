@@ -59,8 +59,13 @@ void Cohort::read_sumstat()
 
     vector<string> vs_buf;
     getline(Meta, str_buf); // the header line
-    if (split_string(str_buf, vs_buf) != 8) 
-    LOGGER.e("Format error in sumstat file");
+
+    istringstream iss(str_buf);
+    string token;
+    while (iss >> token) vs_buf.push_back(token);
+    if (vs_buf.size() != 8 || vs_buf[0] != "SNP" || vs_buf[1] != "A1" || vs_buf[2] != "A2" ||
+        vs_buf[3] != "freq" || vs_buf[4] != "b" || vs_buf[5] != "se" || vs_buf[6] != "p" || vs_buf[7] != "N")
+        LOGGER.e("Format error in sumstat file, please check");
     
     map<string, int>::iterator iter;
     int ref_index;
@@ -70,7 +75,6 @@ void Cohort::read_sumstat()
     sumstat.resize(shared.total_SNP_num, 7);
 
     while (Meta >> SNP_buf >> A1_buf >> A2_buf >> freq_buf >> b_buf >> se_buf >> p_buf >> N_buf) {
-
         to_upper(A1_buf);
         to_upper(A2_buf);
         freq = atof(freq_buf.c_str());
@@ -220,9 +224,14 @@ void Cohort::read_frq()
     double freq;
 
     vector<string> vs_buf;
-    getline(Frq, str_buf); // skip header line
-    if (split_string(str_buf, vs_buf) != 6)
-        LOGGER.e("Format error in frq file [" + frqFile + "]");
+    getline(Frq, str_buf); // the header line
+
+    istringstream iss(str_buf);
+    string token;
+    while (iss >> token) vs_buf.push_back(token);
+    if (vs_buf.size() != 6 || vs_buf[0] != "CHR" || vs_buf[1] != "SNP" || 
+        vs_buf[2] != "A1" || vs_buf[3] != "A2" || vs_buf[4] != "MAF" || vs_buf[5] != "NCHROBS")
+        LOGGER.e("Format error in frq file, please check");
 
     map<string, int>::iterator iter;
     int ref_index;
