@@ -92,16 +92,9 @@ For multiple cohorts, if you want to remove genotype NAs when calculating SNP co
 | `--bfile`   | PLINK binary file prefix for each cohort [`.bim` `.bed` `.fam`]    |
 | `--ld`      | PLINK LD file prefix for each cohort [`.bim` `.ld` `(.frq)`]       |
 
-### Main Settings 
+### Algorithm options
 
-| Program mode    | Type     | Description (exactly one of these three is required)          |
-| --------------- | -------- | ------------------------------------------------------------- |
-| `--cojo-slct`   | *flag*   | Stepwise iterative selection of independently associated SNPs |
-| `--cojo-joint`  | *flag*   | Calculate joint effects for provided SNPs and exit<br> Must be used with `--extract`|
-| `--cojo-cond`   | *option* | Calculate conditional effects for provided SNPs and exit<br> Must provide a file with a list of SNPs |
-
-
-| Algorithm option | Allowed Values | Default | Description |
+| Option | Allowed Values | Default | Description |
 | ------- | --------------- | -------- | ------------ |
 | `--slct-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Iterative SNP selection method |
 | `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
@@ -109,6 +102,12 @@ For multiple cohorts, if you want to remove genotype NAs when calculating SNP co
 ### Original GCTA Options
 
 These options and flags are functionally identical to those in the original GCTA. You can find more detailed definitions at [https://yanglab.westlake.edu.cn/software/gcta](https://yanglab.westlake.edu.cn/software/gcta).
+
+| Program mode    | Type     | Description (exactly one of these three is required)          |
+| --------------- | -------- | ------------------------------------------------------------- |
+| `--cojo-slct`   | *flag*   | Stepwise iterative selection of independently associated SNPs |
+| `--cojo-joint`  | *flag*   | Calculate joint effects for provided SNPs and exit<br> Must be used with `--extract`|
+| `--cojo-cond`   | *option* | Calculate conditional effects for provided SNPs and exit<br> Must provide a file with a list of SNPs |
 
 | Option         | Description                                                    | Default          |
 | ------------------ | -------------------------------------------------------------- | ---------------- |
