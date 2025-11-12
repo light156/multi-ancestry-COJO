@@ -69,8 +69,7 @@ For calculating joint effects of given SNPs on a single cohort using original GC
 ```bash
 ./manc_cojo --bfile path --cojo-file GWAS_sumstat_path --out Output_path_name \
 --cojo-collinear 0.99 --diff-freq 1 \
---extract given_SNP_path \
---cojo-joint
+--extract given_SNP_path --cojo-joint
 ```
 
 For multiple cohorts, if you want to remove genotype NAs when calculating SNP correlations, use:
@@ -79,9 +78,8 @@ For multiple cohorts, if you want to remove genotype NAs when calculating SNP co
 ./manc_cojo \
 --bfile path1 path2 ... pathN \
 --cojo-file GWAS_sumstat_path1 GWAS_sumstat_path2 ... GWAS_sumstat_pathN \
---out Output_directory_and_name \
---cojo-slct \
---slct-mode removeNA
+--out Output_path_name \
+--cojo-slct --slct-mode removeNA
 ```
 
 ---
