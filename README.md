@@ -157,8 +157,7 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 cd multi-ancestry-COJO
 
 g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
-    -I data -I include -I include/Eigen \
-    data/Geno.cpp src/*.cpp -o manc_cojo
+    -I data -I include -I include/Eigen data/Geno.cpp src/*.cpp -o manc_cojo
 ```
 
 ### macOS
@@ -170,8 +169,7 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 cd multi-ancestry-COJO
 
 clang++ -std=c++11 -O3 -march=native -DNDEBUG \
-    -I data -I include -I include/Eigen \
-    data/Geno.cpp src/*.cpp -o manc_cojo
+    -I data -I include -I include/Eigen data/Geno.cpp src/*.cpp -o manc_cojo
 ```
 
 ### Windows
