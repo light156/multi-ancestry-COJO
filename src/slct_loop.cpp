@@ -257,18 +257,18 @@ void MACOJO::slct_loop()
                     continue;
                 }
             }
-            
-            LOGGER << "Conditional min pC: " << scientific << min_pC << fixed << endl;
-
+        
             // calculate joint p-value and decide whether to accept this SNP
             // must suffice for the first SNP, just avoid complicated logic
             inverse_var_meta(bJ, se2J, abs_zJ);
             max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
-            LOGGER << "Joint b, se, max pJ: " 
-                    << bJ(max_pJ_index) << " " << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
-
+            
             // directly accept this SNP and next iteration
             if (max_pJ <= params.p) {
+                LOGGER << "Conditional min pC: " << scientific << min_pC << fixed << endl;
+                LOGGER << "Joint b, se, max pJ: " << bJ(max_pJ_index) << " " 
+                    << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
+
                 LOGGER.i("New candidate SNP accepted", current_SNP_name);
                 screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
 
@@ -281,7 +281,7 @@ void MACOJO::slct_loop()
             
             // trivial case for removing current SNP
             if (max_pJ_index < fixed_candidate_SNP_num || max_pJ_index == abs_zJ.rows()-1) {
-                LOGGER.i("removed, because pJ exceeds p-value threshold", current_SNP_name);
+                // LOGGER.i("removed, because pJ exceeds p-value threshold", current_SNP_name);
                 screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
                 backward_SNP.push_back(min_pC_index);
 
@@ -291,6 +291,9 @@ void MACOJO::slct_loop()
             } 
 
             // backward selection must happen now, save current model as backup, then accept the new candidate SNP
+            LOGGER << "Conditional min pC: " << scientific << min_pC << fixed << endl;
+            LOGGER << "Joint b, se, max pJ: " << bJ(max_pJ_index) << " " 
+                << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
             LOGGER.i("New candidate SNP added, start backward selection", current_SNP_name);
 
             candidate_SNP_backup = candidate_SNP;

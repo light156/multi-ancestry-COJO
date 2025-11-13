@@ -135,7 +135,7 @@ void Cohort::read_fam()
     skim_file(famFile, all_ids, false, true, true);
     fam_indi_num = all_ids.size();
 
-    if (!params.keep_file_list.empty()) {
+    if (!params.keep_file_list[cohort_index].empty()) {
         vector<string> keep_ids, temp_ids;
         skim_file(params.keep_file_list[cohort_index], keep_ids, false, true, true);
         set_intersection(all_ids.begin(), all_ids.end(), keep_ids.begin(), keep_ids.end(), back_inserter(temp_ids));
@@ -143,7 +143,7 @@ void Cohort::read_fam()
         LOGGER.i("individuals after keeping individuals", to_string(all_ids.size()));
     }
 
-    if (!params.remove_file_list.empty()) {
+    if (!params.remove_file_list[cohort_index].empty()) {
         vector<string> remove_ids, temp_ids;
         skim_file(params.remove_file_list[cohort_index], remove_ids, false, true, true);
         set_difference(all_ids.begin(), all_ids.end(), remove_ids.begin(), remove_ids.end(), back_inserter(temp_ids));
@@ -568,7 +568,5 @@ void MACOJO::read_input_files()
     set_difference(count_array.begin(), count_array.end(), 
         screened_SNP.begin(), screened_SNP.end(), back_inserter(bad_SNP));
 
-    LOGGER.i("common SNPs removed during reading files", to_string(bad_SNP.size()));
-    LOGGER.i("common SNPs at last for analysis", to_string(screened_SNP.size()));
     LOGGER << "--------------------------------" << endl << endl;
 }
