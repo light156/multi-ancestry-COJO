@@ -190,7 +190,7 @@ void MACOJO::output_cma(string savename)
     }
 
     // calculate r and r_gcta from scratch              
-    if (params.slct_mode != params.effect_size_mode) {
+    if (params.if_cond_mode || params.slct_mode != params.effect_size_mode) {
         for (int n : current_list) {
             cohorts[n].r.resize(0, 0);
             cohorts[n].r_gcta.resize(0, 0);

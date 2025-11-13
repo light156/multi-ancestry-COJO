@@ -568,5 +568,6 @@ void MACOJO::read_input_files()
     set_difference(count_array.begin(), count_array.end(), 
         screened_SNP.begin(), screened_SNP.end(), back_inserter(bad_SNP));
 
+    LOGGER.i("common SNPs at last for analysis", to_string(screened_SNP.size()));
     LOGGER << "--------------------------------" << endl << endl;
 }
