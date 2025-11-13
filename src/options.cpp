@@ -39,8 +39,8 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     string cojo_group = "Original GCTA COJO Options/Flags";
     auto *slct_flag = app.add_flag("--cojo-slct", "Stepwise iterative selection of independently associated SNPs")->group(cojo_group);
     auto *joint_flag = app.add_flag("--cojo-joint", "Only calculate joint effect for provided SNPs and exit")->group(cojo_group);
-    auto *cond_option = app.add_option("--cojo-cond", params.cond_file, "Only calculate conditional effect for provided SNPs and exit")->check(CLI::ExistingFile)->group(cojo_group);
-    app.add_option("--cojo-file", params.cojo_file_list, "GWAS summary-level statistics file for each cohort")->required()->check(CLI::ExistingFile)->group(cojo_group);
+    auto *cond_option = app.add_option("--cojo-cond", params.cond_file, "Only calculate conditional effect for provided SNPs and exit")->group(cojo_group);
+    app.add_option("--cojo-file", params.cojo_file_list, "GWAS summary-level statistics file for each cohort")->required()->group(cojo_group);
     app.add_option("--out", params.output_name, "Output file path")->required()->group(cojo_group);
     app.add_option("--cojo-wind", params.window_kb, "SNP position window in Kb (-1 for no windows)")->default_val(10000)->group(cojo_group);
     auto *p_option = app.add_option("--cojo-p", params.p, "Significance threshold for SNP selection")->default_val(5e-8)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
@@ -50,16 +50,16 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     string data_group = "Original GCTA Data Options";
     app.add_option("--maf", params.maf, "Minor Allele Frequency threshold")->default_val(0.01)->check(CLI::Range(1e-5, 0.5))->group(data_group);
     app.add_option("--geno", params.missingness, "Missingness threshold in PLINK .bed files(-1 for no threshold)")->default_val(1.0)->check(CLI::Range(0.0, 1.0))->group(data_group);
-    auto *extract_option = app.add_option("--extract", params.extract_file, "File path of SNPs to be included")->check(CLI::ExistingFile)->group(data_group);
-    auto *exclude_option = app.add_option("--exclude", params.exclude_file, "File path of SNPs to be excluded")->check(CLI::ExistingFile)->group(data_group);
-    auto *keep_option = app.add_option("--keep", params.keep_file_list, "File path of individuals to be included")->check(CLI::ExistingFile)->group(data_group);
-    auto *remove_option = app.add_option("--remove", params.remove_file_list, "File path of individuals to be excluded")->check(CLI::ExistingFile)->group(data_group);
+    auto *extract_option = app.add_option("--extract", params.extract_file, "File path of SNPs to be included")->group(data_group);
+    auto *exclude_option = app.add_option("--exclude", params.exclude_file, "File path of SNPs to be excluded")->group(data_group);
+    auto *keep_option = app.add_option("--keep", params.keep_file_list, "File path of individuals to be included")->group(data_group);
+    auto *remove_option = app.add_option("--remove", params.remove_file_list, "File path of individuals to be excluded")->group(data_group);
     
     joint_flag->needs(extract_option);
     
     // multi-cohort specific options
     string manc_group = "Other Manc-COJO Options/Flags";
-    auto *fixedSNP_option = app.add_option("--fixed", params.fixedSNP_file, "File path of fixed candidate SNPs")->check(CLI::ExistingFile)->group(manc_group);
+    auto *fixedSNP_option = app.add_option("--fixed", params.fixedSNP_file, "File path of fixed candidate SNPs")->group(manc_group);
     auto *R2_option = app.add_option("--R2", params.R2_threshold, "R2 incremental threshold (-1 for no threshold)")->default_val(-1)->group(manc_group);
     auto *R2back_option = app.add_option("--R2back", params.R2back_threshold, "R2 threshold for backward selection (-1 for no threshold)")->default_val(-1)->group(manc_group);
     auto *iter_option = app.add_option("--iter", params.max_iter_num, "Total iteration number")->default_val(10000)->check(CLI::PositiveNumber)->group(manc_group);
@@ -119,6 +119,12 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     params.window_size = (params.window_kb < 0 ? INT_MAX : params.window_kb * 1000);
     params.iter_collinear_threshold = 1.0 / (1.0 - params.collinear);
     LOGGER.open(params.output_name + ".log");
+
+    if (params.keep_file_list.empty())
+        params.keep_file_list.assign(cohort_num, "");
+
+    if (params.remove_file_list.empty())
+        params.remove_file_list.assign(cohort_num, "");
 
     for (size_t i = 0; i < cohort_num; i++)
         cohorts.emplace_back(params, shared, i);
