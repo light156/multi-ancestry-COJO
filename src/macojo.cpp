@@ -207,7 +207,7 @@ void MACOJO::output_cma(string savename)
     for (int index : screened_SNP)
         SNP_ref_order_pair.insert(make_pair(shared.SNP_pos_ref[index], index));
 
-    output_inverse_var_meta(savename + ".cma.cojo", 'C', SNP_ref_order_pair);
+    output_inverse_var_meta(savename, SNP_ref_order_pair, false);
 }
 
 
@@ -232,18 +232,14 @@ void MACOJO::output_jma(string savename)
     for (int num = 0; num < candidate_SNP.size(); num++)
         SNP_ref_order_pair.insert(make_pair(shared.SNP_pos_ref[candidate_SNP[num]], num));
 
-    output_inverse_var_meta(savename + ".jma.cojo", 'J', SNP_ref_order_pair);
+    output_inverse_var_meta(savename, SNP_ref_order_pair, true);
 
     if (params.if_output_all)  {
-        vector<int> ordered_candidate;
-        for (auto iter = SNP_ref_order_pair.begin(); iter != SNP_ref_order_pair.end(); iter++)
-            ordered_candidate.push_back(iter->second); 
-
         if (current_list.size() == 1)
-            output_ld_matrix(savename + ".ldr.cojo", ordered_candidate, cohorts[current_list[0]]);
+            output_ld_matrix(savename, SNP_ref_order_pair, cohorts[current_list[0]]);
         else {
             for (int n : current_list)
-                output_ld_matrix(savename + ".cohort" + to_string(n+1) + ".ldr.cojo", ordered_candidate, cohorts[n]);
+                output_ld_matrix(savename + ".cohort" + to_string(n+1), SNP_ref_order_pair, cohorts[n]);
         }
     }
 
@@ -252,8 +248,11 @@ void MACOJO::output_jma(string savename)
 }
 
 
-void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair) 
-{
+void MACOJO::output_inverse_var_meta(string savename, const map<int, int>& SNP_ref_order_pair, bool if_joint) 
+{   
+    savename += if_joint ? ".jma.cojo" : ".cma.cojo";
+    char mode = if_joint ? 'J' : 'C';
+
     ofstream maCOJO(savename.c_str());
     if (!maCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
 
@@ -329,26 +328,27 @@ void MACOJO::output_inverse_var_meta(string savename, char mode, const map<int, 
 }
 
 
-void MACOJO::output_ld_matrix(string savename, const vector<int>& ordered_candidate, const Cohort& c) 
+void MACOJO::output_ld_matrix(string savename, const map<int, int>& SNP_ref_order_pair, const Cohort& c) 
 {   
+    savename += ".ldr.cojo";
     ofstream ldrCOJO(savename);
     if (!ldrCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
 
     ldrCOJO.precision(12);
     ldrCOJO << "SNP";
 
-    for (int index : ordered_candidate) 
-        ldrCOJO << "\t" << shared.SNP_ref[candidate_SNP[index]];
+    for (auto iter = SNP_ref_order_pair.begin(); iter != SNP_ref_order_pair.end(); iter++) 
+        ldrCOJO << "\t" << shared.SNP_ref[candidate_SNP[iter->second]];
 
     ldrCOJO << "\n";
 
     // calc_R_inv_from_SNP_list has just been called so R_post is ready
     int total_num = c.R_post.rows();
 
-    for (int index_i : ordered_candidate) {
-        ldrCOJO << shared.SNP_ref[candidate_SNP[index_i]];
-        for (int index_j : ordered_candidate)
-            ldrCOJO << "\t" << c.R_post(index_i, index_j);
+    for (auto iter1 = SNP_ref_order_pair.begin(); iter1 != SNP_ref_order_pair.end(); iter1++) {
+        ldrCOJO << shared.SNP_ref[candidate_SNP[iter1->second]];
+        for (auto iter2 = SNP_ref_order_pair.begin(); iter2 != SNP_ref_order_pair.end(); iter2++)
+            ldrCOJO << "\t" << c.R_post(iter1->second, iter2->second);
 
         ldrCOJO << "\n";
     }

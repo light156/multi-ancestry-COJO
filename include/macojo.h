@@ -96,15 +96,15 @@ public:
     int set_read_process_output_options(int argc, char** argv);
     void read_input_files();
     void initialize_candidate_SNP(string filename);
-    void slct_loop();
     void inverse_var_meta(ArrayXd &bma, ArrayXd &se2ma, ArrayXd &abs_zma);
     bool check_candidate_SNP_collinearity(string mode);
-
+    void slct_loop();
     void entry_function();
+    
     void output_cma(string savename);
     void output_jma(string savename);
-    void output_inverse_var_meta(string savename, char mode, const map<int, int>& SNP_ref_order_pair);
-    void output_ld_matrix(string savename, const vector<int>& ordered_candidate, const Cohort& c);
+    void output_inverse_var_meta(string savename, const map<int, int>& SNP_ref_order_pair, bool if_joint);
+    void output_ld_matrix(string savename, const map<int, int>& SNP_ref_order_pair, const Cohort& c);
 
 private:
     HyperParams params;
