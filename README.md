@@ -156,7 +156,7 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 cd multi-ancestry-COJO
 
 g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
-    -I data -I include -I include/Eigen data/Geno.cpp src/*.cpp -o manc_cojo
+    -I include -I external -I external/Eigen src/*.cpp -o manc_cojo
 ```
 
 ### macOS
@@ -168,7 +168,7 @@ git clone https://github.com/light156/multi-ancestry-COJO.git
 cd multi-ancestry-COJO
 
 clang++ -std=c++11 -O3 -march=native -DNDEBUG \
-    -I data -I include -I include/Eigen data/Geno.cpp src/*.cpp -o manc_cojo
+    -I include -I external -I external/Eigen src/*.cpp -o manc_cojo
 ```
 
 ### Windows
@@ -184,9 +184,10 @@ After successful installation, you can compile the source code with GCC using th
 This project is released under the **MIT License** (see the `LICENSE` file for details).  
 
 It includes or depends on the following third-party open-source libraries:
-- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`include/Eigen`)
-- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`include/CLI11.hpp`)
+- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`external/Eigen`)
+- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`external/CLI11.hpp`)
+- **[fastfloat](https://github.com/fastfloat/fast_float)** - Used for number parsing (`external/fast_float.h`)
 
 ---
 
-Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries and bug reports, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions. We also welcome GitHub issues so that discussions are visible to all users.
+Please contact Yong (yong.wang@stats.ox.ac.uk) for software-related enquries and bug reports, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions. We also welcome GitHub issues, including usage feedback and new feature requests, so that discussions are visible to all users.

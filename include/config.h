@@ -1,8 +1,10 @@
 #pragma once
 
-#include <map>
 #include <string>
 #include <vector>
+using std::string;
+using std::vector;
+using std::pair;
 
 
 struct HyperParams {
@@ -21,7 +23,7 @@ struct HyperParams {
     double iter_collinear_threshold; // 1 / (1 - collinear)
     int window_size; // in bp, window_kb*1e3
 
-    std::string slct_mode, effect_size_mode; // "GCTA", "removeNA", "imputeNA"
+    string slct_mode, effect_size_mode; // "GCTA", "removeNA", "imputeNA"
 
     bool if_joint_mode = false;
     bool if_cond_mode = false;
@@ -30,14 +32,14 @@ struct HyperParams {
     bool if_output_all = false;
 
     // filepaths
-    std::vector<std::string> bfile_list, cojo_file_list, keep_file_list, remove_file_list;
-    std::string output_name, extract_file, exclude_file, fixedSNP_file, cond_file;
+    vector<string> bfile_list, cojo_file_list, keep_file_list, remove_file_list;
+    string output_name, extract_file, exclude_file, fixedSNP_file, cond_file;
 };
 
 
 struct SharedData {
     int total_SNP_num = 0;
-    std::map<std::string, int> goodSNP_index_map;
-    std::vector<std::string> SNP_ref, A1_ref, A2_ref;
-    std::vector<int> SNP_pos_ref, chr_ref;
+    vector<pair<string, int>> goodSNP_table;
+    vector<string> SNP_ref, A1_ref, A2_ref;
+    vector<int> SNP_pos_ref, chr_ref;
 };

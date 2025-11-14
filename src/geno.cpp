@@ -1,4 +1,4 @@
-#include "Geno.h"
+#include "geno.h"
 
 
 void Geno::build_LUT() {

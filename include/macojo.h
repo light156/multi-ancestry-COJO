@@ -2,9 +2,7 @@
 
 #include <Eigen/Dense>
 #include "CLI11.hpp"
-
-#include "Geno.h"
-#include "LD.hpp"
+#include "geno.h"
 #include "config.h"
 #include "omp_compat.hpp"
 #include "logger.hpp"
@@ -20,7 +18,7 @@ class Cohort
 public:
     Cohort(const HyperParams& p, SharedData& s, int cohort_index) : 
         params(p), shared(s), cohort_index(cohort_index) {};
-
+    
     void read_sumstat();
     void read_frq();
     void read_fam();
@@ -53,9 +51,9 @@ private:
 
     Geno genotype;
     LDPacked LD_matrix;
-    vector<bool> swap_array;
-    vector<string> bim_SNP_list;
-    vector<int> fam_keep_list;
+    vector<bool> bed_swap_array;
+    vector<int> bim_index_array;
+    vector<int> fam_keep_array;
     int valid_indi_num, fam_indi_num;
 
 public:
@@ -103,8 +101,8 @@ public:
     
     void output_cma(string savename);
     void output_jma(string savename);
-    void output_inverse_var_meta(string savename, const map<int, int>& SNP_ref_order_pair, bool if_joint);
-    void output_ld_matrix(string savename, const map<int, int>& SNP_ref_order_pair, const Cohort& c);
+    void output_inverse_var_meta(string savename, const vector<pair<int, int>>& SNP_ref_order_pair, bool if_joint);
+    void output_ld_matrix(string savename, const vector<pair<int, int>>& SNP_ref_order_pair, const Cohort& c);
 
 private:
     HyperParams params;
@@ -120,5 +118,6 @@ private:
     ArrayXd bJ, se2J, abs_zJ;
 };
 
-void skim_file(string filename, vector<string> &str_list, int col_idx, bool has_header);
+
 void skim_fam(string filename, vector<string> &str_list);
+void skim_SNP(string filename, vector<string> &SNP_list, int col_idx, bool has_header);

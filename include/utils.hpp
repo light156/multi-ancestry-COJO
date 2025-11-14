@@ -4,8 +4,11 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include "fast_float.h"
+
 using Eigen::PlainObjectBase;
 using Eigen::DenseBase;
+using std::invalid_argument;
 
 
 // template functions for matrix manipulation   
@@ -14,9 +17,9 @@ template <typename MatDerived, typename RowDerived>
 inline void append_row(PlainObjectBase<MatDerived>& matrix, const DenseBase<RowDerived>& row_vec)
 {
     if (row_vec.rows() != 1)
-        throw std::invalid_argument("append_row: row must have 1 row (row vector).");
+        throw invalid_argument("append_row: row must have 1 row (row vector).");
     if (matrix.rows() != 0 && matrix.cols() != row_vec.cols())
-        throw std::invalid_argument("append_row: column count mismatch.");
+        throw invalid_argument("append_row: column count mismatch.");
 
     typename MatDerived::Index numRows = matrix.rows();
 
@@ -30,9 +33,9 @@ template <typename MatDerived, typename ColDerived>
 inline void append_column(PlainObjectBase<MatDerived>& matrix, const DenseBase<ColDerived>& col_vec)
 {
     if (col_vec.cols() != 1)
-        throw std::invalid_argument("append_column: col must have 1 column (column vector).");
+        throw invalid_argument("append_column: col must have 1 column (column vector).");
     if (matrix.cols() != 0 && matrix.rows() != col_vec.rows())
-        throw std::invalid_argument("append_column: row count mismatch.");
+        throw invalid_argument("append_column: row count mismatch.");
 
     typename MatDerived::Index numCols = matrix.cols();
 
@@ -76,43 +79,52 @@ inline void remove_column(PlainObjectBase<Derived> &matrix, typename Derived::In
 }
 
 
-inline double median(const std::vector<double> &v)
-{
-    int size = v.size();
-	if (size == 0) 
-        throw std::invalid_argument("median: empty vector");
+inline double median(std::vector<double>& v) {
+    const size_t n = v.size();
+    if (n == 0) 
+        throw invalid_argument("median: empty vector");
 
-    std::vector<double> b(v);
-    std::sort(b.begin(), b.end());
-	return (size%2==1) ? b[(size-1)/2] : (b[size/2]+b[size/2-1])/2;
+    const size_t mid = n / 2;
+
+    // First nth_element: put the upper median in place
+    std::nth_element(v.begin(), v.begin() + mid, v.end());
+    double upper = v[mid];
+
+    if (n % 2 == 1) {
+        return upper; // odd size, single middle value
+    } else {
+        std::nth_element(v.begin(), v.begin() + mid - 1, v.end()); // even size, need lower median too
+        double lower = v[mid - 1];
+        return 0.5 * (lower + upper); 
+    }
 }
 
 
 inline double median(const Eigen::ArrayXd &eigen_vector)
 {
-    std::vector<double> v(eigen_vector.data(), eigen_vector.data() + eigen_vector.size());
+    vector<double> v(eigen_vector.data(), eigen_vector.data() + eigen_vector.size());
     return median(v);
 }
 
 
-inline void skip_delim(const char*& p) {
-    while (*p && (*p == ' ' || *p == '\t')) p++;
+inline void skip_delim(const char*& pt) {
+    while (*pt && (*pt == ' ' || *pt == '\t')) pt++;
 }
 
 
-inline void skip_token(const char*& p) {
-    while (*p && *p != ' ' && *p != '\t') p++;
+inline void skip_token(const char*& pt) {
+    while (*pt && *pt != ' ' && *pt != '\t') pt++;
 }
 
 
-inline void parse_string(const char*& p, std::string& out, bool to_upper=false) {
-    skip_delim(p);
-    const char* start = p;
+inline void parse_string(const char*& pt, string& out, bool to_upper=false) 
+{
+    skip_delim(pt);
+    const char* start = pt;
     
-    skip_token(p);
-    if (start == p) return;
+    skip_token(pt);
+    size_t len = pt - start;
     
-    size_t len = p - start;
     out.resize(len);
     std::memcpy(&out[0], start, len);
 
@@ -125,18 +137,33 @@ inline void parse_string(const char*& p, std::string& out, bool to_upper=false) 
 }
 
 
-inline void parse_int(const char*& p, int& out) {
-    char* end;
-    out = strtol(p, &end, 10);
-    p = end;
-    skip_delim(p);
+inline void parse_int(const char*& pt, int& out) {
+    skip_delim(pt);
+    const char* start = pt;
+
+    skip_token(pt);
+    fast_float::from_chars(start, pt, out);
 }
 
 
-inline bool parse_double(const char*& p, double& out) {
-    char* end;
-    out = strtod(p, &end);
-    if (end == p) return false; // if end == p, it's NA, ".", end of line, junk, whatever, just consider it invalid
-    p = end;
+inline bool parse_double(const char*& pt, double& out) {
+    skip_delim(pt);
+    const char* start = pt;
+
+    skip_token(pt);
+    auto answer = fast_float::from_chars(start, pt, out);
+
+    if (answer.ec != std::errc() || answer.ptr != pt) return false;
+    if (std::isnan(out) || std::isinf(out)) return false;
     return true;
+}
+
+
+inline vector<pair<string,int>>::iterator fast_lookup(vector<pair<string,int>>& table, const string& key)
+{
+    auto iter = std::lower_bound(table.begin(), table.end(), key,
+        [](const pair<string,int>& a, const string& key) { return a.first < key;});
+
+    if (iter == table.end() || iter->first != key || iter->second == -1) return table.end();
+    return iter;
 }

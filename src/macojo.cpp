@@ -4,11 +4,11 @@
 void MACOJO::initialize_candidate_SNP(string filename)
 {
     vector<string> temp;
-    skim_file(filename, temp, 1, false);
+    skim_SNP(filename, temp, 1, false);
 
     for (const auto& SNP_name : temp) {
-        auto iter = shared.goodSNP_index_map.find(SNP_name);
-        if (iter == shared.goodSNP_index_map.end()){
+        auto iter = fast_lookup(shared.goodSNP_table, SNP_name);
+        if (iter == shared.goodSNP_table.end()){
             LOGGER.w("not found in + [ " + filename + " ] and will be ignored", SNP_name);
             continue;
         }
@@ -203,9 +203,11 @@ void MACOJO::output_cma(string savename)
     for (int n : current_list) 
         cohorts[n].calc_cond_effects(candidate_SNP, params.effect_size_mode);
     
-    map<int, int> SNP_ref_order_pair;
+    vector<pair<int, int>> SNP_ref_order_pair;
     for (int index : screened_SNP)
-        SNP_ref_order_pair.insert(make_pair(shared.SNP_pos_ref[index], index));
+        SNP_ref_order_pair.emplace_back(shared.SNP_pos_ref[index], index);
+
+    sort(SNP_ref_order_pair.begin(), SNP_ref_order_pair.end());
 
     output_inverse_var_meta(savename, SNP_ref_order_pair, false);
 }
@@ -228,9 +230,11 @@ void MACOJO::output_jma(string savename)
     for (int n : current_list) 
         cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
 
-    map<int, int> SNP_ref_order_pair;
+    vector<pair<int, int>> SNP_ref_order_pair;
     for (int num = 0; num < candidate_SNP.size(); num++)
-        SNP_ref_order_pair.insert(make_pair(shared.SNP_pos_ref[candidate_SNP[num]], num));
+        SNP_ref_order_pair.emplace_back(shared.SNP_pos_ref[candidate_SNP[num]], num);
+
+    sort(SNP_ref_order_pair.begin(), SNP_ref_order_pair.end());
 
     output_inverse_var_meta(savename, SNP_ref_order_pair, true);
 
@@ -248,7 +252,7 @@ void MACOJO::output_jma(string savename)
 }
 
 
-void MACOJO::output_inverse_var_meta(string savename, const map<int, int>& SNP_ref_order_pair, bool if_joint) 
+void MACOJO::output_inverse_var_meta(string savename, const vector<pair<int, int>>& SNP_ref_order_pair, bool if_joint) 
 {   
     savename += if_joint ? ".jma.cojo" : ".cma.cojo";
     char mode = if_joint ? 'J' : 'C';
@@ -293,7 +297,7 @@ void MACOJO::output_inverse_var_meta(string savename, const map<int, int>& SNP_r
 
     for (auto iter = SNP_ref_order_pair.begin(); iter != SNP_ref_order_pair.end(); iter++) {
         
-        int info_index = (mode == 'C') ? iter->second : candidate_SNP[iter->second];
+        int info_index = if_joint ? candidate_SNP[iter->second] : iter->second;
         maCOJO << shared.chr_ref[info_index]
                 << "\t" << shared.SNP_ref[info_index]
                 << "\t" << iter->first
@@ -328,7 +332,7 @@ void MACOJO::output_inverse_var_meta(string savename, const map<int, int>& SNP_r
 }
 
 
-void MACOJO::output_ld_matrix(string savename, const map<int, int>& SNP_ref_order_pair, const Cohort& c) 
+void MACOJO::output_ld_matrix(string savename, const vector<pair<int, int>>& SNP_ref_order_pair, const Cohort& c) 
 {   
     savename += ".ldr.cojo";
     ofstream ldrCOJO(savename);
