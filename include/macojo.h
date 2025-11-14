@@ -120,5 +120,5 @@ private:
     ArrayXd bJ, se2J, abs_zJ;
 };
 
-
-void skim_file(string filename, vector<string> &SNP_list, bool header, bool first_column, bool second_column);
+void skim_file(string filename, vector<string> &str_list, int col_idx, bool has_header);
+void skim_fam(string filename, vector<string> &str_list);

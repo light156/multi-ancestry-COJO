@@ -95,9 +95,48 @@ inline double median(const Eigen::ArrayXd &eigen_vector)
 }
 
 
-inline void to_upper(std::string &str)
-{
-	for(size_t i=0; i<str.size(); i++){
-		if(str[i]>='a' && str[i]<='z') str[i]+='A'-'a';
-	}
+inline void skip_delim(const char*& p) {
+    while (*p && (*p == ' ' || *p == '\t')) p++;
+}
+
+
+inline void skip_token(const char*& p) {
+    while (*p && *p != ' ' && *p != '\t') p++;
+}
+
+
+inline void parse_string(const char*& p, std::string& out, bool to_upper=false) {
+    skip_delim(p);
+    const char* start = p;
+    
+    skip_token(p);
+    if (start == p) return;
+    
+    size_t len = p - start;
+    out.resize(len);
+    std::memcpy(&out[0], start, len);
+
+    if (to_upper) {
+        for (size_t i = 0; i < len; i++) {
+            char c = out[i];
+            out[i] = (c >= 'a' && c <= 'z') ? (c - 32) : c;
+        }
+    }
+}
+
+
+inline void parse_int(const char*& p, int& out) {
+    char* end;
+    out = strtol(p, &end, 10);
+    p = end;
+    skip_delim(p);
+}
+
+
+inline bool parse_double(const char*& p, double& out) {
+    char* end;
+    out = strtod(p, &end);
+    if (end == p) return false; // if end == p, it's NA, ".", end of line, junk, whatever, just consider it invalid
+    p = end;
+    return true;
 }

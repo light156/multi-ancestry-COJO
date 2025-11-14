@@ -7,6 +7,13 @@ using std::vector;
 using std::sqrt;
 
 
+struct SNPTask {
+    int ref_index;
+    bool swap;
+    vector<char> data;
+};
+
+
 class Geno 
 {
 public:

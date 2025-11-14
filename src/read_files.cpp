@@ -1,42 +1,57 @@
 #include "macojo.h"
 
 
-void skim_file(string filename, vector<string> &str_list, bool header, bool first_column, bool second_column) 
+void skim_fam(string filename, vector<string> &str_list) 
 {   
-    if (!first_column && !second_column)
-        LOGGER.e("skim_file: at least one of first_column or second_column must be true");
-
     ifstream sFile(filename.c_str());
     if (!sFile) LOGGER.e("Cannot open file [" + filename + "] to read");
 
-    string str_buf, SNP_buf, temp;
+    string str_buf, FID, IID;
 
-    if (header) getline(sFile, str_buf); // sumstat files have header line
+    while (getline(sFile, str_buf)) {
+        if (str_buf.empty()) continue;
 
-    if (first_column && second_column) {
-        while (getline(sFile, str_buf)) {
-            if (str_buf.empty()) continue; // skip empty lines
+        const char* pt = str_buf.c_str();
+        parse_string(pt, FID);
+        parse_string(pt, IID);
+        str_list.push_back(FID + ":" + IID);
+    }
 
-            istringstream iss(str_buf);
-            iss >> SNP_buf >> temp;
-            str_list.push_back(SNP_buf + ':' + temp); // for fam file with FID IID format
+    sFile.close();
+
+    sort(str_list.begin(), str_list.end());
+    if (adjacent_find(str_list.begin(), str_list.end()) != str_list.end())
+        LOGGER.e("Duplicate names in [" + filename + "], please check", *adjacent_find(str_list.begin(), str_list.end()));
+}
+
+
+// start from 1 for col_idx
+void skim_file(string filename, vector<string> &str_list, int col_idx, bool has_header)
+{
+    ifstream sFile(filename.c_str());
+    if (!sFile) LOGGER.e("Cannot open file [" + filename + "] to read");
+
+    string str_buf;
+    if (has_header) getline(sFile, str_buf); // skip header line
+
+    while (getline(sFile, str_buf)) {
+        if (str_buf.empty()) continue;
+
+        const char* pt = str_buf.c_str();
+        
+        // iterate to column col_idx
+        int col = 1;
+        while (col < col_idx) {
+            skip_token(pt);
+            skip_delim(pt);
+            if (!*pt) LOGGER.e("Requested column exceeds the total number of columns", filename);
+            col++;
         }
-    } else if (first_column) {
-        while (getline(sFile, str_buf)) {
-            if (str_buf.empty()) continue; // skip empty lines
 
-            istringstream iss(str_buf);
-            iss >> SNP_buf;
-            str_list.push_back(SNP_buf);
-        }
-    } else {
-        while (getline(sFile, str_buf)) {
-            if (str_buf.empty()) continue; // skip empty lines
-
-            istringstream iss(str_buf);
-            iss >> temp >> SNP_buf; // bim file: chr, SNP, cm, pos, A1, A2
-            str_list.push_back(SNP_buf);
-        }
+        // p now at start of desired column
+        const char* start = pt;
+        skip_token(pt);
+        str_list.emplace_back(start, pt - start);
     }
 
     sFile.close();
@@ -54,7 +69,7 @@ void Cohort::read_sumstat()
     if (!Meta) LOGGER.e("Cannot open sumstat file [" + cojo_file + "] to read");
     LOGGER.i("Reading GWAS summary-level statistics from [" + cojo_file + "] ...");
 
-    string SNP_buf, A1_buf, A2_buf, freq_buf, b_buf, se_buf, p_buf, N_buf, str_buf;
+    string str_buf, SNP_buf, A1_buf, A2_buf;
     double freq, b, se, p, N;
 
     vector<string> vs_buf;
@@ -73,18 +88,16 @@ void Cohort::read_sumstat()
 
     // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D
     sumstat.resize(shared.total_SNP_num, 7);
+    
+    while (getline(Meta, str_buf)) {
+        if (str_buf.empty()) continue;
 
-    while (Meta >> SNP_buf >> A1_buf >> A2_buf >> freq_buf >> b_buf >> se_buf >> p_buf >> N_buf) {
-        to_upper(A1_buf);
-        to_upper(A2_buf);
-        freq = atof(freq_buf.c_str());
-        b = atof(b_buf.c_str());
-        se = atof(se_buf.c_str());
-        p = atof(p_buf.c_str());
-        N = atof(N_buf.c_str());
-        
-        if ((b_buf == "NA" || b_buf == "." || se_buf == "NA" || se_buf == "." || se_buf == "0" || \
-            p_buf == "NA" || p_buf == "." || N_buf == "NA" || N_buf == "." || N < 10)) { 
+        const char* pt = str_buf.c_str();
+        parse_string(pt, SNP_buf);
+        parse_string(pt, A1_buf, true);
+        parse_string(pt, A2_buf, true);
+
+        if (!parse_double(pt, freq) || !parse_double(pt, b) || !parse_double(pt, se) || !parse_double(pt, p) || !parse_double(pt, N)) { 
             iter = shared.goodSNP_index_map.find(SNP_buf);
             if (iter != shared.goodSNP_index_map.end()) {
                 LOGGER.w("removed, invalid value in sumstat file", SNP_buf);
@@ -95,7 +108,7 @@ void Cohort::read_sumstat()
 
         Vp_gcta_list.push_back(2 * freq * (1 - freq) * N * (se * se + b * b / (N - 1.0)));
 
-        iter = shared.goodSNP_index_map.find(SNP_buf);
+        auto iter = shared.goodSNP_index_map.find(SNP_buf);
         if (iter == shared.goodSNP_index_map.end()) continue;
 
         ref_index = iter->second;
@@ -132,12 +145,12 @@ void Cohort::read_fam()
     LOGGER.i("Reading PLINK FAM file from [" + famFile + "] ...");
 
     vector<string> all_ids;
-    skim_file(famFile, all_ids, false, true, true);
+    skim_fam(famFile, all_ids);
     fam_indi_num = all_ids.size();
 
     if (!params.keep_file_list[cohort_index].empty()) {
         vector<string> keep_ids, temp_ids;
-        skim_file(params.keep_file_list[cohort_index], keep_ids, false, true, true);
+        skim_fam(params.keep_file_list[cohort_index], keep_ids);
         set_intersection(all_ids.begin(), all_ids.end(), keep_ids.begin(), keep_ids.end(), back_inserter(temp_ids));
         all_ids = temp_ids;
         LOGGER.i("individuals after keeping individuals", to_string(all_ids.size()));
@@ -145,7 +158,7 @@ void Cohort::read_fam()
 
     if (!params.remove_file_list[cohort_index].empty()) {
         vector<string> remove_ids, temp_ids;
-        skim_file(params.remove_file_list[cohort_index], remove_ids, false, true, true);
+        skim_fam(params.remove_file_list[cohort_index], remove_ids);
         set_difference(all_ids.begin(), all_ids.end(), remove_ids.begin(), remove_ids.end(), back_inserter(temp_ids));
         all_ids = temp_ids;
         LOGGER.i("individuals after removing individuals", to_string(all_ids.size()));
@@ -178,7 +191,13 @@ void Cohort::read_fam()
         LOGGER.i("Read all individuals into memory and mask unwanted individuals");
         genotype.initialize_mask(fam_indi_num);
         
-        while (Fam >> FID >> IID >> str_buf >> str_buf >> str_buf >> str_buf) {
+        while (getline(Fam, str_buf)) {
+            if (str_buf.empty()) continue;
+
+            const char* pt = str_buf.c_str();
+            parse_string(pt, FID);
+            parse_string(pt, IID);
+
             if (binary_search(all_ids.begin(), all_ids.end(), FID+':'+IID))
                 word_mask |= (1ULL << bit_index);
 
@@ -197,7 +216,13 @@ void Cohort::read_fam()
         LOGGER.i("Only read individuals to be used into memory");
         genotype.initialize_mask(valid_indi_num);
         
-        while (Fam >> FID >> IID >> str_buf >> str_buf >> str_buf >> str_buf) {
+        while (getline(Fam, str_buf)) {
+            if (str_buf.empty()) continue;
+
+            const char* pt = str_buf.c_str();
+            parse_string(pt, FID);
+            parse_string(pt, IID);
+
             if (binary_search(all_ids.begin(), all_ids.end(), FID+':'+IID)) 
                 fam_keep_list.push_back(bit_index);
 
@@ -220,7 +245,7 @@ void Cohort::read_frq()
     }
 
     LOGGER.i("Reading PLINK FRQ file from [" + frqFile + "] ...");
-    string SNP_buf, A1_buf, A2_buf, freq_buf, str_buf;
+    string SNP_buf, A1_buf, A2_buf, str_buf;
     double freq;
 
     vector<string> vs_buf;
@@ -233,18 +258,23 @@ void Cohort::read_frq()
         vs_buf[2] != "A1" || vs_buf[3] != "A2" || vs_buf[4] != "MAF" || vs_buf[5] != "NCHROBS")
         LOGGER.e("Format error in frq file, please check");
 
-    map<string, int>::iterator iter;
     int ref_index;
 
-    while (Frq >> str_buf >> SNP_buf >> A1_buf >> A2_buf >> freq_buf >> str_buf) {
-        to_upper(A1_buf);
-        to_upper(A2_buf);
-        freq = atof(freq_buf.c_str());
+    while (getline(Frq, str_buf)) {
+        if (str_buf.empty()) continue;
 
-        iter = shared.goodSNP_index_map.find(SNP_buf);
+        const char* pt = str_buf.c_str();
+        parse_string(pt, str_buf);
+        parse_string(pt, SNP_buf);
+
+        auto iter = shared.goodSNP_index_map.find(SNP_buf);
         if (iter == shared.goodSNP_index_map.end()) continue;
 
         ref_index = iter->second;
+    
+        parse_string(pt, A1_buf, true);
+        parse_string(pt, A2_buf, true);
+        parse_double(pt, freq);
 
         if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq;}
@@ -273,28 +303,39 @@ void Cohort::read_bim()
     LOGGER.i("Reading PLINK BIM file from [" + bimFile + "] ...");
 
     int chr_buf, ibuf, ref_index;
-    string SNP_buf, A1_buf = "0", A2_buf = "0", str_buf;
+    string SNP_buf, A1_buf, A2_buf, str_buf;
 
-    bool is_ref_cohort = (cohort_index == 0);
     swap_array.assign(shared.total_SNP_num, false);
     
-    while (Bim >> chr_buf >> SNP_buf >> str_buf >> ibuf >> A1_buf >> A2_buf) {
+    while (getline(Bim, str_buf)) {
+        if (str_buf.empty()) continue;
+
+        const char* pt = str_buf.c_str();
+        parse_int(pt, chr_buf);
+        parse_string(pt, SNP_buf);
+
         bim_SNP_list.push_back(SNP_buf);
 
         auto iter = shared.goodSNP_index_map.find(SNP_buf);
         if (iter == shared.goodSNP_index_map.end()) continue;
-
+        
         ref_index = iter->second;
-        to_upper(A1_buf);
-        to_upper(A2_buf);
 
-        if (is_ref_cohort) {
+        // skip cm position
+        skip_delim(pt);
+        skip_token(pt);
+
+        if (cohort_index == 0) {
             // first cohort, set as reference
             shared.chr_ref[ref_index] = chr_buf;
-            shared.A1_ref[ref_index] = A1_buf;
-            shared.A2_ref[ref_index] = A2_buf;
-            shared.SNP_pos_ref[ref_index] = ibuf;
+            parse_int(pt, shared.SNP_pos_ref[ref_index]);
+            parse_string(pt, shared.A1_ref[ref_index], true);
+            parse_string(pt, shared.A2_ref[ref_index], true);
         } else {
+            parse_int(pt, ibuf);
+            parse_string(pt, A1_buf, true);
+            parse_string(pt, A2_buf, true);
+
             // other cohorts, check consistency
             if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
             else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {swap_array[ref_index] = true;}
@@ -392,15 +433,15 @@ void Cohort::read_PLINK_LD()
     // Read ld file
     string SNP1_buf, SNP2_buf, r_buf;
     int SNP1_index, SNP2_index;
-    map<string, int>::iterator iter;
-
+    
     while (Ld >> SNP1_buf >> SNP2_buf >> r_buf) {
+        auto iter1 = shared.goodSNP_index_map.find(SNP1_buf);
+        if (iter1 == shared.goodSNP_index_map.end()) continue;
+        SNP1_index = iter1->second;
 
-        if ((iter = shared.goodSNP_index_map.find(SNP1_buf)) == shared.goodSNP_index_map.end()) continue;
-        SNP1_index = iter->second;
-
-        if ((iter = shared.goodSNP_index_map.find(SNP2_buf)) == shared.goodSNP_index_map.end()) continue;
-        SNP2_index = iter->second;
+        auto iter2 = shared.goodSNP_index_map.find(SNP2_buf);
+        if (iter2 == shared.goodSNP_index_map.end()) continue;
+        SNP2_index = iter2->second;
 
         LD_matrix(SNP1_index, SNP2_index) = atof(r_buf.c_str()); 
     }
@@ -429,7 +470,7 @@ void MACOJO::read_input_files()
 
     // if user provides extract SNP file, read file and initialize common SNPs
     if (!params.extract_file.empty()) {
-        skim_file(params.extract_file, commonSNP_all_cohorts, false, true, false);
+        skim_file(params.extract_file, commonSNP_all_cohorts, 1, false);
         if (commonSNP_all_cohorts.size() == 0)
             LOGGER.e("Input extract SNP file has no SNPs", params.extract_file);
 
@@ -443,7 +484,7 @@ void MACOJO::read_input_files()
         vector<string> SNP_sumstat, SNP_PLINK, temp;
 
         string sumstat_file = params.cojo_file_list[n], PLINK_file = params.bfile_list[n];
-        skim_file(PLINK_file+".bim", SNP_PLINK, false, false, true);
+        skim_file(PLINK_file+".bim", SNP_PLINK, 2, false);
         LOGGER.i("SNPs in [" + PLINK_file + ".bim]", to_string(SNP_PLINK.size()));
 
         if (n == 0 && commonSNP_all_cohorts.size() == 0)
@@ -455,7 +496,7 @@ void MACOJO::read_input_files()
         }
 
         vector<string>().swap(temp); // clear temp
-        skim_file(sumstat_file, SNP_sumstat, true, true, false);
+        skim_file(sumstat_file, SNP_sumstat, 1, true);
         LOGGER.i("SNPs in [" + sumstat_file + "]", to_string(SNP_sumstat.size()));
 
         set_intersection(commonSNP_all_cohorts.begin(), commonSNP_all_cohorts.end(), 
@@ -470,7 +511,7 @@ void MACOJO::read_input_files()
     // if user provides exclude SNP file, read file and delete from common SNPs
     if (!params.exclude_file.empty()) {
         vector<string> exclude_SNP, temp;
-        skim_file(params.exclude_file, exclude_SNP, false, true, false);
+        skim_file(params.exclude_file, exclude_SNP, 1, false);
 
         set_difference(commonSNP_all_cohorts.begin(), commonSNP_all_cohorts.end(), 
             exclude_SNP.begin(), exclude_SNP.end(), back_inserter(temp));

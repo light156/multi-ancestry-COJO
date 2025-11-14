@@ -4,7 +4,7 @@
 void MACOJO::initialize_candidate_SNP(string filename)
 {
     vector<string> temp;
-    skim_file(filename, temp, false, true, false);
+    skim_file(filename, temp, 1, false);
 
     for (const auto& SNP_name : temp) {
         auto iter = shared.goodSNP_index_map.find(SNP_name);
