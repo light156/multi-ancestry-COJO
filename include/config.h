@@ -16,6 +16,7 @@ struct HyperParams {
     double R2back_threshold = -1;
     double window_kb = 10000;
     int max_iter_num = 10000;
+    int thread_num = 1;
 
     double iter_collinear_threshold; // 1 / (1 - collinear)
     int window_size; // in bp, window_kb*1e3

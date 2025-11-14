@@ -7,13 +7,6 @@ using std::vector;
 using std::sqrt;
 
 
-struct SNPTask {
-    int ref_index;
-    bool swap;
-    vector<char> data;
-};
-
-
 class Geno 
 {
 public:
@@ -23,8 +16,10 @@ public:
     }
 
     vector<vector<uint64_t>> X_A1, X_A2;
-    vector<double> X_avg, X_center_square;
     vector<uint64_t> X_mask;
+
+    vector<double> X_avg, X_center_square;
+    vector<int> X_non_NA_indi_num;
     size_t words_per_snp;
     
     void resize(int geno_num) {
@@ -32,6 +27,7 @@ public:
         X_A2.resize(geno_num);
         X_avg.resize(geno_num);
         X_center_square.resize(geno_num);
+        X_non_NA_indi_num.assign(geno_num, -1);
     };
 
     void initialize_mask(int valid_indi_num) {
@@ -42,8 +38,8 @@ public:
             X_mask.back() = ((1ULL << (valid_indi_num % 64)) - 1ULL);
     };
 
-    int decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap);
-    int decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap, const vector<int>& keep_list);
+    void decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap);
+    void decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap, const vector<int>& keep_list);
     double calc_inner_product(size_t idx1, size_t idx2, bool remove_NA) const;
 
 private:

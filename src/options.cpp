@@ -21,7 +21,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     app.get_formatter()->column_width(75);
     app.get_formatter()->right_column_width(75);
 
-    int thread_num, cohort_num;
+    int cohort_num;
 
     // Main logic options
     string input_group = "Input Data Format Options";
@@ -63,7 +63,7 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     auto *R2_option = app.add_option("--R2", params.R2_threshold, "R2 incremental threshold (-1 for no threshold)")->default_val(-1)->group(manc_group);
     auto *R2back_option = app.add_option("--R2back", params.R2back_threshold, "R2 threshold for backward selection (-1 for no threshold)")->default_val(-1)->group(manc_group);
     auto *iter_option = app.add_option("--iter", params.max_iter_num, "Total iteration number")->default_val(10000)->check(CLI::PositiveNumber)->group(manc_group);
-    app.add_option("--thread-num", thread_num, "Number of threads to use")->default_val(1)->check(CLI::Range(1,10))->group(manc_group);
+    app.add_option("--thread-num", params.thread_num, "Number of threads to use")->default_val(1)->check(CLI::Range(1,10))->group(manc_group);
     app.add_flag("--freq-mode-and", params.if_freq_mode_and, "Use AND mode for frequency threshold across cohorts")->group(manc_group);
     app.add_flag("--MDISA", params.if_MDISA, "Run single-ancestry analysis after multi-ancestry COJO")->group(manc_group);
     app.add_flag("--output-all", params.if_output_all, "Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file")->group(manc_group);
@@ -129,8 +129,19 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     for (size_t i = 0; i < cohort_num; i++)
         cohorts.emplace_back(params, shared, i);
 
+    // set number of threads
+    #if HAS_OPENMP 
+        omp_set_num_threads(params.thread_num);
+    #else
+        if (params.thread_num > 1) {
+            LOGGER.w("OpenMP is not available, running in single-thread mode");
+            params.thread_num = 1;
+        }
+    #endif
+
     // output_user_hyperparameters
     LOGGER << "\n=========== MACOJO CONFIGURATION ===========" << endl
+            << "Thread Number: " << params.thread_num << "\n"
             << (params.if_joint_mode ? "Program Mode: Joint analysis only\n" : 
                 (params.if_cond_mode ? "Program Mode: Conditional analysis only\n" : 
                     "Program Mode: Stepwise iterative selection\nSelection method: " + params.slct_mode + "\n"))
@@ -149,13 +160,6 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
                 (params.if_freq_mode_and ? "SNP frequency mode: AND\n" : "SNP frequency mode: OR\n") : "")
             << (params.if_MDISA ? "Run MDISA after MACOJO\n" : "")
             << "===========================================" << endl << endl;
-
-    #if HAS_OPENMP
-        omp_set_num_threads(thread_num);
-    #else
-        if (thread_num > 1)
-            LOGGER.w("OpenMP is not available, running in single-threaded mode");
-    #endif
 
     return 0;
 }

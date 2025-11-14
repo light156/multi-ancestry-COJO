@@ -69,7 +69,7 @@ void Geno::build_LUT_single() {
 }
 
 
-int Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap) {
+void Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap) {
 
     // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
     const auto& L1 = swap ? LUT_A1_swap : LUT_A1;
@@ -107,18 +107,18 @@ int Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, b
         }
     }
 
-    if (not_NA_indi_num == 0) return false;
+    if (not_NA_indi_num == 0) return;
 
     double center_square = SNP_square_sum - double(SNP_sum) * SNP_sum / not_NA_indi_num;
-    if (center_square < 0.5) return false;
+    if (center_square < 0.5) return;
 
+    X_non_NA_indi_num[ref_index] = not_NA_indi_num;
     X_avg[ref_index] = double(SNP_sum) / not_NA_indi_num;
     X_center_square[ref_index] = center_square;
-    return not_NA_indi_num;
 }
 
 
-int Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap, const vector<int>& keep_list) {
+void Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap, const vector<int>& keep_list) {
 
     // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
     const auto& L1 = swap ? LUT_A1_swap_single : LUT_A1_single;
@@ -156,14 +156,14 @@ int Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, b
         }
     }
 
-    if (not_NA_indi_num == 0) return false;
+    if (not_NA_indi_num == 0) return;
 
     double center_square = SNP_square_sum - double(SNP_sum) * SNP_sum / not_NA_indi_num;
-    if (center_square < 0.5) return false;
+    if (center_square < 0.5) return;
 
+    X_non_NA_indi_num[ref_index] = not_NA_indi_num;
     X_avg[ref_index] = double(SNP_sum) / not_NA_indi_num;
     X_center_square[ref_index] = center_square;
-    return not_NA_indi_num;
 }
 
 

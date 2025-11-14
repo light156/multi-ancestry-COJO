@@ -381,39 +381,71 @@ void Cohort::read_bed()
         LOGGER.e("PLINK BED file [" + bedFile + "] not in SNP-major mode, please check");
 
     genotype.resize(shared.total_SNP_num);
+
     vector<char> buffer(bytes_per_snp);
-    int non_NA_indi_num;
+    
+    if (params.thread_num == 1) {
+        for (string SNP_buf : bim_SNP_list) {
+            Bed.read(buffer.data(), bytes_per_snp);
 
-    for (string SNP_buf : bim_SNP_list) {
-        Bed.read(buffer.data(), bytes_per_snp);
+            auto iter = shared.goodSNP_index_map.find(SNP_buf);
+            if (iter == shared.goodSNP_index_map.end()) continue;
 
-        auto iter = shared.goodSNP_index_map.find(SNP_buf);
-        if (iter == shared.goodSNP_index_map.end()) continue;
+            int ref_index = iter->second;
+            
+            if (fam_keep_list.empty())
+                genotype.decode_single_genotype(buffer, ref_index, swap_array[ref_index]);
+            else
+                genotype.decode_single_genotype(buffer, ref_index, swap_array[ref_index], fam_keep_list);
+        }
+    } else {
+        #pragma omp parallel
+        {   
+            #pragma omp single nowait
+            {   
+                for (string SNP_buf : bim_SNP_list) {
+                    Bed.read(buffer.data(), bytes_per_snp);
 
+                    auto iter = shared.goodSNP_index_map.find(SNP_buf);
+                    if (iter == shared.goodSNP_index_map.end()) continue;
+
+                    int ref_index = iter->second;
+
+                    auto local_buffer = make_shared<vector<char>>(buffer);
+
+                    // spawn decode task
+                    #pragma omp task firstprivate(ref_index, local_buffer) 
+                    {
+                        if (fam_keep_list.empty())
+                            genotype.decode_single_genotype(*local_buffer, ref_index, swap_array[ref_index]);
+                        else
+                            genotype.decode_single_genotype(*local_buffer, ref_index, swap_array[ref_index], fam_keep_list);
+                    }
+                }
+
+                #pragma omp taskwait
+            } 
+        }
+    }
+
+    double missing_threshold = valid_indi_num * (1 - params.missingness);
+
+    for (auto iter = shared.goodSNP_index_map.begin(); iter != shared.goodSNP_index_map.end(); ) {
         int ref_index = iter->second;
-        
-        if (fam_keep_list.empty())
-            non_NA_indi_num = genotype.decode_single_genotype(buffer, ref_index, swap_array[ref_index]);
-        else
-            non_NA_indi_num = genotype.decode_single_genotype(buffer, ref_index, swap_array[ref_index], fam_keep_list);
 
-        if (non_NA_indi_num == 0) {
-            // LOGGER.w("removed, all values are NA or identical in bedfile", SNP_buf);
-            shared.goodSNP_index_map.erase(SNP_buf);
+        if (genotype.X_non_NA_indi_num[ref_index] < missing_threshold) {
+            // LOGGER.w("removed, missingness too high or all values are identical in bedfile", iter->first);
+            iter = shared.goodSNP_index_map.erase(iter);
             continue;
         }
         
         if (abs(sumstat(ref_index, 3) - genotype.X_avg[ref_index]/2) > params.diff_freq) {
-            // LOGGER.w("removed, allele frequency too different between sumstat and bedfile", SNP_buf);
-            shared.goodSNP_index_map.erase(SNP_buf);
+            // LOGGER.w("removed, allele frequency too different between sumstat and bedfile", iter->first);
+            iter = shared.goodSNP_index_map.erase(iter);
             continue;
         }
 
-        if (non_NA_indi_num < valid_indi_num * (1 - params.missingness)) {
-            // LOGGER.w("removed, missingness too high in bedfile", SNP_buf);
-            shared.goodSNP_index_map.erase(SNP_buf);
-            continue;
-        }
+        iter++;
     }
 
     Bed.close();
