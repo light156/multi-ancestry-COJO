@@ -23,7 +23,7 @@ void MACOJO::initialize_candidate_SNP(string filename)
         LOGGER.e("No screened SNPs remaining, nothing for analysis and program exit!");
 
     // calculate from scratch     
-    LOGGER.i("valid SNPs provided by the user", to_string(candidate_SNP.size()));  
+    LOGGER.i("valid SNPs provided by the user", candidate_SNP.size());  
 }
 
 
@@ -126,7 +126,7 @@ void MACOJO::entry_function()
         initialize_candidate_SNP(params.cond_file);
         
         if (!check_candidate_SNP_collinearity(params.effect_size_mode)) {
-            LOGGER.i("valid SNPs after checking collinearity", to_string(candidate_SNP.size()));
+            LOGGER.i("valid SNPs after checking collinearity", candidate_SNP.size());
             params.output_name += ".warning";
         }
 
@@ -140,7 +140,7 @@ void MACOJO::entry_function()
         initialize_candidate_SNP(params.fixedSNP_file);
         
         if (!check_candidate_SNP_collinearity(params.slct_mode)) {
-            LOGGER.i("valid SNPs after checking collinearity", to_string(candidate_SNP.size()));
+            LOGGER.i("valid SNPs after checking collinearity", candidate_SNP.size());
             params.output_name += ".warning";
         }
 

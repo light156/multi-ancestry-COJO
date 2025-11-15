@@ -230,7 +230,7 @@ void MACOJO::slct_loop()
             if (res == 1 && params.slct_mode != "GCTA") {
                 for (int n : current_list) {
                     if (cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.w("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
+                        LOGGER.i("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
                         res = 0;
                         break;
                     }
@@ -348,7 +348,7 @@ void MACOJO::slct_loop()
             if (backward_success_flag && params.slct_mode != "GCTA") {
                 for (int n : current_list) {
                     if (cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.w("Backward selection failed, adjusted R2 lower than backward threshold", current_SNP_name);
+                        LOGGER.i("Backward selection failed, adjusted R2 lower than backward threshold in Cohort " + to_string(n+1));
                         backward_success_flag = false;
                     }
                 }
