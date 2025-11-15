@@ -28,19 +28,18 @@ void skim_fam(string filename, vector<string> &str_list)
 void Cohort::read_fam() 
 {   
     string famFile = params.bfile_list[cohort_index]+".fam";
-    LOGGER.i("Reading PLINK FAM file from [" + famFile + "] ...");
 
     vector<string> all_ids;
     skim_fam(famFile, all_ids);
     fam_indi_num = all_ids.size();
-    LOGGER.i("individuals in FAM file [" + famFile + "]", to_string(fam_indi_num));
+    LOGGER.i("individuals in FAM file [" + famFile + "]", fam_indi_num);
 
     if (!params.keep_file_list[cohort_index].empty()) {
         vector<string> keep_ids, temp_ids;
         skim_fam(params.keep_file_list[cohort_index], keep_ids);
         set_intersection(all_ids.begin(), all_ids.end(), keep_ids.begin(), keep_ids.end(), back_inserter(temp_ids));
         all_ids.swap(temp_ids);
-        LOGGER.i("individuals after keeping individuals", to_string(all_ids.size()));
+        LOGGER.i("individuals after keeping individuals", all_ids.size());
     }
 
     if (!params.remove_file_list[cohort_index].empty()) {
@@ -48,7 +47,7 @@ void Cohort::read_fam()
         skim_fam(params.remove_file_list[cohort_index], remove_ids);
         set_difference(all_ids.begin(), all_ids.end(), remove_ids.begin(), remove_ids.end(), back_inserter(temp_ids));
         all_ids.swap(temp_ids);
-        LOGGER.i("individuals after removing individuals", to_string(all_ids.size()));
+        LOGGER.i("individuals after removing individuals", all_ids.size());
     }
 
     if (all_ids.size() == 0)
@@ -59,7 +58,7 @@ void Cohort::read_fam()
     // nothing changed
     if (fam_indi_num == valid_indi_num) {
         genotype.initialize_mask(fam_indi_num);
-        LOGGER.i("individuals will be used for analysis", to_string(fam_indi_num));
+        LOGGER.i("individuals will be used for analysis", fam_indi_num);
         return;
     }
 
@@ -115,12 +114,12 @@ void Cohort::read_fam()
     }
     
     Fam.close();
-    LOGGER.i("individuals will be used for analysis", to_string(valid_indi_num));
+    LOGGER.i("individuals will be used for analysis", valid_indi_num);
 }
 
 
 // start from 1 for col_idx
-void skim_SNP(string filename, vector<string> &str_list, int col_idx, bool has_header)
+void skim_SNP(string filename, vector<string> &SNP_list, int col_idx, bool has_header)
 {
     ifstream sFile(filename.c_str());
     if (!sFile) LOGGER.e("Cannot open [" + filename + "] to read");
@@ -145,16 +144,14 @@ void skim_SNP(string filename, vector<string> &str_list, int col_idx, bool has_h
         // p now at start of desired column
         const char* start = pt;
         skip_token(pt);
-        str_list.emplace_back(start, pt - start);
+        SNP_list.emplace_back(start, pt - start);
     }
 
     sFile.close();
 
-    sort(str_list.begin(), str_list.end());
-    if (adjacent_find(str_list.begin(), str_list.end()) != str_list.end())
-        LOGGER.e("Duplicate SNP name in [" + filename + "], please check", *adjacent_find(str_list.begin(), str_list.end()));
-    
-    LOGGER.i("SNPs in [" + filename + "]", to_string(str_list.size()));
+    sort(SNP_list.begin(), SNP_list.end());
+    if (adjacent_find(SNP_list.begin(), SNP_list.end()) != SNP_list.end())
+        LOGGER.e("Duplicate SNP name in [" + filename + "], please check", *adjacent_find(SNP_list.begin(), SNP_list.end()));
 }
 
 
@@ -239,8 +236,8 @@ void Cohort::read_frq()
     }
 
     LOGGER.i("Reading PLINK FRQ file from [" + frqFile + "] ...");
-    string SNP_buf, A1_buf, A2_buf, str_buf, freq_buf;
-    int chr_buf;
+    string SNP_buf, A1_buf, A2_buf, str_buf;
+    int chr_buf, ref_index;
     double freq;
 
     vector<string> vs_buf;
@@ -253,14 +250,20 @@ void Cohort::read_frq()
         vs_buf[2] != "A1" || vs_buf[3] != "A2" || vs_buf[4] != "MAF" || vs_buf[5] != "NCHROBS")
         LOGGER.e("Format error in frq file, please check");
 
-    int ref_index;
+    while (getline(Frq, str_buf)) {
+        if (str_buf.empty()) continue;
 
-    while (Frq >> chr_buf >> SNP_buf >> A1_buf >> A2_buf >> freq_buf >> str_buf) {
+        const char* pt = str_buf.c_str();
+        parse_int(pt, chr_buf);
+        parse_string(pt, SNP_buf);
+        
         auto iter = fast_lookup(shared.goodSNP_table, SNP_buf);
         if (iter == shared.goodSNP_table.end()) continue;
-        
         ref_index = iter->second;
-        freq = stod(freq_buf);
+
+        parse_string(pt, A1_buf);
+        parse_string(pt, A2_buf);
+        parse_double(pt, freq);
 
         if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq;}
@@ -432,7 +435,6 @@ void Cohort::read_bed()
     }
 
     Bed.close();
-    LOGGER.i("Finished reading PLINK BED file");
 }
 
 
@@ -446,19 +448,23 @@ void Cohort::read_PLINK_LD()
     LD_matrix.resize(shared.total_SNP_num);
 
     // Read ld file
-    string SNP1_buf, SNP2_buf, r_buf;
-    int SNP1_index, SNP2_index;
+    string SNP1_buf, SNP2_buf, str_buf;
+    double r;
     
-    while (Ld >> SNP1_buf >> SNP2_buf >> r_buf) {
+    while (getline(Ld, str_buf)) {
+        if (str_buf.empty()) continue;
+        const char* pt = str_buf.c_str();
+
+        parse_string(pt, SNP1_buf);
         auto iter1 = fast_lookup(shared.goodSNP_table, SNP1_buf);
         if (iter1 == shared.goodSNP_table.end()) continue;
-        SNP1_index = iter1->second;
 
+        parse_string(pt, SNP2_buf);
         auto iter2 = fast_lookup(shared.goodSNP_table, SNP2_buf);
         if (iter2 == shared.goodSNP_table.end()) continue;
-        SNP2_index = iter2->second;
 
-        LD_matrix(SNP1_index, SNP2_index) = atof(r_buf.c_str()); 
+        parse_double(pt, r);
+        LD_matrix(iter1->second, iter2->second) = r; 
     }
 
     Ld.close();
@@ -469,7 +475,7 @@ void Cohort::read_PLINK_LD()
             for (int j = i; j < shared.total_SNP_num; j++) {
                 if (bed_swap_array[i] ^ bed_swap_array[j]) {
                     LD_matrix(i,j) = -LD_matrix(i,j);
-                    LOGGER << "swap " << i << " " << j << endl;
+                    // LOGGER << "swap " << i << " " << j << endl;
                 }
             }
         }
@@ -489,16 +495,17 @@ void MACOJO::read_input_files()
         if (common_SNP.size() == 0)
             LOGGER.e("Input extract SNP file has no SNPs", params.extract_file);
 
-        LOGGER.i("SNPs initialized by the user in [" + params.extract_file + "]", to_string(common_SNP.size()));
+        LOGGER.i("SNPs initialized by the user in [" + params.extract_file + "]\n", common_SNP.size());
     }
 
     // Step 1: get common SNPs across all cohorts
     for (int n = 0; n < cohorts.size(); n++) {
-        auto start = chrono::steady_clock::now();
+        auto start = steady_clock::now();
 
         vector<string> SNP_PLINK, SNP_sumstat, temp;
 
-        skim_SNP(params.bfile_list[n]+".bim", SNP_PLINK, 2, false);
+        skim_SNP(params.bfile_list[n]+".bim", SNP_PLINK, 2, false);    
+        LOGGER.i("SNPs in [" + params.bfile_list[n]+".bim" + "]", SNP_PLINK.size());
 
         if (n == 0 && common_SNP.size() == 0)
             common_SNP.swap(SNP_PLINK);
@@ -508,14 +515,15 @@ void MACOJO::read_input_files()
         }
 
         skim_SNP(params.cojo_file_list[n], SNP_sumstat, 1, true);
+        LOGGER.i("SNPs in [" + params.cojo_file_list[n] + "]", SNP_sumstat.size());
 
         vector<string>().swap(temp);
         set_intersection(common_SNP.begin(), common_SNP.end(), SNP_sumstat.begin(), SNP_sumstat.end(), back_inserter(temp));
         common_SNP.swap(temp);
         
-        auto end = chrono::steady_clock::now();
-        LOGGER.i("common SNPs after including Cohort " + to_string(n+1), to_string(common_SNP.size()));
-        LOGGER << "Time taken: " << chrono::duration<double>(end-start).count() << " seconds" << endl << endl;
+        auto end = steady_clock::now();
+        LOGGER.i("common SNPs after including Cohort " + to_string(n+1), common_SNP.size());
+        LOGGER << "Time taken: " << duration<double>(end-start).count() << " seconds" << endl << endl;
     }
 
     // if user provides exclude SNP file, read file and delete from common SNPs
@@ -525,14 +533,13 @@ void MACOJO::read_input_files()
 
         set_difference(common_SNP.begin(), common_SNP.end(), exclude_SNP.begin(), exclude_SNP.end(), back_inserter(temp));
         common_SNP.swap(temp);
-        LOGGER.i("common SNPs after excluding user-specified SNPs\n", to_string(common_SNP.size()));
+        LOGGER.i("common SNPs after excluding user-specified SNPs\n", common_SNP.size());
     }
 
-    if (common_SNP.size() == 0)
-        LOGGER.e("Input data has no common SNPs across all cohorts for analysis");
+    if (common_SNP.size() == 0) LOGGER.e("Input data has no common SNPs across all cohorts for analysis");
     
     // Step 2: set reference based on BIM file of cohort 1
-    auto start = chrono::steady_clock::now();
+    auto start = steady_clock::now();
 
     shared.SNP_ref = common_SNP;
     shared.total_SNP_num = common_SNP.size();
@@ -583,17 +590,16 @@ void MACOJO::read_input_files()
 
     temp_index = 0;
     for (const auto& kv : shared.goodSNP_table) temp_index += (kv.second != -1);
-    LOGGER.i("common SNPs after removing rare SNPs", to_string(temp_index));
+    LOGGER.i("common SNPs after removing rare SNPs", temp_index);
+    if (temp_index == 0) LOGGER.e("Input data has no valid SNPs for analysis");
 
-    auto end = chrono::steady_clock::now();
-    LOGGER << "Time taken: " << chrono::duration<double>(end-start).count() << " seconds" << endl << endl;
+    auto end = steady_clock::now();
+    LOGGER << "Time taken: " << duration<double>(end-start).count() << " seconds" << endl << endl;
 
-    if (temp_index == 0) LOGGER.e("Input data has no common SNPs");
-    
     // Step 4: read bim and bed files for all cohorts
     for (auto& c : cohorts) {
         // bim file of cohort 1 is reference, do not need to check allele
-        start = chrono::steady_clock::now();
+        start = steady_clock::now();
     
         if (params.if_LD_mode) {
             c.read_frq();
@@ -603,14 +609,13 @@ void MACOJO::read_input_files()
             c.read_bed();
         }
 
-        end = chrono::steady_clock::now();
-
         temp_index = 0;
         for (const auto& kv : shared.goodSNP_table) temp_index += (kv.second != -1);
-        LOGGER.i("common SNPs remaining", to_string(temp_index));
-        LOGGER << "Time taken: " << chrono::duration<double>(end-start).count() << " seconds" << endl << endl;
-
-        if (temp_index == 0) LOGGER.e("Input data has no common SNPs");
+        LOGGER.i("common SNPs remaining", temp_index);
+        if (temp_index == 0) LOGGER.e("Input data has no valid SNPs for analysis");
+        
+        end = steady_clock::now();
+        LOGGER << "Time taken: " << duration<double>(end-start).count() << " seconds" << endl << endl;
     }
 
     // Step 5: finalize SNP index lists
@@ -621,6 +626,6 @@ void MACOJO::read_input_files()
             screened_SNP.push_back(i);
     }
 
-    LOGGER.i("common SNPs at last for analysis", to_string(screened_SNP.size()));
+    LOGGER.i("common SNPs at last for analysis", screened_SNP.size());
     LOGGER << "--------------------------------" << endl << endl;
 }

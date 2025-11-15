@@ -73,7 +73,7 @@ int Cohort::calc_R_inv_from_SNP_list(const vector<int> &SNP_list, string mode)
     if (R_inv_post.cwiseAbs().diagonal().maxCoeff(&delete_index) > params.iter_collinear_threshold)
         return delete_index;
 
-    if (!calc_joint_effects(SNP_list, mode)) {
+    if (calc_joint_effects(SNP_list, mode) == -1) {
         beta_var.minCoeff(&delete_index);
         return delete_index;
     }

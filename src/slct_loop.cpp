@@ -1,17 +1,17 @@
 #include "macojo.h"
 
 
-bool Cohort::calc_R_inv_forward(int append_index)
+int Cohort::calc_R_inv_forward(int append_index)
 {   
     if (R_inv_pre.rows() == 0) {
         R_inv_post = MatrixXd::Identity(1, 1);
         R_inv_post_gcta = MatrixXd::Identity(1, 1) / sumstat(append_index, 6);
-        return true;
+        return 1;
     }
 
     RowVectorXd r_temp_row = r.row(append_index);
     RowVectorXd temp_vector = r_temp_row * R_inv_pre;
-    if (r_temp_row.dot(temp_vector) > params.collinear) return false;
+    if (r_temp_row.dot(temp_vector) > params.collinear) return 0;
 
     double temp_element = 1.0 / (1.0 - r_temp_row.dot(temp_vector));
 
@@ -22,7 +22,7 @@ bool Cohort::calc_R_inv_forward(int append_index)
     R_inv_post.bottomLeftCorner(1, dim) = -temp_element * temp_vector;
     R_inv_post(dim, dim) = temp_element;
 
-    if (R_inv_post.cwiseAbs().maxCoeff() > params.iter_collinear_threshold) return false;
+    if (R_inv_post.cwiseAbs().maxCoeff() > params.iter_collinear_threshold) return -1;
 
     if (params.slct_mode == "GCTA") {
         r_temp_row = r_gcta.row(append_index);
@@ -36,7 +36,7 @@ bool Cohort::calc_R_inv_forward(int append_index)
         R_inv_post_gcta(dim, dim) = temp_element;
     }
 
-    return true;
+    return 1;
 }
 
 
@@ -117,7 +117,7 @@ void Cohort::calc_cond_effects(const vector<int>& candidate_SNP, string mode)
 }
 
 
-bool Cohort::calc_joint_effects(const vector<int>& candidate_SNP, string mode)
+int Cohort::calc_joint_effects(const vector<int>& candidate_SNP, string mode)
 {   
     ArrayXXd sumstat_candidate = sumstat(candidate_SNP, all);
     
@@ -149,7 +149,7 @@ bool Cohort::calc_joint_effects(const vector<int>& candidate_SNP, string mode)
         R2 = 1 - sigma_J_squared * (Neff-1) / Vp / (Neff-M-1);
     }
 
-    return beta_var.minCoeff() > 1e-30;
+    return (beta_var.minCoeff() > 1e-30) ? 1 : -1;
 }
 
 
@@ -183,11 +183,11 @@ void MACOJO::slct_loop()
     double min_pC, max_pJ;
 
     string current_SNP_name;
-    bool loop_break_indicator = false, success_flag, backward_success_flag;
+    bool loop_break_indicator = false;
     int iter_num = 0;
 
     while (!loop_break_indicator && iter_num < params.max_iter_num && screened_SNP.size() > 0) {
-        auto start = chrono::steady_clock::now();
+        auto start = steady_clock::now();
 
         LOGGER << candidate_SNP.size() << " " << screened_SNP.size() << " " << collinear_SNP.size() << " " << backward_SNP.size() << endl;
         
@@ -201,9 +201,6 @@ void MACOJO::slct_loop()
         abs_zC(bad_SNP) = -1;
         
         while (true) {
-            success_flag = true;
-            backward_success_flag = true;
-
             // select minimal conditional SNP
             min_pC = erfc(abs_zC.maxCoeff(&min_pC_index) / sqrt(2));
             current_SNP_name = shared.SNP_ref[min_pC_index];
@@ -218,46 +215,40 @@ void MACOJO::slct_loop()
             // potential new candidate SNP
             candidate_SNP.push_back(min_pC_index);
 
-            // calculate R_inv and joint effects for all cohorts
-            for (int n : current_list) {
-                if (!cohorts[n].calc_R_inv_forward(min_pC_index)) {
-                    // LOGGER.w("skipped, colinearity exceeds threshold in Cohort " + to_string(n+1), current_SNP_name);
-                    success_flag = false;
-                    break;
-                }
+            // res==0: skip, res==1: success, res==-1: numerical issue, remove
+            int res; 
 
-                if (!cohorts[n].calc_joint_effects(candidate_SNP, params.slct_mode)) {
-                    LOGGER.w("skipped, joint se too small in Cohort " + to_string(n+1), current_SNP_name);
-                    success_flag = false;
-                    break;
+            for (int n : current_list) {
+                res = cohorts[n].calc_R_inv_forward(min_pC_index);
+                if (res != 1) break;
+
+                res = cohorts[n].calc_joint_effects(candidate_SNP, params.slct_mode);
+                if (res != 1) break;
+            }
+
+            // check R2 increment, which does not need to be done in gcta-COJO
+            if (res == 1 && params.slct_mode != "GCTA") {
+                for (int n : current_list) {
+                    if (cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
+                        LOGGER.w("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
+                        res = 0;
+                        break;
+                    }
                 }
             }
 
-            if (!success_flag) {
+            // numerical issue happened during R_inv or joint effect calculation, remove this SNP
+            if (res == -1) {
                 screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
                 collinear_SNP.push_back(min_pC_index);
+            }
 
+            if (res != 1) {
                 candidate_SNP.pop_back();
                 abs_zC(min_pC_index) = -1;
                 continue;
             }
 
-            // check R2 increment, which does not need to be done in gcta-COJO
-            if (params.slct_mode != "GCTA") {
-                for (int n : current_list) {
-                    if (cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.w("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
-                        success_flag = false;
-                    }
-                }
-
-                if (!success_flag) {
-                    candidate_SNP.pop_back();
-                    abs_zC(min_pC_index) = -1;
-                    continue;
-                }
-            }
-        
             // calculate joint p-value and decide whether to accept this SNP
             // must suffice for the first SNP, just avoid complicated logic
             inverse_var_meta(bJ, se2J, abs_zJ);
@@ -305,7 +296,8 @@ void MACOJO::slct_loop()
                 cohorts[n].save_temp_model();
             }
 
-            // backward selection
+            bool backward_success_flag = true;
+            
             while (true) {
                 LOGGER.i("Candidate SNP removed", shared.SNP_ref[candidate_SNP[max_pJ_index]]);
 
@@ -382,12 +374,12 @@ void MACOJO::slct_loop()
             break;
         }
 
-        auto end = chrono::steady_clock::now();
-        LOGGER << "iter " << iter_num++ << " finished, takes " 
-                << chrono::duration<double>(end-start).count() << " seconds" << endl;
+        auto end = steady_clock::now();
+        LOGGER << "iter " << iter_num++ << " finished, takes " << duration<double>(end-start).count() << " seconds" << endl;
         LOGGER << "--------------------------------" << endl;
     }
 
-    LOGGER << candidate_SNP.size() << " associated SNPs selected, and " 
-            << backward_SNP.size() << " SNPs eliminated by backward selection" << endl << endl;
+    LOGGER.i("associated SNPs selected", candidate_SNP.size());
+    LOGGER.i("SNPs eliminated by backward selection", backward_SNP.size());
+    LOGGER.i("SNPs filtered by collinearity test", collinear_SNP.size());
 }

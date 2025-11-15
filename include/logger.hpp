@@ -53,6 +53,11 @@ public:
         *this << PROMPT << head << INFO << message << endl;
     }
 
+    void i(const string& message, const int title) {
+        string head = std::to_string(title) + " ";
+        *this << PROMPT << head << INFO << message << endl;
+    }
+
     void w(const string &message, const string& title = "") {
         string head = title.empty() ? "Warning: " : (title + " ");
         *this << WARN << head << INFO << message << endl;

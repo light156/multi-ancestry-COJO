@@ -3,10 +3,9 @@
 
 int main(int argc, char** argv) 
 {    
+    auto start = steady_clock::now();
+
     LOGGER << setprecision(12);
-
-    auto start = chrono::steady_clock::now();
-
     MACOJO macojo;
 
     int code = macojo.set_read_process_output_options(argc, argv);
@@ -15,7 +14,7 @@ int main(int argc, char** argv)
     macojo.read_input_files();
     macojo.entry_function();
 
-    auto end = chrono::steady_clock::now();
+    auto end = steady_clock::now();
 
     #ifdef __linux__
         float vmem = roundf(1000.0 * getVMPeakKB() / 1024/1024) / 1000.0; 
@@ -23,7 +22,7 @@ int main(int argc, char** argv)
         LOGGER << setprecision(3) << "Peak memory: " << mem << " GB; Virtual memory: " << vmem << " GB." << endl;
     #endif
 
-    double secs = chrono::duration<double>(end-start).count();
+    double secs = duration<double>(end-start).count();
     int hours = int(secs / 3600);
     int mins = int((secs - hours * 3600) / 60);
 

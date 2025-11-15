@@ -11,7 +11,8 @@
 
 using namespace Eigen;
 using namespace std;
-
+using chrono::steady_clock;
+using chrono::duration;
 
 class Cohort 
 {    
@@ -26,12 +27,12 @@ public:
     void read_bed();
     void read_PLINK_LD();
 
-    bool calc_R_inv_forward(int append_index);
+    int calc_R_inv_forward(int append_index);
     void calc_R_inv_backward(int remove_index);
 
     void append_r(const vector<int>& SNP_list, int append_index, string mode);
     void calc_cond_effects(const vector<int>& candidate_SNP, string mode);
-    bool calc_joint_effects(const vector<int>& candidate_SNP, string mode);
+    int calc_joint_effects(const vector<int>& candidate_SNP, string mode);
     int calc_R_inv_from_SNP_list(const vector<int> &SNP_list, string mode); 
 
 // necessary information during calculation
