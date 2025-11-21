@@ -71,9 +71,8 @@ int Cohort::calc_R_inv_from_SNP_list(const vector<int>& SNP_list, string mode)
         beta_var.minCoeff(&delete_index);
         return delete_index;
     }
-
-    R_inv_pre = R_inv_post;
-    R_inv_pre_gcta = R_inv_post_gcta;
+    
+    save_temp_model();
     return -1;
 }
 
