@@ -122,34 +122,27 @@ void Cohort::calc_cond_effects(const vector<int>& candidate_SNP, string mode)
 int Cohort::calc_joint_effects(const vector<int>& candidate_SNP, string mode)
 {   
     ArrayXXd sumstat_candidate = sumstat(candidate_SNP, all);
-    
-    if (mode == "GCTA") {
-        if (candidate_SNP.size() == 1) {
-            beta = sumstat_candidate.col(0);
-            beta_var = sumstat_candidate.col(1);
-        } else {
-            beta = R_inv_post_gcta * (sumstat_candidate.col(0) * sumstat_candidate.col(6)).matrix();
-            beta_var = R_inv_post_gcta.diagonal().array() * Vp;
-        }
+    double sigma_J_squared;
+
+    if (candidate_SNP.size() == 1) {
+        beta = sumstat_candidate.col(0);
+        beta_var = sumstat_candidate.col(1);
+        sigma_J_squared = Vp - sumstat_candidate(0, 0) * sumstat_candidate(0, 0) * sumstat_candidate(0, 5);
+    } else if (mode == "GCTA") {
+        beta = R_inv_post_gcta * (sumstat_candidate.col(0) * sumstat_candidate.col(6)).matrix();
+        beta_var = R_inv_post_gcta.diagonal().array() * Vp;
+        sigma_J_squared = Vp - (sumstat_candidate.col(0) * sumstat_candidate.col(5) * beta).sum();
     } else {
-        double sigma_J_squared;
+        ArrayXd temp = R_inv_post * (sumstat_candidate.col(0) * sqrt(sumstat_candidate.col(5))).matrix();
+        beta = temp / sqrt(sumstat_candidate.col(5));
 
-        if (candidate_SNP.size() == 1) {
-            beta = sumstat_candidate.col(0);
-            beta_var = sumstat_candidate.col(1);
-            sigma_J_squared = Vp - (sumstat_candidate.col(0) * sumstat_candidate.col(5) * beta).sum();
-        } else {
-            ArrayXd temp = R_inv_post * (sumstat_candidate.col(0) * sqrt(sumstat_candidate.col(5))).matrix();
-            beta = temp / sqrt(sumstat_candidate.col(5));
-
-            sigma_J_squared = Vp - (sumstat_candidate.col(0) * sumstat_candidate.col(5) * beta).sum();
-            beta_var = sigma_J_squared * R_inv_post.diagonal().array() / sumstat_candidate.col(6);    
-        }
-
-        double Neff = median(sumstat_candidate.col(4));
-        int M = sumstat_candidate.rows();
-        R2 = 1 - sigma_J_squared * (Neff-1) / Vp / (Neff-M-1);
+        sigma_J_squared = Vp - (sumstat_candidate.col(0) * sumstat_candidate.col(5) * beta).sum();
+        beta_var = sigma_J_squared * R_inv_post.diagonal().array() / sumstat_candidate.col(6);    
     }
+
+    double Neff = median(sumstat_candidate.col(4));
+    int M = sumstat_candidate.rows();
+    R2 = 1 - sigma_J_squared * (Neff-1) / Vp / (Neff-M-1);
 
     return (beta_var.minCoeff() > 1e-30) ? 1 : -1;
 }
@@ -228,13 +221,11 @@ void MACOJO::slct_loop()
                 if (res != 1) break;
             }
 
-            // check R2 increment, which does not need to be done in gcta-COJO
-            if (res == 1 && params.slct_mode != "GCTA") {
-                for (int n : current_list) {
-                    if (cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.i("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
-                        res = 0;
-                    }
+            // check R2 increment
+            for (int n : current_list) {
+                if (res == 1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
+                    LOGGER.i("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
+                    res = 0;
                 }
             }
 
@@ -350,13 +341,11 @@ void MACOJO::slct_loop()
                 }
             } 
             
-            // check R2 increment after backward selection, which does not need to be done in gcta-COJO
-            if (backward_success_flag && params.slct_mode != "GCTA") {
-                for (int n : current_list) {
-                    if (cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
-                        LOGGER.i("Backward selection failed, adjusted R2 lower than backward threshold in Cohort " + to_string(n+1));
-                        backward_success_flag = false;
-                    }
+            // check R2 increment after backward selection
+            for (int n : current_list) {
+                if (backward_success_flag && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
+                    LOGGER.i("Backward selection failed, adjusted R2 lower than backward threshold in Cohort " + to_string(n+1));
+                    backward_success_flag = false;
                 }
             }
 

@@ -94,9 +94,6 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
 
         if ((*joint_flag || *cond_option) && (*slct_mode_option || *p_option || *fix_option || *fixSNP_option || *iter_option || *R2_option || *R2back_option || params.if_MDISA))
             throw CLI::ValidationError("--cojo-joint and --cojo-cond cannot be used with selection-related options such as --slct-mode/--cojo-p/--fix/--fix-snp/--iter/--R2/--R2back/--MDISA, because it makes no sense");
-    
-        if (params.slct_mode == "GCTA" && (*R2_option || *R2back_option))
-            throw CLI::ValidationError("--slct-mode GCTA cannot be used with --R2/--R2back, because GCTA-COJO does not check R2 increment");
     });
 
     try { 
