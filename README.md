@@ -130,7 +130,8 @@ These options and flags are functionally identical to those in the original GCTA
 
 | Option         | Description                                                    | Default          |
 | ------------------ | -------------------------------------------------------------- | ---------------- |
-| `--cojo-file`      | GWAS summary statistics file for each cohort                   | `Required`       |
+| `--cojo-file`      | GWAS summary statistics file for each cohort<br>
+Must be in GCTA-COJO format, with a header of `SNP A1 A2 freq b se p N`    | `Required`       |
 | `--out`            | Output file path prefix                                        | `Required`       |
 | `--cojo-wind`      | SNP position window in Kb (`-1` disables windowing)            | `10000` (±1e7)   |
 | `--cojo-p`         | Significance threshold for SNP selection                       | `5e-8`           |

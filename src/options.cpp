@@ -36,11 +36,11 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
 
     // options same as GCTA-COJO
     string cojo_group = "Original GCTA COJO Options/Flags";
+    app.add_option("--cojo-file", params.cojo_file_list, "GWAS summary statistics file for each cohort (GCTA-COJO format)")->required()->group(cojo_group);
     app.add_option("--out", params.output_name, "Output file path")->required()->group(cojo_group);
     auto *slct_flag = app.add_flag("--cojo-slct", "Stepwise iterative selection of independently associated SNPs")->group(cojo_group);
     auto *joint_flag = app.add_flag("--cojo-joint", "Only calculate joint effect for provided SNPs and exit")->group(cojo_group);
     auto *cond_option = app.add_option("--cojo-cond", params.cond_file, "Only calculate conditional effect for provided SNPs and exit")->group(cojo_group);
-    app.add_option("--cojo-file", params.cojo_file_list, "GWAS summary-level statistics file for each cohort")->required()->group(cojo_group);
     app.add_option("--cojo-wind", params.window_kb, "SNP position window in Kb (-1 for no windows)")->default_val(10000)->group(cojo_group);
     auto *p_option = app.add_option("--cojo-p", params.p, "Significance threshold for SNP selection")->default_val(5e-8)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
     app.add_option("--cojo-collinear", params.collinear, "Colinearity threshold (0-0.9999)")->default_val(0.9)->check(CLI::Range(0.0, 0.9999))->group(cojo_group);

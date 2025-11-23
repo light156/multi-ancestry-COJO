@@ -212,7 +212,7 @@ void Cohort::read_sumstat()
     while (iss >> token) vs_buf.push_back(token);
     if (vs_buf.size() != 8 || vs_buf[0] != "SNP" || vs_buf[1] != "A1" || vs_buf[2] != "A2" ||
         vs_buf[3] != "freq" || vs_buf[4] != "b" || vs_buf[5] != "se" || vs_buf[6] != "p" || vs_buf[7] != "N")
-        LOGGER.e("Format error in sumstat file, please check");
+        LOGGER.e("Sumstat file should be in GCTA-COJO format, with a header like: SNP A1 A2 freq b se p N");
     
     int ref_index;
     vector<double> Vp_gcta_list;
