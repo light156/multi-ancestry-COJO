@@ -188,11 +188,12 @@ void skim_SNP(string filename, int col_idx, bool has_header, vector<string>& SNP
 
     sFile.close();
 
+    sort(SNP_list.begin(), SNP_list.end());
+    
     // remove entries with "."
     auto iter = remove(SNP_list.begin(), SNP_list.end(), ".");
     SNP_list.erase(iter, SNP_list.end());
 
-    sort(SNP_list.begin(), SNP_list.end());
     if (adjacent_find(SNP_list.begin(), SNP_list.end()) != SNP_list.end())
         LOGGER.e("Duplicate SNP name in [" + filename + "], please check", *adjacent_find(SNP_list.begin(), SNP_list.end()));
 }
