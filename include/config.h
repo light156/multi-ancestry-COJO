@@ -22,6 +22,7 @@ struct HyperParams {
 
     double iter_collinear_threshold; // 1 / (1 - collinear)
     int window_size; // in bp, window_kb*1e3
+    int chromosome;
 
     string slct_mode, effect_size_mode; // "GCTA", "removeNA", "imputeNA"
 

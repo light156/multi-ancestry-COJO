@@ -55,7 +55,8 @@ int MACOJO::set_read_process_output_options(int argc, char** argv)
     app.add_option("--exclude-snp", params.exclude_SNPs, "A list of SNPs to be excluded")->group(data_group);
     auto *keep_option = app.add_option("--keep", params.keep_file_list, "File path of individuals to be included")->group(data_group);
     auto *remove_option = app.add_option("--remove", params.remove_file_list, "File path of individuals to be excluded")->group(data_group);
-    
+    app.add_option("--chr", params.chromosome, "Only include SNPs on a specific chromosome")->group(data_group);
+
     // multi-cohort specific options
     string manc_group = "Other Manc-COJO Options/Flags";
     auto *fix_option = app.add_option("--fix", params.fix_file, "File path of fixed SNPs for iterative selection")->group(manc_group);

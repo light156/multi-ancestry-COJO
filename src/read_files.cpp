@@ -188,6 +188,10 @@ void skim_SNP(string filename, int col_idx, bool has_header, vector<string>& SNP
 
     sFile.close();
 
+    // remove entries with "."
+    auto iter = remove(SNP_list.begin(), SNP_list.end(), ".");
+    SNP_list.erase(iter, SNP_list.end());
+
     sort(SNP_list.begin(), SNP_list.end());
     if (adjacent_find(SNP_list.begin(), SNP_list.end()) != SNP_list.end())
         LOGGER.e("Duplicate SNP name in [" + filename + "], please check", *adjacent_find(SNP_list.begin(), SNP_list.end()));
@@ -210,9 +214,10 @@ void Cohort::read_sumstat()
     istringstream iss(str_buf);
     string token;
     while (iss >> token) vs_buf.push_back(token);
-    if (vs_buf.size() != 8 || vs_buf[0] != "SNP" || vs_buf[1] != "A1" || vs_buf[2] != "A2" ||
+    if (vs_buf.size() < 8 || vs_buf[0] != "SNP" || vs_buf[1] != "A1" || vs_buf[2] != "A2" ||
         vs_buf[3] != "freq" || vs_buf[4] != "b" || vs_buf[5] != "se" || vs_buf[6] != "p" || vs_buf[7] != "N")
-        LOGGER.e("Sumstat file should be in GCTA-COJO format, with a header like: SNP A1 A2 freq b se p N");
+        LOGGER.e("Sumstat file should be in GCTA-COJO format, with a header like: SNP A1 A2 freq b se p N,"
+                 "and the first 8 columns should be in this order");
     
     int ref_index;
     vector<double> Vp_gcta_list;
@@ -285,7 +290,7 @@ void Cohort::read_frq()
     istringstream iss(str_buf);
     string token;
     while (iss >> token) vs_buf.push_back(token);
-    if (vs_buf.size() != 6 || vs_buf[0] != "CHR" || vs_buf[1] != "SNP" || 
+    if (vs_buf.size() < 6 || vs_buf[0] != "CHR" || vs_buf[1] != "SNP" || 
         vs_buf[2] != "A1" || vs_buf[3] != "A2" || vs_buf[4] != "MAF" || vs_buf[5] != "NCHROBS")
         LOGGER.e("Format error in frq file, please check");
 
