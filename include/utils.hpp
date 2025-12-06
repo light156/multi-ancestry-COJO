@@ -111,12 +111,12 @@ inline double median(const Eigen::ArrayXd &eigen_vector)
 
 
 inline void skip_delim(const char*& pt) {
-    while (*pt && (*pt == ' ' || *pt == '\t')) pt++;
+    while (*pt && (*pt == ' ' || *pt == '\t' || *pt == '\r')) pt++;
 }
 
 
 inline void skip_token(const char*& pt) {
-    while (*pt && *pt != ' ' && *pt != '\t') pt++;
+    while (*pt && *pt != ' ' && *pt != '\t' && *pt != '\r') pt++;
 }
 
 
@@ -140,16 +140,8 @@ inline void parse_string(const char*& pt, string& out, bool to_upper=false)
 }
 
 
-inline void parse_int(const char*& pt, int& out) {
-    skip_delim(pt);
-    const char* start = pt;
-
-    skip_token(pt);
-    fast_float::from_chars(start, pt, out);
-}
-
-
-inline bool parse_double(const char*& pt, double& out) {
+template<typename T>
+inline bool parse_num(const char*& pt, T& out) {
     skip_delim(pt);
     const char* start = pt;
 

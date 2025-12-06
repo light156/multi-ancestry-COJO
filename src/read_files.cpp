@@ -236,7 +236,7 @@ void Cohort::read_sumstat()
 
         auto iter = fast_lookup(shared.goodSNP_table, SNP_buf);
 
-        if (!parse_double(pt, freq) || !parse_double(pt, b) || !parse_double(pt, se) || !parse_double(pt, p) || !parse_double(pt, N)) { 
+        if (!parse_num(pt, freq) || !parse_num(pt, b) || !parse_num(pt, se) || !parse_num(pt, p) || !parse_num(pt, N) || N < 10) { 
             if (iter != shared.goodSNP_table.end()) {
                 LOGGER.w("removed, invalid value in sumstat file", iter->first);
                 iter->second = -1;
@@ -299,7 +299,7 @@ void Cohort::read_frq()
         if (str_buf.empty()) continue;
 
         const char* pt = str_buf.c_str();
-        parse_int(pt, chr_buf);
+        parse_num(pt, chr_buf);
         parse_string(pt, SNP_buf);
         
         auto iter = fast_lookup(shared.goodSNP_table, SNP_buf);
@@ -308,7 +308,7 @@ void Cohort::read_frq()
 
         parse_string(pt, A1_buf);
         parse_string(pt, A2_buf);
-        parse_double(pt, freq);
+        parse_num(pt, freq);
 
         if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq;}
@@ -351,7 +351,7 @@ void Cohort::read_bim()
         if (str_buf.empty()) continue;
 
         const char* pt = str_buf.c_str();
-        parse_int(pt, chr_buf);
+        parse_num(pt, chr_buf);
         parse_string(pt, SNP_buf);
         bim_SNP_array.push_back(SNP_buf);
 
@@ -362,7 +362,7 @@ void Cohort::read_bim()
         // skip cm position
         skip_delim(pt);
         skip_token(pt);
-        parse_int(pt, ibuf);
+        parse_num(pt, ibuf);
         parse_string(pt, A1_buf, true);
         parse_string(pt, A2_buf, true);
 
@@ -510,7 +510,7 @@ void Cohort::read_PLINK_LD()
         auto iter2 = fast_lookup(shared.goodSNP_table, SNP2_buf);
         if (iter2 == shared.goodSNP_table.end()) continue;
 
-        parse_double(pt, r);
+        parse_num(pt, r);
         LD_matrix(iter1->second, iter2->second) = r; 
     }
 
