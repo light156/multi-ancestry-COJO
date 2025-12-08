@@ -150,6 +150,9 @@ int set_read_process_output_options(int argc, char** argv)
         params.chr_list.swap(temp);
     }
 
+    if (params.chr_list.size() == 0)
+        LOGGER.e("No common chromosome found across all cohorts");
+
     if (params.curr_chr != -1) {
         if (find(params.chr_list.begin(), params.chr_list.end(), params.curr_chr) == params.chr_list.end()) {
             LOGGER.i("User specified chromosome " + to_string(params.curr_chr) + " with --chr option");
