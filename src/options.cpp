@@ -113,7 +113,7 @@ int set_read_process_output_options(int argc, char** argv)
     params.if_cond_mode = cond_option->count() > 0;
     params.if_LD_mode = ld->count() > 0;
 
-    params.window_size = (params.window_kb < 0 ? INT_MAX : params.window_kb * 1000);
+    params.window_size = (params.window_kb < 0 ? LLONG_MAX : params.window_kb * 1000);
     params.iter_collinear_threshold = 1.0 / (1.0 - params.collinear);
     LOGGER.open(params.output_name + ".log");
 
@@ -171,16 +171,29 @@ int set_read_process_output_options(int argc, char** argv)
 
     // output_user_hyperparameters
     LOGGER << "\n=========== MACOJO CONFIGURATION ===========" << endl
-            << "Thread Number: " << params.thread_num << "\n"
-            << (params.if_joint_mode ? "Program Mode: Joint analysis only\n" : 
-                (params.if_cond_mode ? "Program Mode: Conditional analysis only\n" : 
-                    "Program Mode: Stepwise iterative selection\nSelection method: " + params.slct_mode + "\n"))
-            << "Effect size estimation method: " << params.effect_size_mode << "\n"
-            << (params.if_LD_mode ? "Input format: PLINK .ld files\n" : "Input format: PLINK .bed files\n")
-            << "\n"
-            << "p-value Threshold: " << params.p << endl
+            << "Thread Number: " << params.thread_num << endl;
+
+    if (params.if_joint_mode)
+        LOGGER << "Program Mode: Joint analysis only" << endl;
+    else if (params.if_cond_mode)
+        LOGGER << "Program Mode: Conditional analysis only" << endl;
+    else
+        LOGGER << "Program Mode: Stepwise iterative selection" << endl 
+                << "Selection method: " + params.slct_mode << endl
+                << "Effect size estimation method: " << params.effect_size_mode << endl;
+    
+    if (params.if_LD_mode)
+        LOGGER << "Input format: PLINK .ld files" << endl << endl;
+    else
+        LOGGER << "Input format: PLINK .bed files" << endl << endl;
+
+    if (params.window_kb < 0)
+        LOGGER << "No SNP position window applied" << endl;
+    else
+        LOGGER << "SNP position window (+/-): " << params.window_kb << " Kb" << endl;
+
+    LOGGER << "p-value Threshold: " << params.p << endl
             << "Collinearity threshold: " << params.collinear << endl
-            << "SNP position window (+/-): " << params.window_kb << "Kb" << endl
             << "Sumstat Minor Allele Frequency threshold: " << params.maf << endl
             // << "Genotype Missingness threshold: " << params.missingness << endl
             << "Frequency difference threshold between sumstat and PLINK: " << params.diff_freq << endl
