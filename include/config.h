@@ -22,7 +22,7 @@ struct HyperParams {
     int thread_num = 1;
 
     double iter_collinear_threshold; // 1 / (1 - collinear)
-    int window_size; // in bp, window_kb*1e3
+    double window_size; // in bp, window_kb*1e3
 
     vector<int> chr_list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22};
     int curr_chr = -1;
