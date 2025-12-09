@@ -10,15 +10,15 @@ In terms of memory usage, you can approximate the memory footprint using the for
 
 ## Installation
 
-You can clone this repo or directly download the executable `manc_cojo` for immediate use on 64-bit Intel Linux.  
-If it doesn’t run immediately, make sure it has execution permission:
+Just download the executable `manc_cojo` for immediate use on 64-bit Linux system [Click here](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo). 
+
+Make sure it has execution permission by running
 
 ```bash
 chmod +x manc_cojo
 ```
-You may also build the program by yourself by following [the steps below](#Building-from-Source) (which is quite simple).
 
-After building or downloading the executable, you can confirm it runs correctly by checking its usage information, which prints the available options and a brief description of each.
+You can confirm it runs correctly by checking its usage information, which prints the available options and a brief description of each.
 
 ```bash
 ./manc_cojo --help
@@ -29,181 +29,25 @@ Our program mainly targets **Linux** servers, but we also include ready-to-use e
 If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
 ---
-## Usage && Tips
+## Usage
 
-The usage is largely consistent with the original GCTA COJO, while extended to handle **multiple cohorts** and **PLINK LD matrix inputs**,
-Specifically,
-1. We extend `--bfile` `--cojo-file` `--keep` `--remove` to multiple cohorts. 
-- Paths must be correctly paired across cohorts.
-- Both combined-chromosome bfiles (chromosomes 1–22 together) and per-chromosome bfiles are accepted.
-- Only chromosomes 1–22 are currently supported.
-2. We support PLINK LD matrix inputs through the option `--ld` (as an alternative to ``--bfile``).
-- For using genotype data `--bfile`, please provide `.bim .bed .fam` files.
-- For using LD matrix `--ld`, please provide `.bim .ld` files. To filter out SNPs with large MAF differences, please provide `.frq` files as well.
-3. We provide implementations of three algorithms for both stepwise selection (`--slct-mode`) and effect size estimation (`--effect-size-mode`): `GCTA`, `imputeNA`, and `removeNA`. In both cases, the default option is `GCTA` (original GCTA model). 
-  Please refer to our paper for detailed algorithm descriptions.
+The usage is largely consistent with the original GCTA COJO, while extended to handle **multiple cohorts** and **PLINK LD matrix inputs**.
 
-Nevertheless, there are a couple of minor differences:
-1. The program does **not** output `.cma.cojo` and `.ldr.cojo` by default, as they can be very large. If you need all possible outputs, use `--output-all`.
-2. We output both `A1` and `A2` for each SNP. `A1` corresponds to `refA` in the original GCTA output.
-3. When collinearity issues arise during the calculation of conditional or joint effects (for example, when using `--cojo-cond` or `--cojo-joint`), the original GCTA program simply terminates without producing output. Our program, in contrast, iteratively removes the most problematic SNPs until the collinearity issue is resolved. 
-- Details about removed SNPs are recorded in the `.log` files. 
-- The same logic also applies when iterative selection starts from a fixed set of SNPs (`--fix` or `--fix-snp`).
-
-Some Tips:
-1. For `--cojo-joint`, please be aware that if you do not provide a list of SNPs using `--extract`, the program will calculate joint effects for all SNPs, which may cause the run to fail due to memory or computational limits.
-2. For `--cojo-cond`, `--extract`, `--exclude`, and `--fix`, please provide either a file containing a list of SNPs (one per line) or a file where the first column contains the SNP IDs.
-
-##  Example Commands
-For example, to reproduce the **same results** as the original GCTA-COJO for a single cohort, simply replace the path to the GCTA executable with ours:
+For COJO analysis on a single cohort (**same as original GCTA-COJO**), simply replace the path to the GCTA executable with ours:
 
 ```bash
 ./manc_cojo --bfile path --cojo-file GWAS_sumstat_path --out Output_path_name --cojo-slct
 ```
 
-If you prefer to use PLINK LD matrix inputs, replace `--bfile` with `--ld`:
-
-```bash
-./manc_cojo --ld path --cojo-file GWAS_sumstat_path --out Output_path_name --cojo-slct
-```
-
-For calculating joint effects of given SNPs on a single cohort using original GCTA-COJO model (`--cojo-collinear 0.99` and `--diff-freq 1` for trying to include all given SNPs):
-
-```bash
-./manc_cojo --bfile path --cojo-file GWAS_sumstat_path --out Output_path_name \
---cojo-collinear 0.99 \
---diff-freq 1 \
---cojo-joint \
---extract given_SNP_path 
-```
-
-For two cohorts, if you want to keep certain individuals in cohort 1 but remove some in cohort 2, start from a list of fixed SNPs for iterative selection, and output all `.cma.cojo`, `.jma.cojo` and `.ldr.cojo` files, use:
-
-```bash
-./manc_cojo \
---bfile path1 path2 \
---cojo-file GWAS_sumstat_path1 GWAS_sumstat_path2 \
---keep list1.fam "" \
---remove "" list2.fam \
---fix SNPlist.txt \
---out Output_path_name \
---cojo-slct \
---output-all
-```
-
-For multiple cohorts, if you want to remove genotype NAs when calculating SNP correlations, exclude two SNPs, fix three SNPs for iterative selection, and use 5 threads for computation, use:
+For COJO analysis on multiple cohorts, just append the bfile and sumstat file paths and make sure they are paired:
 
 ```bash
 ./manc_cojo \
 --bfile path1 path2 ... pathN \
 --cojo-file GWAS_sumstat_path1 GWAS_sumstat_path2 ... GWAS_sumstat_pathN \
 --out Output_path_name \
---cojo-slct \
---slct-mode removeNA \
---exclude-snp rs10001 rs10002 \
---fix-snp rs10003 rs10004 rs10005 \
---thread-num 5
+--cojo-slct 
 ```
-
----
-## Supported Command-line Options
-
-### Input Data Format Options (exactly one required)
-
-| Option      | Description                                                        |
-| ----------- | ------------------------------------------------------------------ |
-| `--bfile`   | PLINK binary file prefix for each cohort `.bim .bed .fam`    |
-| `--ld`      | PLINK LD file prefix for each cohort `.bim .ld (.frq)`       |
-
-### Algorithm options
-
-| Option | Allowed Values | Default | Description |
-| ------- | --------------- | -------- | ------------ |
-| `--slct-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Iterative SNP selection method |
-| `--effect-size-mode` | `GCTA`, `removeNA`, `imputeNA` | `GCTA` | Effect size estimation method |
-
-### Original GCTA Options
-
-These options and flags are functionally identical to those in the original GCTA. You can find more detailed definitions at [https://yanglab.westlake.edu.cn/software/gcta](https://yanglab.westlake.edu.cn/software/gcta).
-
-| Program mode    | Type     | Description (exactly one of these three is required)          |
-| --------------- | -------- | ------------------------------------------------------------- |
-| `--cojo-slct`   | *flag*   | Stepwise iterative selection of independently associated SNPs |
-| `--cojo-joint`  | *flag*   | Calculate joint effects for provided SNPs and exit            |
-| `--cojo-cond`   | *option* | Calculate conditional effects for provided SNPs and exit<br> Must provide a file with a list of SNPs |
-
-| Option         | Description                                                    | Default          |
-| ------------------ | -------------------------------------------------------------- | ---------------- |
-| `--cojo-file`      | GWAS summary statistics file for each cohort in GCTA-COJO format<br>(Header `SNP A1 A2 freq b se p N`)    | `Required`       |
-| `--out`            | Output file path prefix                                        | `Required`       |
-| `--cojo-wind`      | SNP position window in Kb (`-1` disables windowing)            | `10000` (±1e7)   |
-| `--cojo-p`         | Significance threshold for SNP selection                       | `5e-8`           |
-| `--cojo-collinear` | Colinearity threshold for SNP inclusion (`0–0.999`)            | `0.9`            |
-| `--diff-freq`      | Frequency diff threshold between sumstat and PLINK (`0-1`)     | `0.2`            |
-| `--maf`            | Minor allele frequency threshold (`1e-5-0.5`)                  | `0.01`           |
-| `--extract`        | File path of SNPs to be included                               |                  |
-| `--exclude`        | File path of SNPs to be excluded                               |                  |
-| `--extract-snp`    | A list of SNPs to be included                                  |                  |
-| `--exclude-snp`    | A list of SNPs to be excluded                                  |                  |
-| `--keep`           | File path of individuals to be included                        |                  |
-| `--remove`         | File path of individuals to be excluded                        |                  |
-| `--chr`            | Only include SNPs on a specific chromosome (`1-22`)            |                  |
-| `--thread-num`     | Number of threads to use     | `1`           |
-
-### Multi-ancestry COJO Options/Flags
-
-| Option         | Description                                                      | Default       |
-| -------------- | ---------------------------------------------------------------- | ------------- |
-| `--fix`        | File path for fixed SNPs (non-removable in selection)            |               |
-| `--fix-snp`    | A list of fixed SNPs (non-removable in selection)                |               |
-| `--R2`         | R² threshold for forward selection                               | `-1` (none)   |
-| `--R2back`     | R² threshold for backward selection                              | `-1` (none)   |
-| `--iter`       | Maximum number of iterations                                     | `10000`       |
-
-| Flag         | Description                                                       |
-| ------------ | ----------------------------------------------------------------- |
-| `--freq-mode-and`  | Only keep SNPs that reach MAF threshold in sumstat of all cohorts<br>By default, keep SNPs that reach threshold in at least one cohort |
-| `--MDISA`    | Run single-ancestry analysis after multi-ancestry COJO<br> By default, only run COJO selection on multiple cohorts and exit |
-| `--output-all`     | Save all .cma.cojo, .jma.cojo and .ldr.cojo results to file    |
-
----
-
-## Building from Source
-
-If you’d like the fastest performance or plan to modify the code, please clone the repository and build it yourself from the command line. Below are simple example commands for **Linux** and **macOS**.
-
-> **Requirements**
-> - A C++11-compatible compiler (`GCC ≥ 4.8.1` or `Clang ≥ 3.3`)
-> - Optional: OpenMP for multithreading (default on Linux; not included with Apple Clang)
-
-### Linux
-
-```bash
-git clone https://github.com/light156/multi-ancestry-COJO.git
-cd multi-ancestry-COJO
-
-g++ -std=c++11 -O3 -march=native -DNDEBUG -fopenmp -pthread \
-    -I include -I external -I external/Eigen src/*.cpp -o manc_cojo
-```
-
-### macOS
-macOS’s default compiler (Apple Clang) does not include OpenMP support. Although you can install LLVM via Homebrew for full OpenMP functionality, using one thread is already fast enough as shown above.
-So it is fine to just build a single-threaded version for simplicity:
-
-```bash
-git clone https://github.com/light156/multi-ancestry-COJO.git
-cd multi-ancestry-COJO
-
-clang++ -std=c++11 -O3 -march=native -DNDEBUG \
-    -I include -I external -I external/Eigen src/*.cpp -o manc_cojo
-```
-
-### Windows
-Since large computing clusters primarily run on Linux, we do not specifically target Windows.
-However, if there is a real need to run on Windows, you can install [mingw-w64](https://www.msys2.org/) by following the official guide.
-After successful installation, you can compile the source code with GCC using the same commands as on Linux to obtain the executable file.
-
-> Precompiled binaries for Linux, macOS, and Windows are all available in our GitHub repository.
 
 ---
 ## License and Acknowledgments
