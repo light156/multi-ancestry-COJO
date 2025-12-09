@@ -25,8 +25,6 @@ You can confirm by checking its usage information, which prints the available op
 ./manc_cojo --help
 ```
 
-Our program mainly targets **Linux** servers, but we also include ready-to-use executables for **macOS** and **Windows** in the `bin_macOS_win` folder. They were compiled and tested on macOS 15.3.2 and Windows 11.
-
 If you run into compatibility issues on any system, feel free to reach out and we are very happy to help.
 
 ---
