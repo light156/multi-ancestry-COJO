@@ -18,7 +18,7 @@ Make sure it has execution permission by running
 chmod +x manc_cojo
 ```
 
-You can confirm it is running by checking its usage information, which prints the available options and their brief description:
+You can confirm it is running by checking its usage information and available options:
 
 ```bash
 ./manc_cojo --help
