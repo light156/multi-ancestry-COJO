@@ -10,9 +10,9 @@ In terms of memory usage, you can approximate the memory footprint using the for
 
 ## Installation
 
-### [Download link here](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo)
+### [Download link (64-bit Linux systems)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo)
 
-Directly download the executable `manc_cojo` for 64-bit Linux systems, and it is ready to run as it is.
+Directly download the executable `manc_cojo` by clicking the above link, and it is ready to run as it is.
 Make sure it has execution permission by running
 
 ```bash
