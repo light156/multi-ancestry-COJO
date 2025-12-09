@@ -11,13 +11,14 @@ For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the runni
 ### [Download link (64-bit Linux systems)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo)
 
 Directly download the executable `manc_cojo` by clicking the above link, and it is ready to run as it is.
+
 Make sure it has execution permission by running
 
 ```bash
 chmod +x manc_cojo
 ```
 
-You can confirm by checking its usage information, which prints the available options and a brief description of each, by running:
+You can confirm it is running by checking its usage information, which prints the available options and their brief description:
 
 ```bash
 ./manc_cojo --help
