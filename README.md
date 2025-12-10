@@ -1,6 +1,6 @@
 # Manc-COJO (Multi-ancestry Conditional and Joint Analysis)
 
-**Manc-COJO** is a tool for multi-ancestry conditional and joint analysis (COJO) of GWAS summary statistics.
+**Manc-COJO** is a software tool for multi-ancestry conditional and joint analysis (COJO) of GWAS summary statistics.
 Note that our program can also perform single-ancestry COJO and reproduce the result of [original GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), but runs much faster.
 
 For example, for HDL trait on ~6,500,000 SNPs and ~76,000 individuals, the running time per chromosome for our program using 1 thread, and GCTA using 5 threads, is as follows. 
