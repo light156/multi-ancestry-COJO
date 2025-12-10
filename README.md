@@ -30,13 +30,16 @@ If you run into compatibility issues on any system, feel free to reach out and w
 
 The usage is largely consistent with the original GCTA COJO, while extended to handle **multiple cohorts** and **PLINK LD matrix inputs**.
 
-For COJO analysis on a single cohort (**same as original GCTA-COJO**), simply replace the path to the GCTA executable with ours:
+### Single cohort (same as [GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO))
 
 ```bash
 ./manc_cojo --bfile path --cojo-file GWAS_sumstat_path --out Output_path_name --cojo-slct
 ```
+In most cases, just replace the path to the GCTA executable with ours.
 
-For COJO analysis on multiple cohorts, just append the bfile and sumstat file paths and make sure they are paired:
+### Multiple cohorts
+
+Append the filepaths to the `--bfile` and ``--cojo-file`` options, and please make sure they are paired in sequence:
 
 ```bash
 ./manc_cojo \
