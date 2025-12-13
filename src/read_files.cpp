@@ -237,7 +237,21 @@ void Cohort::read_sumstat()
 
         auto iter = fast_lookup(shared.goodSNP_table, SNP_buf);
 
-        if (!parse_num(pt, freq) || !parse_num(pt, b) || !parse_num(pt, se) || !parse_num(pt, p) || !parse_num(pt, N) || N < 10) { 
+        if (!parse_num(pt, freq)) { 
+            if (iter != shared.goodSNP_table.end()) {
+                LOGGER.w("removed, invalid value in sumstat file", iter->first);
+                iter->second = -1;
+            }
+            continue;
+        } 
+
+        if (freq <= 0 || freq >= 1) { 
+            if (iter != shared.goodSNP_table.end()) iter->second = -1;
+            Vp_gcta_list.push_back(0);
+            continue;
+        } 
+
+        if (!parse_num(pt, b) || !parse_num(pt, se) || !parse_num(pt, p) || !parse_num(pt, N)) {
             if (iter != shared.goodSNP_table.end()) {
                 LOGGER.w("removed, invalid value in sumstat file", iter->first);
                 iter->second = -1;
