@@ -49,7 +49,7 @@ int set_read_process_output_options(int argc, char** argv)
     app.add_option("--maf", params.maf, "Minor Allele Frequency threshold")->default_val(0.01)->check(CLI::Range(0.0, 0.5))->group(cojo_group);
     
     string data_group = "Original GCTA Data Options";
-    app.add_option("--geno", params.missingness, "Missingness threshold in PLINK .bed files (-1 for no threshold)")->default_val(1.0)->check(CLI::Range(0.0, 1.0))->group("");
+    app.add_option("--geno", params.missingness, "Missingness threshold in PLINK .bed files (1 for no threshold)")->default_val(1.0)->check(CLI::Range(0.0, 1.0))->group("");
     app.add_option("--extract", params.extract_options, "File path of SNPs to be included")->group(data_group);
     app.add_option("--exclude", params.exclude_options, "File path of SNPs to be excluded")->group(data_group);
     app.add_option("--extract-snp", params.extract_SNPs, "A list of SNPs to be included")->group(data_group);
