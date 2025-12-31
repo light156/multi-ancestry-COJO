@@ -1,4 +1,4 @@
-#include "macojo.h"
+#include "include/macojo.h"
 
 
 int main(int argc, char** argv) 
@@ -26,19 +26,6 @@ int main(int argc, char** argv)
         LOGGER.i("===========================================\n");
     }
     
-    if (params.if_output_all && bad_SNP_reason.size() > 0) {
-        string badSNPfile = params.output_name + ".badsnps";
-        ofstream badSNPout(badSNPfile);
-        if (!badSNPout) LOGGER.e("Cannot open the file [" + badSNPfile + "] to write");
-
-        badSNPout << "SNP\tReason\n";
-        for (const auto& kv : bad_SNP_reason)
-            badSNPout << kv.first << "\t" << kv.second << "\n";
-
-        badSNPout.close();
-        LOGGER.i("List of bad SNPs saved into [" + badSNPfile + "]");
-    }
-
     auto end = steady_clock::now();
 
     #ifdef __linux__

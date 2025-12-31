@@ -1,76 +1,4 @@
-#include "macojo.h"
-
-
-void skim_SNP(const vector<string>& options, vector<string>& SNP_list)
-{   
-    if (!options.empty()) 
-    {
-        string filename = options[0];
-        int col_idx = 1;
-        bool has_header = false;
-
-        vector<string> options_copy = options;
-        options_copy.erase(options_copy.begin()); // remove filename
-
-        if (find(options_copy.begin(), options_copy.end(), "header") != options_copy.end()) {
-            has_header = true;
-            options_copy.erase(find(options_copy.begin(), options_copy.end(), "header"));
-        }
-
-        if (options_copy.size() > 1) LOGGER.e("Invalid format for providing SNP file");
-        
-        if (!options_copy.empty()) {
-            const char* pt = options_copy[0].c_str();
-            if (!parse_num(pt, col_idx) || col_idx < 1) 
-                LOGGER.e("Invalid column number, should be an integer starting from 1", filename);
-        } 
-
-        col_idx -= 1; // convert to 0-based index
-
-        ifstream sFile(filename.c_str());
-        if (!sFile) LOGGER.e("Cannot open [" + filename + "] to read");
-
-        string str_buf;
-        if (has_header) getline(sFile, str_buf); // skip header line
-
-        while (getline(sFile, str_buf)) {
-            if (str_buf.empty()) continue;
-
-            const char* pt = str_buf.c_str();
-            
-            // iterate to column col_idx
-            int col = 0;
-            while (col < col_idx) {
-                skip_delim(pt);
-                skip_token(pt);
-                if (!*pt) LOGGER.e("Requested column exceeds the total number of columns", filename);
-                col++;
-            }
-
-            skip_delim(pt);
-
-            // p now at start of desired column
-            const char* start = pt;
-            skip_token(pt);
-            SNP_list.emplace_back(start, pt - start);
-        }
-
-        sFile.close();
-    }
-
-    sort(SNP_list.begin(), SNP_list.end());
-
-    for (int i = 1; i < SNP_list.size(); i++) {
-        if (SNP_list[i] == SNP_list[i-1]) {
-            LOGGER.w("Duplicate SNP found", SNP_list[i]);
-            while (i+1 < SNP_list.size() && SNP_list[i+1] == SNP_list[i]) i++; // skip long runs of the same duplicate
-        }
-    }
-
-    SNP_list.erase(unique(SNP_list.begin(), SNP_list.end()), SNP_list.end());
-    SNP_list.erase(remove(SNP_list.begin(), SNP_list.end(), ""), SNP_list.end());
-    SNP_list.erase(remove(SNP_list.begin(), SNP_list.end(), "."), SNP_list.end());
-}
+#include "include/macojo.h"
 
 
 int set_read_process_output_options(int argc, char** argv)
@@ -115,7 +43,7 @@ int set_read_process_output_options(int argc, char** argv)
     auto *joint_flag = app.add_flag("--cojo-joint", "Only calculate joint effect for provided SNPs and exit")->group(cojo_group);
     auto *cond_option = app.add_option("--cojo-cond", params.cojo_cond_options, "Only calculate conditional effect for provided SNPs and exit")->group(cojo_group);
     app.add_option("--cojo-wind", params.window_kb, "SNP position window in Kb (-1 for no windows)")->default_val(10000)->group(cojo_group);
-    auto *p_option = app.add_option("--cojo-p", params.p, "Significance threshold for SNP selection")->default_val(5e-8)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
+    auto *p_option = app.add_option("--cojo-p", params.p_value, "Significance threshold for SNP selection")->default_val(5e-8)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
     app.add_option("--cojo-collinear", params.collinear, "Colinearity threshold")->default_val(0.9)->check(CLI::Range(0.0, 0.9999))->group(cojo_group);
     app.add_option("--diff-freq", params.diff_freq, "Frequency difference threshold between sumstat and PLINK")->default_val(0.2)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
     app.add_option("--maf", params.maf, "Minor Allele Frequency threshold")->default_val(0.01)->check(CLI::Range(0.0, 0.5))->group(cojo_group);
@@ -267,7 +195,7 @@ int set_read_process_output_options(int argc, char** argv)
     else
         LOGGER << "SNP position window (+/-): " << params.window_kb << " Kb" << endl;
 
-    LOGGER << "p-value Threshold: " << params.p << endl
+    LOGGER << "p-value Threshold: " << params.p_value << endl
             << "Collinearity threshold: " << params.collinear << endl
             << "Sumstat Minor Allele Frequency threshold: " << params.maf << endl
             // << "Genotype Missingness threshold: " << params.missingness << endl

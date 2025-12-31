@@ -1,4 +1,4 @@
-#include "macojo.h"
+#include "include/macojo.h"
 
 
 int Cohort::calc_R_inv_forward(int append_index)
@@ -63,8 +63,7 @@ int Cohort::calc_R_inv_backward(int remove_index)
 
 void Cohort::append_r(const vector<int>& SNP_list, int append_index, string mode) 
 {  
-    VectorXd r_temp_vec = VectorXd::Zero(shared.total_SNP_num);
-    r_temp_vec.setZero(shared.total_SNP_num);
+    VectorXd r_temp_vec = VectorXd::Zero(shared.SNP_pos_ref.size());
 
     if (params.if_LD_mode) {
         for (size_t i = 0; i < SNP_list.size(); i++) {
@@ -202,7 +201,7 @@ void MACOJO::slct_loop()
             min_pC = erfc(abs_zC.maxCoeff(&min_pC_index) / sqrt(2));
             current_SNP_name = shared.goodSNP_table[min_pC_index].first;
 
-            if (min_pC > params.p) {
+            if (min_pC > params.p_value) {
                 LOGGER.w("Calculation finished, No more SNPs above p-threshold");
                 LOGGER << current_SNP_name << " " << scientific << min_pC << fixed << endl;
                 loop_break_indicator = true;
@@ -246,7 +245,7 @@ void MACOJO::slct_loop()
             max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
             
             // directly accept this SNP and next iteration
-            if (max_pJ <= params.p) {
+            if (max_pJ <= params.p_value) {
                 LOGGER << "Conditional min pC: " << scientific << min_pC << fixed << endl;
                 LOGGER << "Joint b, se, max pJ: " << bJ(max_pJ_index) << " " 
                     << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
@@ -330,7 +329,7 @@ void MACOJO::slct_loop()
                 LOGGER << "Joint b, se, max pJ: " 
                         << bJ(max_pJ_index) << " " << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
 
-                if (max_pJ <= params.p) break;
+                if (max_pJ <= params.p_value) break;
                 if (max_pJ_index < fixed_candidate_SNP_num) {
                     LOGGER.i("Backward selection failed, fixed candidate SNP exceeds p-value threshold");
                     res_flag = -1;

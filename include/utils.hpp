@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <external/Eigen/Dense>
+#include "external/fast_float.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include "fast_float.h"
 
 using Eigen::PlainObjectBase;
 using Eigen::DenseBase;

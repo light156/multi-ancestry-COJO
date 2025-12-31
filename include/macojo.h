@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Eigen/Dense>
-#include "CLI11.hpp"
-#include "geno.h"
-#include "config.h"
-#include "omp_compat.hpp"
-#include "logger.hpp"
-#include "utils.hpp"
+#include <external/Eigen/Dense>
+#include "external/CLI11.hpp"
+#include "include/geno.h"
+#include "include/config.h"
+#include "include/omp_compat.hpp"
+#include "include/logger.hpp"
+#include "include/utils.hpp"
 #include <chrono>
 
 using namespace Eigen;
@@ -53,7 +53,7 @@ private:
     Geno genotype;
     LDPacked LD_matrix;
     vector<bool> bed_swap_array;
-    vector<string> bim_SNP_array, sumstat_SNP_array;
+    vector<string> bim_SNP_array;
     vector<int> fam_keep_array;
     int valid_indi_num, fam_indi_num;
 
@@ -109,6 +109,7 @@ public:
     void output_jma(string savename);
     void output_inverse_var_meta(string savename, const vector<pair<int, int>>& SNP_ref_order_pair, bool if_joint);
     void output_ld_matrix(string savename, const vector<pair<int, int>>& SNP_ref_order_pair);
+    void output_bad_SNP(string savename);
 
 private:
     const HyperParams& params = get_params();
@@ -124,7 +125,6 @@ private:
     ArrayXd bJ, se2J, abs_zJ;
 };
 
-extern vector<pair<string, string>> bad_SNP_reason;
 
 void skim_fam(string filename, vector<string>& str_list);
 void skim_bim(string filename, int chr, vector<string>& str_list);

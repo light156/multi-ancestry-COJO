@@ -1,4 +1,4 @@
-#include "macojo.h"
+#include "include/macojo.h"
 
 
 void MACOJO::initialize_candidate_SNP(const vector<string>& given_list)
@@ -378,4 +378,50 @@ void MACOJO::output_ld_matrix(string savename, const vector<pair<int, int>>& SNP
 
     ldrCOJO.close();
     LOGGER.i("Results saved into [" + savename + "]");
+}
+
+
+void MACOJO::output_bad_SNP(string savename) 
+{   
+    if (shared.bad_SNP_dict.size() == 0) {
+        LOGGER.i("No bad SNPs detected");
+        return;
+    }
+
+    savename += ".badsnps";
+
+    bool if_exist_file = false;
+
+    ifstream check(savename.c_str());
+    if (check) if_exist_file = true;
+    check.close();
+
+    ofstream badSNPout;
+
+    if (if_exist_file)
+        badSNPout.open(savename.c_str(), ios::app);
+    else 
+        badSNPout.open(savename.c_str());
+
+    if (!badSNPout) LOGGER.e("Cannot open the file [" + savename + "] to write");
+
+    badSNPout << "# Chromosome " << params.curr_chr << "\n";
+
+    sort(shared.bad_SNP_dict.begin(), shared.bad_SNP_dict.end());
+    shared.bad_SNP_dict.erase(unique(shared.bad_SNP_dict.begin(), shared.bad_SNP_dict.end()), shared.bad_SNP_dict.end());
+
+    BadSnpReason current = shared.bad_SNP_dict.begin()->first;
+    badSNPout << "[" << reason_to_string(current) << "]\n";
+
+    for (auto iter = shared.bad_SNP_dict.begin(); iter != shared.bad_SNP_dict.end(); iter++) {
+        if (iter->first != current) {
+            current = iter->first;
+            badSNPout << "\n[" << reason_to_string(current) << "]\n";
+        }
+        badSNPout << "  " << iter->second;
+    }
+
+    badSNPout << "\n";
+    badSNPout.close();
+    LOGGER.i("List of bad SNPs saved into [" + savename + "]");
 }

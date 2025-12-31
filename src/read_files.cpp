@@ -1,6 +1,77 @@
-#include "macojo.h"
+#include "include/macojo.h"
 
-vector<pair<string, string>> bad_SNP_reason;
+
+void skim_SNP(const vector<string>& options, vector<string>& SNP_list)
+{   
+    if (!options.empty()) 
+    {
+        string filename = options[0];
+        int col_idx = 1;
+        bool has_header = false;
+
+        vector<string> options_copy = options;
+        options_copy.erase(options_copy.begin()); // remove filename
+
+        if (find(options_copy.begin(), options_copy.end(), "header") != options_copy.end()) {
+            has_header = true;
+            options_copy.erase(find(options_copy.begin(), options_copy.end(), "header"));
+        }
+
+        if (options_copy.size() > 1) LOGGER.e("Invalid format for providing SNP file");
+        
+        if (!options_copy.empty()) {
+            const char* pt = options_copy[0].c_str();
+            if (!parse_num(pt, col_idx) || col_idx < 1) 
+                LOGGER.e("Invalid column number, should be an integer starting from 1", filename);
+        } 
+
+        col_idx -= 1; // convert to 0-based index
+
+        ifstream sFile(filename.c_str());
+        if (!sFile) LOGGER.e("Cannot open [" + filename + "] to read");
+
+        string str_buf;
+        if (has_header) getline(sFile, str_buf); // skip header line
+
+        while (getline(sFile, str_buf)) {
+            if (str_buf.empty()) continue;
+
+            const char* pt = str_buf.c_str();
+            
+            // iterate to column col_idx
+            int col = 0;
+            while (col < col_idx) {
+                skip_delim(pt);
+                skip_token(pt);
+                if (!*pt) LOGGER.e("Requested column exceeds the total number of columns", filename);
+                col++;
+            }
+
+            skip_delim(pt);
+
+            // p now at start of desired column
+            const char* start = pt;
+            skip_token(pt);
+            SNP_list.emplace_back(start, pt - start);
+        }
+
+        sFile.close();
+    }
+
+    sort(SNP_list.begin(), SNP_list.end());
+
+    for (int i = 1; i < SNP_list.size(); i++) {
+        if (SNP_list[i] == SNP_list[i-1]) {
+            LOGGER.w("Duplicate SNP found", SNP_list[i]);
+            while (i+1 < SNP_list.size() && SNP_list[i+1] == SNP_list[i]) i++; // skip long runs of the same duplicate
+        }
+    }
+
+    SNP_list.erase(unique(SNP_list.begin(), SNP_list.end()), SNP_list.end());
+    SNP_list.erase(remove(SNP_list.begin(), SNP_list.end(), ""), SNP_list.end());
+    SNP_list.erase(remove(SNP_list.begin(), SNP_list.end(), "."), SNP_list.end());
+}
+
 
 void skim_fam(string filename, vector<string>& str_list) 
 {   
@@ -178,7 +249,7 @@ void Cohort::read_sumstat()
     vector<double> Vp_gcta_list;
 
     // col 0:b, 1:se2, 2:p, 3:freq, 4:N, 5:V, 6:D
-    sumstat.resize(shared.total_SNP_num, 7);
+    sumstat.resize(shared.goodSNP_table.size(), 7);
     
     while (getline(Meta, str_buf)) {
         if (str_buf.empty()) continue;
@@ -192,7 +263,7 @@ void Cohort::read_sumstat()
 
         if (!parse_num(pt, freq)) { 
             if (iter != shared.goodSNP_table.end()) {
-                bad_SNP_reason.emplace_back(iter->first, "Invalid value in sumstat file");
+                shared.bad_SNP_dict.emplace_back(BadSnpReason::InvalidNumericValue, SNP_buf);
                 iter->second = -1;
             }
             continue;
@@ -206,7 +277,7 @@ void Cohort::read_sumstat()
 
         if (!parse_num(pt, b) || !parse_num(pt, se) || !parse_num(pt, p) || !parse_num(pt, N)) {
             if (iter != shared.goodSNP_table.end()) {
-                bad_SNP_reason.emplace_back(iter->first, "Invalid value in sumstat file");
+                shared.bad_SNP_dict.emplace_back(BadSnpReason::InvalidNumericValue, SNP_buf);
                 iter->second = -1;
             }
             continue;
@@ -221,7 +292,7 @@ void Cohort::read_sumstat()
         if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
         else {
-            bad_SNP_reason.emplace_back(iter->first, "A1 and A2 different from ref BIM file");
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::AlleleMismatch, SNP_buf);
             iter->second = -1;
             continue;
         } 
@@ -287,13 +358,13 @@ void Cohort::read_frq()
         if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq;}
         else {
-            bad_SNP_reason.emplace_back(iter->first, "A1 and A2 different from ref BIM file");
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::AlleleMismatch, SNP_buf);
             iter->second = -1;
             continue;
         } 
 
         if (abs(sumstat(ref_index, 3) - freq) > params.diff_freq) {
-            bad_SNP_reason.emplace_back(iter->first, "Allele frequency too different between sumstat and bedfile");
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::FreqDiffTooLarge, SNP_buf);
             iter->second = -1;
             continue;
         }
@@ -313,7 +384,7 @@ void Cohort::read_bim()
     int chr_buf, ibuf, ref_index;
     string SNP_buf, A1_buf, A2_buf, str_buf;
 
-    bed_swap_array.assign(shared.total_SNP_num, false);
+    bed_swap_array.assign(shared.goodSNP_table.size(), false);
     
     while (getline(Bim, str_buf)) {
         if (str_buf.empty()) continue;
@@ -345,13 +416,13 @@ void Cohort::read_bim()
             if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
             else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {bed_swap_array[ref_index] = true;}
             else {
-                bad_SNP_reason.emplace_back(iter->first, "A1 and A2 different from ref BIM file");
+                shared.bad_SNP_dict.emplace_back(BadSnpReason::AlleleMismatch, SNP_buf);
                 iter->second = -1;
                 continue;
             }
 
             if (ibuf != shared.SNP_pos_ref[ref_index]) {
-                bad_SNP_reason.emplace_back(iter->first, "SNP position different from ref BIM file");
+                shared.bad_SNP_dict.emplace_back(BadSnpReason::BpMismatch, SNP_buf);
                 iter->second = -1;
                 continue;
             }      
@@ -387,7 +458,7 @@ void Cohort::read_bed()
 
     Bed.seekg(3 + uint64_t(bytes_per_snp) * first_index, ios::beg);    
 
-    genotype.resize(shared.total_SNP_num);
+    genotype.resize(shared.goodSNP_table.size());
 
     vector<char> buffer(bytes_per_snp);
 
@@ -449,13 +520,13 @@ void Cohort::read_bed()
         int ref_index = iter->second;
 
         if (genotype.X_non_NA_indi_num[ref_index] < missing_threshold) {
-            bad_SNP_reason.emplace_back(iter->first, "Missingness too high or all values are identical in bedfile");
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::HighMissingness, iter->first);
             iter->second = -1;
             continue;
         }
         
         if (abs(sumstat(ref_index, 3) - genotype.X_avg[ref_index]/2) > params.diff_freq) {
-            bad_SNP_reason.emplace_back(iter->first, "Allele frequency too different between sumstat and bedfile");
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::FreqDiffTooLarge, iter->first);
             iter->second = -1;
             continue;
         }
@@ -473,7 +544,8 @@ void Cohort::read_PLINK_LD()
     if (!Ld) LOGGER.e("Cannot open PLINK LD file [" + ldFile + "] to read");
     LOGGER.i("Reading PLINK LD file from [" + ldFile + "] ...");
 
-    LD_matrix.resize(shared.total_SNP_num);
+    int total_SNP_num = shared.goodSNP_table.size();
+    LD_matrix.resize(total_SNP_num);
 
     // Read ld file
     string SNP1_buf, SNP2_buf, str_buf;
@@ -500,8 +572,8 @@ void Cohort::read_PLINK_LD()
     // bim file of cohort 1 is reference, do not need to check allele
     if (cohort_index != 0) {
         // adjust LD_packed according to allele coding
-        for (int i = 0; i < shared.total_SNP_num; i++) {
-            for (int j = i; j < shared.total_SNP_num; j++) {
+        for (int i = 0; i < total_SNP_num; i++) {
+            for (int j = i; j < total_SNP_num; j++) {
                 if (bed_swap_array[i] ^ bed_swap_array[j]) {
                     LD_matrix(i,j) = -LD_matrix(i,j);
                     // LOGGER << "swap " << i << " " << j << endl;
@@ -566,8 +638,8 @@ bool MACOJO::read_input_files()
     
     auto start = steady_clock::now();
 
-    shared.total_SNP_num = common_SNP.size();
-    shared.goodSNP_table.reserve(shared.total_SNP_num);
+    int total_SNP_num = common_SNP.size();
+    shared.goodSNP_table.reserve(total_SNP_num);
 
     int temp_index = 0;
     for (const auto& snp : common_SNP) {
@@ -578,9 +650,9 @@ bool MACOJO::read_input_files()
     sort(shared.goodSNP_table.begin(), shared.goodSNP_table.end(),
         [](const pair<string, int>& a, const pair<string, int>& b) { return a.first < b.first; });
 
-    shared.A1_ref.resize(shared.total_SNP_num);
-    shared.A2_ref.resize(shared.total_SNP_num);
-    shared.SNP_pos_ref.resize(shared.total_SNP_num);
+    shared.A1_ref.resize(total_SNP_num);
+    shared.A2_ref.resize(total_SNP_num);
+    shared.SNP_pos_ref.resize(total_SNP_num);
 
     // Step 2: read bim file and sumstat files for all cohorts, set cohort 1 as reference
     for (auto& c : cohorts) {
@@ -605,7 +677,7 @@ bool MACOJO::read_input_files()
             erase_flag |= (c.sumstat(ref_index, 6) > 1e10);
 
         if (erase_flag) {
-            bad_SNP_reason.emplace_back(iter->first, "removed, rare SNP based on frequency threshold");
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::RareVariant, iter->first);
             iter->second = -1;
         }
     }
@@ -640,12 +712,15 @@ bool MACOJO::read_input_files()
     }
 
     // finalize SNP index lists
-    for (int i = 0; i < shared.total_SNP_num; i++) {
+    for (int i = 0; i < total_SNP_num; i++) {
         if (shared.goodSNP_table[i].second == -1)
             bad_SNP.push_back(i);
         else
             screened_SNP.push_back(i);
     }
+
+    if (params.if_output_all)
+        output_bad_SNP(params.output_name);
 
     LOGGER.i("common SNPs at last for analysis", screened_SNP.size());
     LOGGER << "--------------------------------" << endl << endl;

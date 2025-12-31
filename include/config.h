@@ -8,7 +8,7 @@ using std::pair;
 
 
 struct HyperParams {
-    double p = 5e-8;
+    double p_value = 5e-8;
     double collinear = 0.9;
     double maf = 0.01;
     double missingness = 1;
@@ -51,9 +51,32 @@ inline HyperParams& get_params() {
 }
 
 
+enum class BadSnpReason : uint8_t {
+    FreqDiffTooLarge    = 0,
+    HighMissingness     = 1,
+    AlleleMismatch      = 2,
+    BpMismatch          = 3,
+    InvalidNumericValue = 4,
+    RareVariant         = 5,
+};
+
+
+inline const char* reason_to_string(BadSnpReason r) {
+    switch (r) {
+        case BadSnpReason::FreqDiffTooLarge:    return "Allele frequency too different between sumstat and genotype data";
+        case BadSnpReason::HighMissingness:     return "Genotype missingness too high or all values identical in bedfile";
+        case BadSnpReason::AlleleMismatch:      return "A1 and A2 different from ref BIM file";
+        case BadSnpReason::BpMismatch:          return "SNP position different from ref BIM file";
+        case BadSnpReason::InvalidNumericValue: return "Invalid numeric value in sumstat file";
+        case BadSnpReason::RareVariant:         return "Allele frequency below MAF threshold";
+    }
+    return "Unknown";
+}
+
+
 struct SharedData {
-    int total_SNP_num = 0;
     vector<pair<string, int>> goodSNP_table;
     vector<string> A1_ref, A2_ref;
     vector<int> SNP_pos_ref;
+    vector<pair<BadSnpReason, string>> bad_SNP_dict;
 };
