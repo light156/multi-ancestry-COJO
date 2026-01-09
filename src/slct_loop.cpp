@@ -221,7 +221,7 @@ void MACOJO::slct_loop()
 
             // check R2 increment
             for (int n : current_list) {
-                if (res_flag == 1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
+                if (res_flag == 1 && params.R2_threshold != -1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
                     LOGGER.i("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
                     res_flag = 0;
                 }
@@ -242,8 +242,10 @@ void MACOJO::slct_loop()
             // calculate joint p-value and decide whether to accept this SNP
             // must suffice for the first SNP, just avoid complicated logic
             inverse_var_meta(bJ, se2J, abs_zJ);
-            max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
-            
+            // max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
+            max_pJ = erfc(abs_zJ.tail(candidate_SNP.size()-fixed_candidate_SNP_num).minCoeff(&max_pJ_index) / sqrt(2));
+            max_pJ_index += fixed_candidate_SNP_num;
+
             // directly accept this SNP and next iteration
             if (max_pJ <= params.p_value) {
                 LOGGER << "Conditional min pC: " << scientific << min_pC << fixed << endl;
@@ -325,7 +327,9 @@ void MACOJO::slct_loop()
                 if (res_flag != 1) break;
 
                 inverse_var_meta(bJ, se2J, abs_zJ);
-                max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
+                // max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
+                max_pJ = erfc(abs_zJ.tail(candidate_SNP.size()-fixed_candidate_SNP_num).minCoeff(&max_pJ_index) / sqrt(2));
+                max_pJ_index += fixed_candidate_SNP_num;
                 LOGGER << "Joint b, se, max pJ: " 
                         << bJ(max_pJ_index) << " " << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
 
@@ -339,7 +343,7 @@ void MACOJO::slct_loop()
             
             // check R2 increment after backward selection
             for (int n : current_list) {
-                if (res_flag == 1 && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
+                if (res_flag == 1 && params.R2back_threshold != -1 && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
                     LOGGER.i("Backward selection failed, adjusted R2 lower than backward threshold in Cohort " + to_string(n+1));
                     res_flag = -1;
                 }

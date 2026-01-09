@@ -46,7 +46,7 @@ int set_read_process_output_options(int argc, char** argv)
     auto *p_option = app.add_option("--cojo-p", params.p_value, "Significance threshold for SNP selection")->default_val(5e-8)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
     app.add_option("--cojo-collinear", params.collinear, "Colinearity threshold")->default_val(0.9)->check(CLI::Range(0.0, 0.9999))->group(cojo_group);
     app.add_option("--diff-freq", params.diff_freq, "Frequency difference threshold between sumstat and PLINK")->default_val(0.2)->check(CLI::Range(0.0, 1.0))->group(cojo_group);
-    app.add_option("--maf", params.maf, "Minor Allele Frequency threshold")->default_val(0.01)->check(CLI::Range(0.0, 0.5))->group(cojo_group);
+    app.add_option("--maf", params.maf, "Minor Allele Frequency threshold")->default_val(0)->check(CLI::Range(0.0, 0.5))->group(cojo_group);
     
     string data_group = "Original GCTA Data Options";
     app.add_option("--geno", params.missingness, "Missingness threshold in PLINK .bed files (1 for no threshold)")->default_val(1.0)->check(CLI::Range(0.0, 1.0))->group("");
