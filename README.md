@@ -45,7 +45,7 @@ If you are not familiar with COJO, we strongly recommend that you follow [**our 
 
 ### Single cohort
 
-The usage is largely consistent with GCTA COJO, with extensions to support **multiple cohorts** and **PLINK LD matrix inputs**. 
+The usage is largely consistent with GCTA COJO. 
 In general, you can replace the path to the GCTA executable with `manc_cojo` while keeping all remaining arguments unchanged:
 
 ```bash
