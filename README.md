@@ -43,9 +43,9 @@ If you have any problems running the software on your system, please feel free t
 
 If you are not familiar with COJO, we strongly recommend that you follow [**our tutorial**](https://light156.github.io/multi-ancestry-COJO-docs/tutorial). It includes example data and step-by-step commands.
 
-### Single cohort (same as GCTA)
+### Single cohort
 
-The usage is largely consistent with original [GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), with extensions to support **multiple cohorts** and **PLINK LD matrix inputs**. 
+The usage is largely consistent with GCTA COJO, with extensions to support **multiple cohorts** and **PLINK LD matrix inputs**. 
 In general, you can replace the path to the GCTA executable with `manc_cojo` while keeping all remaining arguments unchanged:
 
 ```bash
