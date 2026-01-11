@@ -74,7 +74,7 @@ Append multiple file paths to `--bfile` and ``--cojo-file``. Please make sure th
 --cojo-slct 
 ```
 
---- 
+<br>
 
 Despite being largely similar, the following behaviours intentionally differ from GCTA:
 
@@ -89,6 +89,8 @@ Despite being largely similar, the following behaviours intentionally differ fro
 
 - **Collinearity handling**  
   When collinearity issues arise among user-provided SNPs during conditional analysis (`--cojo-cond`) or joint analysis (`--cojo-joint`), GCTA terminates without output. In contrast, our software iteratively removes problematic SNPs until the issue is resolved. Removed SNPs are recorded in the `.log` file.
+
+<br>
 
 For advanced usage, a complete list of command-line options, and instructions for running on UKB-RAP, please refer to our documentation website: https://light156.github.io/multi-ancestry-COJO-docs
 
