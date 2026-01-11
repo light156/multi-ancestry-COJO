@@ -6,14 +6,14 @@ Our multi-ancestry extension exploits population-specific LD differences to impr
 
 <br>
 
-Note that our program can also perform single-ancestry COJO and reproduce the result of [original GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), but runs **much faster**.
+Note that our software can also perform single-ancestry COJO and reproduce the result of [original GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), but runs **much faster**.
 
-For example, for the analysis of high-density lipoprotein (HDL) cholesterol with ~6.5 million SNPs and ~76,000 individuals in our paper, the per-chromosome running time of our program (using 1 thread) and GCTA (using 5 threads), is as follows. 
+For example, for the analysis of high-density lipoprotein (HDL) cholesterol with ~6.5 million SNPs and ~76,000 individuals in our paper, the per-chromosome running time of our software (using 1 thread) and GCTA (using 5 threads), is as follows. 
 ![time_HDL.png](https://light156.github.io/multi-ancestry-COJO-docs/time_HDL.png)
 
 ## Installation
 
-You can download our software program directly from the links below:
+You can download our software directly from the links below:
 
 ### [⬇️ Download link (Linux)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo)
 
@@ -29,13 +29,13 @@ On **Linux** and **macOS**, you may need to give the file permission to run:
 chmod +x manc_cojo
 ```
 
-To check that the program is working, run:
+To check that the software is working, run:
 
 ```bash
 ./manc_cojo --help
 ```
 
-This will print the available options and confirm that the program runs correctly.
+This will print the available options and confirm that it runs correctly.
 
 If you have any problems running the software on your system, please feel free to contact us and we are happy to help.
 
@@ -73,7 +73,7 @@ Append multiple file paths to `--bfile` and ``--cojo-file``. Please make sure th
 Despite being largely similar, the following behaviours intentionally differ from GCTA:
 
 - **Genotype filtering**  
-  Our program excludes SNPs whose genotypes are identical across all individuals.
+  Our software excludes SNPs whose genotypes are identical across all individuals.
 
 - **Allele reporting**  
   Both **A1** and **A2** are reported for each SNP in output files. **A1** corresponds to **refA** in the original GCTA output.
