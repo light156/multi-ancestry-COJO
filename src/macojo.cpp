@@ -253,7 +253,7 @@ void MACOJO::output_inverse_var_meta(string savename, const vector<pair<int, int
         maCOJO.open(savename.c_str());
     
     if (!maCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
-    maCOJO.precision(12);
+    maCOJO.precision(10);
 
     if (!if_exist_file) {
         // write header
@@ -347,7 +347,7 @@ void MACOJO::output_ld_matrix(string savename, const vector<pair<int, int>>& SNP
         ldrCOJO.open(savename.c_str());
 
     if (!ldrCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
-    ldrCOJO.precision(12);
+    ldrCOJO.precision(10);
     
     // calc_R_inv_from_SNP_list has just been called so R_post is ready
     for (int n : current_list) {

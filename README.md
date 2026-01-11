@@ -74,6 +74,22 @@ Append multiple file paths to `--bfile` and ``--cojo-file``. Please make sure th
 --cojo-slct 
 ```
 
+--- 
+
+Despite being largely similar, the following behaviours intentionally differ from GCTA:
+
+- **Genotype filtering**  
+  Our program excludes SNPs whose genotypes are identical across all individuals.
+
+- **Allele reporting**  
+  Both **A1** and **A2** are reported for each SNP in output files. **A1** corresponds to **refA** in the original GCTA output.
+
+- **Output control**  
+  By default, our software does not generate `.cma.cojo` and `.ldr.cojo` files, as these outputs can be very large and are not required for most use cases. Use `--output-all` to enable all output files, which will also record unqualified SNPs in the corresponding `.badsnps` files.
+
+- **Collinearity handling**  
+  When collinearity issues arise among user-provided SNPs during conditional analysis (`--cojo-cond`) or joint analysis (`--cojo-joint`), GCTA terminates without output. In contrast, our software iteratively removes problematic SNPs until the issue is resolved. Removed SNPs are recorded in the `.log` file.
+
 For advanced usage, a complete list of command-line options, and instructions for running on UKB-RAP, please refer to our documentation website: https://light156.github.io/multi-ancestry-COJO-docs
 
 ## Citation

@@ -5,7 +5,7 @@ int main(int argc, char** argv)
 {    
     auto start = steady_clock::now();
 
-    LOGGER << setprecision(12);
+    LOGGER << setprecision(10);
 
     int code = set_read_process_output_options(argc, argv);
     if (code != 0) return code;

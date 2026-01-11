@@ -221,7 +221,7 @@ void MACOJO::slct_loop()
 
             // check R2 increment
             for (int n : current_list) {
-                if (res_flag == 1 && params.R2_threshold != -1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
+                if (res_flag == 1 && params.R2_threshold <= -1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
                     LOGGER.i("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
                     res_flag = 0;
                 }
@@ -343,7 +343,7 @@ void MACOJO::slct_loop()
             
             // check R2 increment after backward selection
             for (int n : current_list) {
-                if (res_flag == 1 && params.R2back_threshold != -1 && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
+                if (res_flag == 1 && params.R2back_threshold <= -1 && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
                     LOGGER.i("Backward selection failed, adjusted R2 lower than backward threshold in Cohort " + to_string(n+1));
                     res_flag = -1;
                 }

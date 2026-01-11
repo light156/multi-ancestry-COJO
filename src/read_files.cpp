@@ -450,67 +450,45 @@ void Cohort::read_bed()
     if (!Bed || ch[0] != 0x6C || ch[1] != 0x1B || ch[2] != 0x01)
         LOGGER.e("PLINK BED file [" + bedFile + "] not in SNP-major mode, please check");
 
-    // move to the first reading position
-    int first_index;
-    for (first_index = 0; first_index < bim_SNP_array.size(); first_index++) {
-        if (fast_lookup(shared.goodSNP_table, bim_SNP_array[first_index]) != shared.goodSNP_table.end()) break;
-    }
-
-    Bed.seekg(3 + uint64_t(bytes_per_snp) * first_index, ios::beg);    
-
     genotype.resize(shared.goodSNP_table.size());
-
     vector<char> buffer(bytes_per_snp);
 
-    int goodSNP_num = 0, read_num = 0;
+    int goodSNP_num = 0, read_num = 0, last_index = -1;
     for (const auto& kv : shared.goodSNP_table) goodSNP_num += (kv.second != -1);
 
-    if (params.thread_num == 1) {
-        for (int j = first_index; j < bim_SNP_array.size(); j++) {
-            if (read_num == goodSNP_num) break;
-
-            Bed.read(buffer.data(), bytes_per_snp);
-
-            auto iter = fast_lookup(shared.goodSNP_table, bim_SNP_array[j]);
-            if (iter == shared.goodSNP_table.end()) continue;
-            int ref_index = iter->second;
-            read_num++;
-
-            if (fam_keep_array.empty())
-                genotype.decode_single_genotype(buffer, ref_index, bed_swap_array[ref_index]);
-            else
-                genotype.decode_single_genotype(buffer, ref_index, bed_swap_array[ref_index], fam_keep_array);
-        }
-    } else {
-        #pragma omp parallel
+    #pragma omp parallel
+    {   
+        #pragma omp single nowait
         {   
-            #pragma omp single nowait
-            {   
-                for (int j = first_index; j < bim_SNP_array.size(); j++) {
-                    if (read_num == goodSNP_num) break;
+            for (int j = 0; j < bim_SNP_array.size(); j++) {
+                if (read_num == goodSNP_num) break;
 
-                    Bed.read(buffer.data(), bytes_per_snp);
+                auto iter = fast_lookup(shared.goodSNP_table, bim_SNP_array[j]);
+                if (iter == shared.goodSNP_table.end()) continue;
+                int ref_index = iter->second;
+                
+                int delta = j - last_index - 1;
+                if (delta > 0) 
+                    Bed.seekg(uint64_t(delta) * bytes_per_snp, ios::cur);
+                
+                Bed.read(buffer.data(), bytes_per_snp);
+                read_num++;
+                last_index = j;
 
-                    auto iter = fast_lookup(shared.goodSNP_table, bim_SNP_array[j]);
-                    if (iter == shared.goodSNP_table.end()) continue;
-                    int ref_index = iter->second;
-                    read_num++;
+                // spawn decode task
+                auto local_buffer = buffer;
 
-                    // spawn decode task
-                    auto local_buffer = buffer;
-
-                    #pragma omp task firstprivate(local_buffer, ref_index) 
-                    {
-                        if (fam_keep_array.empty())
-                            genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index]);
-                        else
-                            genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index], fam_keep_array);
-                    }
+                #pragma omp task firstprivate(local_buffer, ref_index) 
+                {
+                    if (fam_keep_array.empty())
+                        genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index]);
+                    else
+                        genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index], fam_keep_array);
                 }
+            }
 
-                #pragma omp taskwait
-            } 
-        }
+            #pragma omp taskwait
+        } 
     }
 
     double missing_threshold = valid_indi_num * (1 - params.missingness);
