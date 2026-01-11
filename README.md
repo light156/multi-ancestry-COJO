@@ -48,9 +48,11 @@ It includes example data and step-by-step commands.
 
 <br>
 
-In brief, the usage is largely consistent with [GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), with extensions to support **multiple cohorts** and **PLINK LD matrix inputs**.
+The usage is largely consistent with [GCTA COJO](https://yanglab.westlake.edu.cn/software/gcta/#COJO), with extensions to support **multiple cohorts** and **PLINK LD matrix inputs**.
 
 ### Single cohort (same as GCTA)
+
+In general, you can replace the path to the GCTA executable with `manc_cojo` while keeping all remaining arguments unchanged.
 
 ```bash
 ./manc_cojo \
@@ -59,8 +61,6 @@ In brief, the usage is largely consistent with [GCTA COJO](https://yanglab.westl
 --out Output_path_name \
 --cojo-slct
 ```
-
-In general, for single-cohort analyses, you can replace the path to the GCTA executable with `manc_cojo` while keeping all remaining arguments unchanged.
 
 ### Multiple cohorts
 
