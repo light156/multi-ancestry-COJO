@@ -41,12 +41,7 @@ If you have any problems running the software on your system, please feel free t
 
 ## Usage
 
-If you are not familiar with COJO, we strongly recommend that you follow our tutorial. 
-It includes example data and step-by-step commands.
-
-### 👉 **Tutorial:**  https://light156.github.io/multi-ancestry-COJO-docs/tutorial
-
-<br>
+If you are not familiar with COJO, we strongly recommend that you follow [**our tutorial**](https://light156.github.io/multi-ancestry-COJO-docs/tutorial). It includes example data and step-by-step commands.
 
 ### Single cohort (same as GCTA)
 
