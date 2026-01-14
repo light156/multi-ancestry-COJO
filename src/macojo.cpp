@@ -240,6 +240,7 @@ void MACOJO::output_inverse_var_meta(string savename, const vector<pair<int, int
     char mode = if_joint ? 'J' : 'C';
 
     bool if_exist_file = false;
+    bool is_first_chr = (params.curr_chr == params.chr_list.front());
 
     ifstream check(savename.c_str());
     if (check) if_exist_file = true;
@@ -247,7 +248,7 @@ void MACOJO::output_inverse_var_meta(string savename, const vector<pair<int, int
 
     ofstream maCOJO;
 
-    if (if_exist_file)
+    if (if_exist_file && !is_first_chr)
         maCOJO.open(savename.c_str(), ios::app);
     else 
         maCOJO.open(savename.c_str());
@@ -255,7 +256,7 @@ void MACOJO::output_inverse_var_meta(string savename, const vector<pair<int, int
     if (!maCOJO) LOGGER.e("Cannot open the file [" + savename + "] to write");
     maCOJO.precision(10);
 
-    if (!if_exist_file) {
+    if (!if_exist_file || is_first_chr) {
         // write header
         maCOJO << "Chr\tSNP\tbp\tA1\tA2";
 
@@ -334,6 +335,7 @@ void MACOJO::output_ld_matrix(string savename, const vector<pair<int, int>>& SNP
     savename += ".ldr.cojo";
 
     bool if_exist_file = false;
+    bool is_first_chr = (params.curr_chr == params.chr_list.front());
 
     ifstream check(savename.c_str());
     if (check) if_exist_file = true;
@@ -341,7 +343,7 @@ void MACOJO::output_ld_matrix(string savename, const vector<pair<int, int>>& SNP
 
     ofstream ldrCOJO;
 
-    if (if_exist_file)
+    if (if_exist_file && !is_first_chr)
         ldrCOJO.open(savename.c_str(), ios::app);
     else 
         ldrCOJO.open(savename.c_str());
@@ -391,6 +393,7 @@ void MACOJO::output_bad_SNP(string savename)
     savename += ".badsnps";
 
     bool if_exist_file = false;
+    bool is_first_chr = (params.curr_chr == params.chr_list.front());
 
     ifstream check(savename.c_str());
     if (check) if_exist_file = true;
@@ -398,7 +401,7 @@ void MACOJO::output_bad_SNP(string savename)
 
     ofstream badSNPout;
 
-    if (if_exist_file)
+    if (if_exist_file && !is_first_chr)
         badSNPout.open(savename.c_str(), ios::app);
     else 
         badSNPout.open(savename.c_str());

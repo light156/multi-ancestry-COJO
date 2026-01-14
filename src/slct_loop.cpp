@@ -72,7 +72,7 @@ void Cohort::append_r(const vector<int>& SNP_list, int append_index, string mode
                 r_temp_vec(sweep_index) = LD_matrix(sweep_index, append_index);
         }
     } else {
-        OMP_PARALLEL_FOR
+        #pragma omp parallel for schedule(static)
         for (size_t i = 0; i < SNP_list.size(); i++) {
             int sweep_index = SNP_list[i];
             if (abs(shared.SNP_pos_ref[sweep_index] - shared.SNP_pos_ref[append_index]) < params.window_size) {

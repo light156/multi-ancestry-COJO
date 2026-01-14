@@ -11,11 +11,9 @@ void skim_SNP(const vector<string>& options, vector<string>& SNP_list)
 
         vector<string> options_copy = options;
         options_copy.erase(options_copy.begin()); // remove filename
-
-        if (find(options_copy.begin(), options_copy.end(), "header") != options_copy.end()) {
-            has_header = true;
-            options_copy.erase(find(options_copy.begin(), options_copy.end(), "header"));
-        }
+        
+        options_copy.erase(remove(options_copy.begin(), options_copy.end(), "header"), options_copy.end());
+        if (options_copy.size() < options.size()) has_header = true;
 
         if (options_copy.size() > 1) LOGGER.e("Invalid format for providing SNP file");
         
@@ -89,10 +87,6 @@ void skim_fam(string filename, vector<string>& str_list)
     }
 
     sFile.close();
-
-    sort(str_list.begin(), str_list.end());
-    if (adjacent_find(str_list.begin(), str_list.end()) != str_list.end())
-        LOGGER.e("Duplicate individuals in [" + filename + "], please check", *adjacent_find(str_list.begin(), str_list.end()));
 }
 
 
@@ -135,32 +129,40 @@ void skim_bim(string filename, int chr, vector<string>& SNP_list)
 void Cohort::read_fam() 
 {   
     string famFile = params.bfile_list[cohort_index]+".fam";
+    skim_fam(famFile, fam_ID_array);
+    
+    fam_indi_num = fam_ID_array.size();
+    vector<string> sorted_ID(fam_ID_array);
+    sort(sorted_ID.begin(), sorted_ID.end());
+    if (adjacent_find(sorted_ID.begin(), sorted_ID.end()) != sorted_ID.end())
+        LOGGER.e("Duplicate individuals in [" + famFile + "], please check", *adjacent_find(sorted_ID.begin(), sorted_ID.end()));
 
-    vector<string> all_ids;
-    skim_fam(famFile, all_ids);
-    fam_indi_num = all_ids.size();
     LOGGER.i("individuals in FAM file [" + famFile + "]", fam_indi_num);
 
     if (!params.keep_file_list[cohort_index].empty()) {
         vector<string> keep_ids, temp_ids;
-        skim_fam(params.keep_file_list[cohort_index], keep_ids);
-        set_intersection(all_ids.begin(), all_ids.end(), keep_ids.begin(), keep_ids.end(), back_inserter(temp_ids));
-        all_ids.swap(temp_ids);
-        LOGGER.i("individuals after keeping individuals", all_ids.size());
+        skim_fam(params.keep_file_list[cohort_index], keep_ids);        
+        
+        sort(keep_ids.begin(), keep_ids.end());
+        set_intersection(sorted_ID.begin(), sorted_ID.end(), keep_ids.begin(), keep_ids.end(), back_inserter(temp_ids));
+        sorted_ID.swap(temp_ids);
+        LOGGER.i("individuals after keeping individuals", sorted_ID.size());
     }
 
     if (!params.remove_file_list[cohort_index].empty()) {
         vector<string> remove_ids, temp_ids;
         skim_fam(params.remove_file_list[cohort_index], remove_ids);
-        set_difference(all_ids.begin(), all_ids.end(), remove_ids.begin(), remove_ids.end(), back_inserter(temp_ids));
-        all_ids.swap(temp_ids);
-        LOGGER.i("individuals after removing individuals", all_ids.size());
+
+        sort(remove_ids.begin(), remove_ids.end());
+        set_difference(sorted_ID.begin(), sorted_ID.end(), remove_ids.begin(), remove_ids.end(), back_inserter(temp_ids));
+        sorted_ID.swap(temp_ids);
+        LOGGER.i("individuals after removing individuals", sorted_ID.size());
     }
 
-    if (all_ids.size() == 0)
+    if (sorted_ID.size() == 0)
         LOGGER.e("No individuals remaining after applying keep/remove individual files");
     
-    valid_indi_num = all_ids.size();
+    valid_indi_num = sorted_ID.size();
 
     // nothing changed
     if (fam_indi_num == valid_indi_num) {
@@ -169,58 +171,29 @@ void Cohort::read_fam()
         return;
     }
 
-    // get binary mask for genotype reading   
-    string FID, IID, str_buf;
+    // get binary mask for genotype reading 
     int bit_index = 0, word_index = 0;
     uint64_t word_mask = 0ULL;
 
     // a coarse way to balance time and memory
-    ifstream Fam(famFile.c_str());
+    genotype.initialize_mask(fam_indi_num);
+    
+    for (const auto& full_ID : fam_ID_array) {
+        if (binary_search(sorted_ID.begin(), sorted_ID.end(), full_ID))
+            word_mask |= (1ULL << bit_index);
 
-    if (valid_indi_num > fam_indi_num / 2) {
-        LOGGER.i("Read all individuals into memory and mask unwanted individuals");
-        genotype.initialize_mask(fam_indi_num);
-        
-        while (getline(Fam, str_buf)) {
-            if (str_buf.empty()) continue;
-
-            const char* pt = str_buf.c_str();
-            parse_string(pt, FID);
-            parse_string(pt, IID);
-
-            if (binary_search(all_ids.begin(), all_ids.end(), FID+':'+IID))
-                word_mask |= (1ULL << bit_index);
-
-            bit_index++;
-            if (bit_index == 64) {
-                genotype.X_mask[word_index] = word_mask;
-                word_mask = 0ULL;
-                bit_index = 0;
-                word_index++;
-            }
-        }
-
-        if (bit_index > 0)
+        bit_index++;
+        if (bit_index == 64) {
             genotype.X_mask[word_index] = word_mask;
-    } else {
-        LOGGER.i("Only read individuals to be used into memory");
-        genotype.initialize_mask(valid_indi_num);
-        
-        while (getline(Fam, str_buf)) {
-            if (str_buf.empty()) continue;
-
-            const char* pt = str_buf.c_str();
-            parse_string(pt, FID);
-            parse_string(pt, IID);
-
-            if (binary_search(all_ids.begin(), all_ids.end(), FID+':'+IID)) 
-                fam_keep_array.push_back(bit_index);
-
-            bit_index++;
+            word_mask = 0ULL;
+            bit_index = 0;
+            word_index++;
         }
     }
+
+    if (bit_index > 0)
+        genotype.X_mask[word_index] = word_mask;
     
-    Fam.close();
     LOGGER.i("individuals will be used for analysis", valid_indi_num);
 }
 
@@ -480,10 +453,7 @@ void Cohort::read_bed()
 
                 #pragma omp task firstprivate(local_buffer, ref_index) 
                 {
-                    if (fam_keep_array.empty())
-                        genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index]);
-                    else
-                        genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index], fam_keep_array);
+                    genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index]);
                 }
             }
 
@@ -624,9 +594,6 @@ bool MACOJO::read_input_files()
         shared.goodSNP_table.emplace_back(snp, temp_index);
         temp_index++;
     }
-    
-    sort(shared.goodSNP_table.begin(), shared.goodSNP_table.end(),
-        [](const pair<string, int>& a, const pair<string, int>& b) { return a.first < b.first; });
 
     shared.A1_ref.resize(total_SNP_num);
     shared.A2_ref.resize(total_SNP_num);

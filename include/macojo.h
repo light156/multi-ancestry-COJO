@@ -26,6 +26,7 @@ public:
     void read_bim();
     void read_bed();
     void read_PLINK_LD();
+    void calc_polygenic_score(int argc, char** argv);
 
     int calc_R_inv_forward(int append_index);
     int calc_R_inv_backward(int remove_index);
@@ -47,14 +48,13 @@ public:
     int cohort_index;
 
 private:
-    const HyperParams& params = get_params();
+    HyperParams& params = get_params();
     SharedData& shared;
 
     Geno genotype;
     LDPacked LD_matrix;
     vector<bool> bed_swap_array;
-    vector<string> bim_SNP_array;
-    vector<int> fam_keep_array;
+    vector<string> bim_SNP_array, fam_ID_array;
     int valid_indi_num, fam_indi_num;
 
 public:
@@ -112,7 +112,7 @@ public:
     void output_bad_SNP(string savename);
 
 private:
-    const HyperParams& params = get_params();
+    HyperParams& params = get_params();
     SharedData shared;
 
     vector<Cohort> cohorts;
