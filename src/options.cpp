@@ -203,7 +203,7 @@ int set_read_process_output_options(int argc, char** argv)
             << (*R2_option ? "R2 incremental threshold: " + to_string(params.R2_threshold) + "\n" : "")
             << (*R2back_option ? "R2 incremental threshold (backward): " + to_string(params.R2back_threshold) + "\n" : "")
             << (cohort_num > 1 ? (params.if_freq_mode_and ? "SNP frequency mode: AND\n" : "SNP frequency mode: OR\n") : "")
-            << (params.if_MDISA ? "Run MDISA after MACOJO\n" : "")
+            << (cohort_num > 1 && params.if_MDISA ? "Run MDISA after MACOJO\n" : "")
             << "===========================================" << endl << endl;
 
     if (!params.extract_options.empty() || !params.extract_SNPs.empty()) {
