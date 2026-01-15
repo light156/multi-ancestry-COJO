@@ -241,9 +241,9 @@ void MACOJO::slct_loop()
             // calculate joint p-value and decide whether to accept this SNP
             // must suffice for the first SNP, just avoid complicated logic
             inverse_var_meta(bJ, se2J, abs_zJ);
-            // max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
-            max_pJ = erfc(abs_zJ.tail(candidate_SNP.size()-fixed_candidate_SNP_num).minCoeff(&max_pJ_index) / sqrt(2));
-            max_pJ_index += fixed_candidate_SNP_num;
+            max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
+            // max_pJ = erfc(abs_zJ.tail(candidate_SNP.size()-fixed_candidate_SNP_num).minCoeff(&max_pJ_index) / sqrt(2));
+            // max_pJ_index += fixed_candidate_SNP_num;
 
             // directly accept this SNP and next iteration
             if (max_pJ <= params.p_value) {
@@ -326,9 +326,9 @@ void MACOJO::slct_loop()
                 if (res_flag != 1) break;
 
                 inverse_var_meta(bJ, se2J, abs_zJ);
-                // max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
-                max_pJ = erfc(abs_zJ.tail(candidate_SNP.size()-fixed_candidate_SNP_num).minCoeff(&max_pJ_index) / sqrt(2));
-                max_pJ_index += fixed_candidate_SNP_num;
+                max_pJ = erfc(abs_zJ.minCoeff(&max_pJ_index) / sqrt(2));
+                // max_pJ = erfc(abs_zJ.tail(candidate_SNP.size()-fixed_candidate_SNP_num).minCoeff(&max_pJ_index) / sqrt(2));
+                // max_pJ_index += fixed_candidate_SNP_num;
                 LOGGER << "Joint b, se, max pJ: " 
                         << bJ(max_pJ_index) << " " << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
 
