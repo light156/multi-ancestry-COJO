@@ -154,11 +154,22 @@ void MACOJO::entry_function()
             LOGGER << endl << "MDISA for Cohort " << n + 1 << endl;
             current_list[0] = n;
             
+            screened_SNP.insert(screened_SNP.end(), candidate_SNP.begin() + fixed_candidate_SNP_num, candidate_SNP.end());
             candidate_SNP = candidate_SNP_backup;
+            
             screened_SNP.insert(screened_SNP.end(), collinear_SNP.begin(), collinear_SNP.end());
             screened_SNP.insert(screened_SNP.end(), backward_SNP.begin(), backward_SNP.end());
             vector<int>().swap(collinear_SNP);
             vector<int>().swap(backward_SNP);
+
+            // calculate r and r_gcta from scratch
+            cohorts[n].r.resize(0, 0);
+            cohorts[n].r_gcta.resize(0, 0);
+            for (int index : candidate_SNP)
+                cohorts[n].append_r(screened_SNP, index, params.slct_mode);
+
+            // calculte R from scratch
+            cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.slct_mode);
 
             slct_loop();
             output_jma(params.output_name + ".MDISA.cohort" + to_string(n + 1));

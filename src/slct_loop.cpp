@@ -106,8 +106,7 @@ void Cohort::calc_cond_effects(const vector<int>& candidate_SNP, string mode)
         VectorXd temp = R_inv_pre_gcta * (sumstat_candidate.col(0) * sumstat_candidate.col(6)).matrix();
         beta = sumstat.col(0) - (r_gcta * temp).array() / sumstat.col(6);
         beta_var = Vp / sumstat.col(6);
-    }
-    else {
+    } else {
         VectorXd temp = R_inv_pre * (sumstat_candidate.col(0) * sqrt(sumstat_candidate.col(5))).matrix();
         beta = sumstat.col(0) - (r * temp).array() / sqrt(sumstat.col(5));
         beta_var = sumstat.col(1);
