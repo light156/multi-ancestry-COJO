@@ -107,5 +107,3 @@ This project includes or depends on the following third-party open-source librar
 - **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`external/Eigen`)
 - **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`external/CLI11.hpp`)
 - **[fastfloat](https://github.com/fastfloat/fast_float)** - Used for number parsing (`external/fast_float.h`)
-
-We thank Dr. Tian Lin, Dr. Siqi Wang, and Dr. Ang Li for testing the software on two dependent computing platforms across multiple traits and providing feedback on software usage and tutorials.
