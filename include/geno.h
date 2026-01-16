@@ -44,9 +44,9 @@ public:
             X_mask.back() = ((1ULL << (valid_indi_num % 64)) - 1ULL);
     };
 
-    void decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap);
+    void decode_single_genotype(const char* buffer, size_t buffer_size, size_t ref_index, bool swap);
     double calc_inner_product(size_t idx1, size_t idx2, bool remove_NA) const;
-    void calc_single_genotype_prs(const vector<char>& buffer, bool swap, double score_b,
+    void calc_single_genotype_prs(const char* buffer, size_t buffer_size, bool swap, double score_b,
         vector<double>& geno_vec, vector<int>& geno_count_vec, vector<int>& geno_count2_vec); 
 
 

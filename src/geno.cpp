@@ -40,7 +40,7 @@ void Geno::build_LUT() {
 }
 
 
-void Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, bool swap) {
+void Geno::decode_single_genotype(const char* buffer, size_t buffer_size, size_t ref_index, bool swap) {
     // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
     const auto& L1 = swap ? LUT_A1_swap : LUT_A1;
     const auto& L2 = swap ? LUT_A2_swap : LUT_A2;
@@ -61,8 +61,8 @@ void Geno::decode_single_genotype(const vector<char>& buffer, size_t ref_index, 
         }
         
         int bit_index = 0;
-        while(bit_index < 64 && byte_index < buffer.size()) {    
-            uint8_t b = buffer[byte_index];
+        while(bit_index < 64 && byte_index < static_cast<int>(buffer_size)) {    
+            uint8_t b = static_cast<uint8_t>(buffer[byte_index]);
 
             wordA1 |= (L1[b] << bit_index);
             wordA2 |= (L2[b] << bit_index);
@@ -138,15 +138,19 @@ double Geno::calc_inner_product(size_t idx1, size_t idx2, bool remove_NA) const
 }
 
 
-void Geno::calc_single_genotype_prs(const vector<char>& buffer, bool swap, double score_b,
+void Geno::calc_single_genotype_prs(const char* buffer, size_t buffer_size, bool swap, double score_b,
         vector<double>& geno_vec, vector<int>& geno_count_vec, vector<int>& geno_count2_vec)
 {
     // Read genotype in SNP-major mode, 00: homozygote AA; 11: homozygote BB; 01: hetezygote; 10: missing
     const auto& L1 = swap ? LUT_A1_swap : LUT_A1;
     const auto& L2 = swap ? LUT_A2_swap : LUT_A2;
 
-    vector<uint64_t> SNP_A1(words_per_snp, 0ULL);
-    vector<uint64_t> SNP_A2(words_per_snp, 0ULL);
+    static thread_local vector<uint64_t> SNP_A1_tls;
+    static thread_local vector<uint64_t> SNP_A2_tls;
+    if (SNP_A1_tls.size() != words_per_snp) {
+        SNP_A1_tls.assign(words_per_snp, 0ULL);
+        SNP_A2_tls.assign(words_per_snp, 0ULL);
+    }
 
     int SNP_sum = 0, not_NA_indi_num = 0, byte_index = 0;
     uint64_t wordA1 = 0ULL, wordA2 = 0ULL;
@@ -159,8 +163,8 @@ void Geno::calc_single_genotype_prs(const vector<char>& buffer, bool swap, doubl
         }
         
         int bit_index = 0;
-        while(bit_index < 64 && byte_index < buffer.size()) {    
-            uint8_t b = buffer[byte_index];
+        while(bit_index < 64 && byte_index < static_cast<int>(buffer_size)) {    
+            uint8_t b = static_cast<uint8_t>(buffer[byte_index]);
 
             wordA1 |= (L1[b] << bit_index);
             wordA2 |= (L2[b] << bit_index);
@@ -175,8 +179,8 @@ void Geno::calc_single_genotype_prs(const vector<char>& buffer, bool swap, doubl
         SNP_sum += popcnt64(g1) + popcnt64(g2) * 2;
         not_NA_indi_num += popcnt64(valid);
 
-        SNP_A1[w] = wordA1;
-        SNP_A2[w] = wordA2;
+        SNP_A1_tls[w] = wordA1;
+        SNP_A2_tls[w] = wordA2;
 
         while (g1) {
             int bit = __builtin_ctzll(g1);
@@ -188,7 +192,6 @@ void Geno::calc_single_genotype_prs(const vector<char>& buffer, bool swap, doubl
             g1 &= (g1 - 1ULL);
         }
 
-        // g = 2
         while (g2) {
             int bit = __builtin_ctzll(g2);
             int n = static_cast<int>(w * 64 + bit);
@@ -206,7 +209,7 @@ void Geno::calc_single_genotype_prs(const vector<char>& buffer, bool swap, doubl
     double mu = double(SNP_sum) / not_NA_indi_num;
 
     for (int w = 0; w < words_per_snp; w++) {
-        uint64_t miss = (SNP_A1[w] & ~SNP_A2[w]) & X_mask[w];
+        uint64_t miss = (SNP_A1_tls[w] & ~SNP_A2_tls[w]) & X_mask[w];
 
         while (miss) {
             int bit = __builtin_ctzll(miss);

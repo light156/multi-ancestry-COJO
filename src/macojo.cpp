@@ -10,7 +10,6 @@ void MACOJO::initialize_candidate_SNP(const vector<string>& given_list)
             continue;
         }
         candidate_SNP.push_back(iter->second);
-        screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), iter->second));
     }
 }
 
@@ -102,7 +101,11 @@ void MACOJO::entry_function()
         current_list.push_back(n);
 
     if (params.if_joint_mode) {
-        candidate_SNP = screened_SNP; // screened SNP cannot be empty here, checked during reading files
+        for (int i = 0; i < shared.goodSNP_table.size(); i++) {
+            if (shared.goodSNP_table[i].second != -1)
+                candidate_SNP.push_back(i);
+        }
+
         output_jma(params.output_name);
         LOGGER.i("Calculation finished for joint analysis!");
         return;
@@ -130,10 +133,16 @@ void MACOJO::entry_function()
             if (!check_candidate_SNP_collinearity(params.slct_mode))
                 LOGGER.i("valid fixed SNPs after checking collinearity", candidate_SNP.size());
 
+            active_mask.assign(shared.goodSNP_table.size(), 1);
+            for (int idx : bad_SNP)
+                active_mask[idx] = 0;
+            for (int idx : candidate_SNP)
+                active_mask[idx] = 0;
+
             // initialize r and r_gcta from scratch
             for (auto &c : cohorts) {
                 for (int index : candidate_SNP)
-                    c.append_r(screened_SNP, index, params.slct_mode);
+                    c.append_r(active_mask, index, params.slct_mode);
             }
         } else
             LOGGER.i("No valid fixed SNPs found, proceed with stepwise selection from zero");
@@ -153,20 +162,22 @@ void MACOJO::entry_function()
         for (size_t n = 0; n < cohorts.size(); n++) {
             LOGGER << endl << "MDISA for Cohort " << n + 1 << endl;
             current_list[0] = n;
-            
-            screened_SNP.insert(screened_SNP.end(), candidate_SNP.begin() + fixed_candidate_SNP_num, candidate_SNP.end());
+                
             candidate_SNP = candidate_SNP_backup;
-            
-            screened_SNP.insert(screened_SNP.end(), collinear_SNP.begin(), collinear_SNP.end());
-            screened_SNP.insert(screened_SNP.end(), backward_SNP.begin(), backward_SNP.end());
             vector<int>().swap(collinear_SNP);
             vector<int>().swap(backward_SNP);
 
+            active_mask.assign(shared.goodSNP_table.size(), 1);
+            for (int idx : bad_SNP)
+                active_mask[idx] = 0;
+            for (int idx : candidate_SNP)
+                active_mask[idx] = 0;
+                
             // calculate r and r_gcta from scratch
             cohorts[n].r.resize(0, 0);
             cohorts[n].r_gcta.resize(0, 0);
             for (int index : candidate_SNP)
-                cohorts[n].append_r(screened_SNP, index, params.slct_mode);
+                cohorts[n].append_r(active_mask, index, params.slct_mode);
 
             // calculte R from scratch
             cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.slct_mode);
@@ -183,7 +194,20 @@ void MACOJO::entry_function()
 // must happen after checking candidate SNP collinearity
 void MACOJO::output_cma(string savename) 
 {   
-    if (screened_SNP.size() == 0) {
+    active_mask.assign(shared.goodSNP_table.size(), 1);
+    auto mark_inactive = [&](const vector<int>& indices) {
+        for (int idx : indices)
+            active_mask[idx] = 0;
+    };
+    mark_inactive(candidate_SNP);
+    mark_inactive(collinear_SNP);
+    mark_inactive(backward_SNP);
+    mark_inactive(bad_SNP);
+
+    size_t active_count = 0;
+    for (char v : active_mask)
+        active_count += (v != 0);
+    if (active_count == 0) {
         LOGGER.i("No screened SNPs, conditional analysis output file will not be generated");
         return;
     }
@@ -194,7 +218,7 @@ void MACOJO::output_cma(string savename)
             cohorts[n].r.resize(0, 0);
             cohorts[n].r_gcta.resize(0, 0);
             for (int index : candidate_SNP)
-                cohorts[n].append_r(screened_SNP, index, params.effect_size_mode);
+                cohorts[n].append_r(active_mask, index, params.effect_size_mode);
         }
     }
 
@@ -203,10 +227,11 @@ void MACOJO::output_cma(string savename)
         cohorts[n].calc_cond_effects(candidate_SNP, params.effect_size_mode);
     
     vector<pair<int, int>> SNP_ref_order_pair;
-    for (int index : screened_SNP)
-        SNP_ref_order_pair.emplace_back(shared.SNP_pos_ref[index], index);
-
-    sort(SNP_ref_order_pair.begin(), SNP_ref_order_pair.end());
+    SNP_ref_order_pair.reserve(shared.bp_order.size());
+    for (int idx : shared.bp_order) {
+        if (active_mask[idx])
+            SNP_ref_order_pair.emplace_back(shared.SNP_pos_ref[idx], idx);
+    }
 
     output_inverse_var_meta(savename, SNP_ref_order_pair, false);
 }
@@ -229,11 +254,17 @@ void MACOJO::output_jma(string savename)
     for (int n : current_list) 
         cohorts[n].calc_R_inv_from_SNP_list(candidate_SNP, params.effect_size_mode);
 
-    vector<pair<int, int>> SNP_ref_order_pair;
-    for (int num = 0; num < candidate_SNP.size(); num++)
-        SNP_ref_order_pair.emplace_back(shared.SNP_pos_ref[candidate_SNP[num]], num);
+    vector<int> cand_pos(shared.goodSNP_table.size(), -1);
+    for (int i = 0; i < candidate_SNP.size(); i++)
+        cand_pos[candidate_SNP[i]] = i;
 
-    sort(SNP_ref_order_pair.begin(), SNP_ref_order_pair.end());
+    vector<pair<int, int>> SNP_ref_order_pair;
+    SNP_ref_order_pair.reserve(candidate_SNP.size());
+    for (int idx : shared.bp_order) {
+        int pos = cand_pos[idx];
+        if (pos != -1)
+            SNP_ref_order_pair.emplace_back(shared.SNP_pos_ref[idx], pos);
+    }
 
     output_inverse_var_meta(savename, SNP_ref_order_pair, true);
 

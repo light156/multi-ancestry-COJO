@@ -424,41 +424,43 @@ void Cohort::read_bed()
         LOGGER.e("PLINK BED file [" + bedFile + "] not in SNP-major mode, please check");
 
     genotype.resize(shared.goodSNP_table.size());
-    vector<char> buffer(bytes_per_snp);
 
-    int goodSNP_num = 0, read_num = 0, last_index = -1;
-    for (const auto& kv : shared.goodSNP_table) goodSNP_num += (kv.second != -1);
+    vector<pair<int, int>> selected;
+    for (int j = 0; j < bim_SNP_array.size(); j++) {
+        auto iter = fast_lookup(shared.goodSNP_table, bim_SNP_array[j]);
+        if (iter == shared.goodSNP_table.end()) continue;
+        
+        selected.emplace_back(j, iter->second);
+    }
 
-    #pragma omp parallel
-    {   
-        #pragma omp single nowait
-        {   
-            for (int j = 0; j < bim_SNP_array.size(); j++) {
-                if (read_num == goodSNP_num) break;
+    const size_t block_bytes = size_t(params.bed_block_mb) * 1024ULL * 1024ULL;
+    const size_t block_snps = std::max<size_t>(1, block_bytes / bytes_per_snp);
+    vector<char> block_buffer(block_snps * bytes_per_snp);
 
-                auto iter = fast_lookup(shared.goodSNP_table, bim_SNP_array[j]);
-                if (iter == shared.goodSNP_table.end()) continue;
-                int ref_index = iter->second;
-                
-                int delta = j - last_index - 1;
-                if (delta > 0) 
-                    Bed.seekg(uint64_t(delta) * bytes_per_snp, ios::cur);
-                
-                Bed.read(buffer.data(), bytes_per_snp);
-                read_num++;
-                last_index = j;
+    size_t idx = 0;
+    while (idx < selected.size()) {
+        int block_start = selected[idx].first;
+        size_t max_snps = std::min(block_snps, size_t(bim_SNP_array.size() - block_start));
+        size_t bytes_to_read = max_snps * bytes_per_snp;
 
-                // spawn decode task
-                auto local_buffer = buffer;
+        Bed.seekg(3 + uint64_t(block_start) * bytes_per_snp, ios::beg);
+        Bed.read(block_buffer.data(), bytes_to_read);
+        if (!Bed || Bed.gcount() != static_cast<std::streamsize>(bytes_to_read))
+            LOGGER.e("Failed to read expected BED block data");
 
-                #pragma omp task firstprivate(local_buffer, ref_index) 
-                {
-                    genotype.decode_single_genotype(local_buffer, ref_index, bed_swap_array[ref_index]);
-                }
-            }
+        int block_end = block_start + static_cast<int>(max_snps);
+        size_t start_idx = idx;
+        while (idx < selected.size() && selected[idx].first < block_end)
+            idx++;
+        size_t end_idx = idx;
 
-            #pragma omp taskwait
-        } 
+        #pragma omp parallel for schedule(static)
+        for (size_t t = start_idx; t < end_idx; t++) {
+            size_t offset = size_t(selected[t].first - block_start) * bytes_per_snp;
+            int ref_index = selected[t].second;
+            genotype.decode_single_genotype(block_buffer.data() + offset, bytes_per_snp,
+                ref_index, bed_swap_array[ref_index]);
+        }
     }
 
     double missing_threshold = valid_indi_num * (1 - params.missingness);
@@ -587,17 +589,17 @@ bool MACOJO::read_input_files()
     auto start = steady_clock::now();
 
     int total_SNP_num = common_SNP.size();
-    shared.goodSNP_table.reserve(total_SNP_num);
-
-    int temp_index = 0;
-    for (const auto& snp : common_SNP) {
-        shared.goodSNP_table.emplace_back(snp, temp_index);
-        temp_index++;
-    }
 
     shared.A1_ref.resize(total_SNP_num);
     shared.A2_ref.resize(total_SNP_num);
     shared.SNP_pos_ref.resize(total_SNP_num);
+    shared.bp_order.resize(total_SNP_num);
+    shared.goodSNP_table.reserve(total_SNP_num);
+
+    for (int i = 0; i < total_SNP_num; i++) {
+        shared.bp_order[i] = i;
+        shared.goodSNP_table.emplace_back(common_SNP[i], i);
+    }
 
     // Step 2: read bim file and sumstat files for all cohorts, set cohort 1 as reference
     for (auto& c : cohorts) {
@@ -646,28 +648,28 @@ bool MACOJO::read_input_files()
             c.read_fam();
             c.read_bed();
         }
-
-        goodSNP_num = 0;
-        for (const auto& kv : shared.goodSNP_table) goodSNP_num += (kv.second != -1);
-        LOGGER.i("common SNPs remaining", goodSNP_num);
-        if (goodSNP_num == 0) return false;
         
         end = steady_clock::now();
         LOGGER << "Time taken: " << duration<double>(end-start).count() << " seconds" << endl << endl;
     }
 
     // finalize SNP index lists
+    bad_SNP.clear();
     for (int i = 0; i < total_SNP_num; i++) {
         if (shared.goodSNP_table[i].second == -1)
             bad_SNP.push_back(i);
-        else
-            screened_SNP.push_back(i);
     }
+
+    if (bad_SNP.size() == total_SNP_num) return false;
 
     if (params.if_output_all)
         output_bad_SNP(params.output_name);
 
-    LOGGER.i("common SNPs at last for analysis", screened_SNP.size());
+    // reorder bp_order according to bp position
+    sort(shared.bp_order.begin(), shared.bp_order.end(),
+        [&](int a, int b) { return shared.SNP_pos_ref[a] < shared.SNP_pos_ref[b]; });
+
+    LOGGER.i("common SNPs at last for analysis", total_SNP_num - bad_SNP.size());
     LOGGER << "--------------------------------" << endl << endl;
     return true;
 }

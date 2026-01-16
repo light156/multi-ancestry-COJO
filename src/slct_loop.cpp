@@ -61,23 +61,31 @@ int Cohort::calc_R_inv_backward(int remove_index)
 }
 
 
-void Cohort::append_r(const vector<int>& SNP_list, int append_index, string mode) 
+void Cohort::append_r(const vector<char>& active_mask, int append_index, string mode) 
 {  
-    VectorXd r_temp_vec = VectorXd::Zero(shared.SNP_pos_ref.size());
+    const int total_SNP_num = active_mask.size();
+    VectorXd r_temp_vec = VectorXd::Zero(total_SNP_num);
+
+    const double left_bp = shared.SNP_pos_ref[append_index] - params.window_size + 1;
+    const double right_bp = shared.SNP_pos_ref[append_index] + params.window_size - 1;
+
+    auto it_lo = std::lower_bound(shared.bp_order.begin(), shared.bp_order.end(), left_bp,
+        [&](int idx, double value) { return shared.SNP_pos_ref[idx] < value; });
+    auto it_hi = std::upper_bound(shared.bp_order.begin(), shared.bp_order.end(), right_bp,
+        [&](double value, int idx) { return value < shared.SNP_pos_ref[idx]; });
 
     if (params.if_LD_mode) {
-        for (size_t i = 0; i < SNP_list.size(); i++) {
-            int sweep_index = SNP_list[i];
-            if (abs(shared.SNP_pos_ref[sweep_index] - shared.SNP_pos_ref[append_index]) < params.window_size)
-                r_temp_vec(sweep_index) = LD_matrix(sweep_index, append_index);
+        for (auto it = it_lo; it != it_hi; ++it) {
+            int sweep_index = *it;
+            if (!active_mask[sweep_index]) continue;
+            r_temp_vec(sweep_index) = LD_matrix(sweep_index, append_index);
         }
     } else {
         #pragma omp parallel for schedule(static)
-        for (size_t i = 0; i < SNP_list.size(); i++) {
-            int sweep_index = SNP_list[i];
-            if (abs(shared.SNP_pos_ref[sweep_index] - shared.SNP_pos_ref[append_index]) < params.window_size) {
-                r_temp_vec(sweep_index) = genotype.calc_inner_product(sweep_index, append_index, (mode == "removeNA"));
-            }  
+        for (int i = 0; i < static_cast<int>(it_hi - it_lo); i++) {
+            int sweep_index = *(it_lo + i);
+            if (!active_mask[sweep_index]) continue;
+            r_temp_vec(sweep_index) = genotype.calc_inner_product(sweep_index, append_index, (mode == "removeNA"));
         }
     }
 
@@ -177,19 +185,27 @@ void MACOJO::slct_loop()
     bool loop_break_indicator = false;
     int iter_num = 0;
 
-    while (!loop_break_indicator && iter_num < params.max_iter_num && screened_SNP.size() > 0) {
+    while (!loop_break_indicator && iter_num < params.max_iter_num) {
         auto start = steady_clock::now();
 
-        LOGGER << candidate_SNP.size() << " " << screened_SNP.size() << " " << collinear_SNP.size() << " " << backward_SNP.size() << endl;
+        LOGGER << candidate_SNP.size() << " " << collinear_SNP.size() << " " << backward_SNP.size() << endl;
         
         for (int n : current_list)
             cohorts[n].calc_cond_effects(candidate_SNP, params.slct_mode);
 
         inverse_var_meta(bC, se2C, abs_zC);
-        abs_zC(candidate_SNP) = -1;
-        abs_zC(collinear_SNP) = -1;
-        abs_zC(backward_SNP) = -1;
-        abs_zC(bad_SNP) = -1;
+        
+        active_mask.assign(shared.goodSNP_table.size(), 1);
+        auto mark_inactive = [&](const vector<int>& indices) {
+            for (int idx : indices) {
+                active_mask[idx] = 0;
+                abs_zC(idx) = -1;
+            }
+        };
+        mark_inactive(candidate_SNP);
+        mark_inactive(collinear_SNP);
+        mark_inactive(backward_SNP);
+        mark_inactive(bad_SNP);
         
         while (true) {
             // forward: res==0: skip, res==1: success, res==-1: numerical issue, remove
@@ -220,7 +236,7 @@ void MACOJO::slct_loop()
 
             // check R2 increment
             for (int n : current_list) {
-                if (res_flag == 1 && params.R2_threshold <= -1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
+                if (res_flag == 1 && params.R2_threshold > -1 && cohorts[n].R2 < (1+params.R2_threshold) * cohorts[n].previous_R2) {
                     LOGGER.i("skipped, R2 increment lower than threshold in Cohort " + to_string(n+1), current_SNP_name);
                     res_flag = 0;
                 }
@@ -228,7 +244,7 @@ void MACOJO::slct_loop()
 
             // numerical issue happened during R_inv or joint effect calculation, remove this SNP
             if (res_flag == -1) {
-                screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
+                active_mask[min_pC_index] = 0;
                 collinear_SNP.push_back(min_pC_index);
             }
 
@@ -252,10 +268,10 @@ void MACOJO::slct_loop()
                     << sqrt(se2J(max_pJ_index)) << " " << scientific << max_pJ << fixed << endl;
 
                 LOGGER.i("New candidate SNP accepted", current_SNP_name);
-                screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
+                active_mask[min_pC_index] = 0;
 
                 for (int n : current_list) {
-                    cohorts[n].append_r(screened_SNP, min_pC_index, params.slct_mode);
+                    cohorts[n].append_r(active_mask, min_pC_index, params.slct_mode);
                     cohorts[n].save_temp_model();
                 }
                 break;
@@ -264,7 +280,7 @@ void MACOJO::slct_loop()
             // trivial case for removing current SNP
             if (max_pJ_index < fixed_candidate_SNP_num || max_pJ_index == abs_zJ.rows()-1) {
                 // LOGGER.i("removed, because pJ exceeds p-value threshold", current_SNP_name);
-                screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
+                active_mask[min_pC_index] = 0;
                 backward_SNP.push_back(min_pC_index);
 
                 candidate_SNP.pop_back();
@@ -283,7 +299,7 @@ void MACOJO::slct_loop()
 
             for (int n : current_list) {
                 cohorts[n].save_state();
-                cohorts[n].append_r(screened_SNP, min_pC_index, params.slct_mode);
+                cohorts[n].append_r(active_mask, min_pC_index, params.slct_mode);
                 cohorts[n].save_temp_model();
             }
             
@@ -342,7 +358,7 @@ void MACOJO::slct_loop()
             
             // check R2 increment after backward selection
             for (int n : current_list) {
-                if (res_flag == 1 && params.R2back_threshold <= -1 && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
+                if (res_flag == 1 && params.R2back_threshold > -1 && cohorts[n].R2 < (1+params.R2back_threshold) * cohorts[n].previous_R2) {
                     LOGGER.i("Backward selection failed, adjusted R2 lower than backward threshold in Cohort " + to_string(n+1));
                     res_flag = -1;
                 }
@@ -362,8 +378,8 @@ void MACOJO::slct_loop()
                 continue;
             }
 
-            // successful backward selection, remove index from screened_SNP and proceed to next iteration
-            screened_SNP.erase(find(screened_SNP.begin(), screened_SNP.end(), min_pC_index));
+            // successful backward selection, proceed to next iteration
+            active_mask[min_pC_index] = 0;
             LOGGER.i("Backward selection successful!");
             break;
         }

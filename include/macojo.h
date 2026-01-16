@@ -31,7 +31,7 @@ public:
     int calc_R_inv_forward(int append_index);
     int calc_R_inv_backward(int remove_index);
 
-    void append_r(const vector<int>& SNP_list, int append_index, string mode);
+    void append_r(const vector<char>& active_mask, int append_index, string mode);
     void calc_cond_effects(const vector<int>& candidate_SNP, string mode);
     int calc_joint_effects(const vector<int>& candidate_SNP, string mode);
     int calc_R_inv_from_SNP_list(const vector<int>& SNP_list, string mode); 
@@ -117,8 +117,10 @@ private:
 
     vector<Cohort> cohorts;
     vector<int> current_list;
-    vector<int> bad_SNP, screened_SNP;
-    vector<int> candidate_SNP, collinear_SNP, backward_SNP, candidate_SNP_backup, backward_SNP_backup;
+    
+    vector<int> bad_SNP, candidate_SNP, collinear_SNP, backward_SNP, candidate_SNP_backup, backward_SNP_backup;
+    vector<char> active_mask;
+
     int fixed_candidate_SNP_num = 0;
     
     ArrayXd bC, se2C, abs_zC;

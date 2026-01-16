@@ -13,6 +13,7 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     vector<string> extract_options, exclude_options, extract_SNPs, exclude_SNPs;
     string bfile, keep_file, remove_file, output_name;
     int thread_num = 1;
+    int bed_block_mb = 64;
 
     // Main logic options
     app.add_option("--score", score_options, "Per-SNP score file with at least three columns")->required();
@@ -25,6 +26,7 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     app.add_option("--extract-snp", extract_SNPs, "A list of SNPs to be included");
     app.add_option("--exclude-snp", exclude_SNPs, "A list of SNPs to be excluded");
     app.add_option("--thread-num", thread_num, "Number of threads to use")->default_val(1)->check(CLI::PositiveNumber);
+    app.add_option("--bed-block-mb", bed_block_mb, "BED read block size in MB")->default_val(64)->check(CLI::PositiveNumber);
     
     for (auto *opt : app.get_options())
         opt->multi_option_policy(CLI::MultiOptionPolicy::Throw);
@@ -82,12 +84,18 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     int allele_col = 2;
     int score_col = 3;
     bool has_header = false;
+    bool output_sum = false;
 
     vector<string> options_copy = score_options;
     options_copy.erase(options_copy.begin()); // remove filename
 
+    auto before_size = options_copy.size();
     options_copy.erase(remove(options_copy.begin(), options_copy.end(), "header"), options_copy.end());
-    if (options_copy.size() < score_options.size()) has_header = true;
+    if (options_copy.size() < before_size) has_header = true;
+
+    before_size = options_copy.size();
+    options_copy.erase(remove(options_copy.begin(), options_copy.end(), "sum"), options_copy.end());
+    if (options_copy.size() < before_size) output_sum = true;
 
     if (!options_copy.empty() && options_copy.size() != 3)
         LOGGER.e("Invalid format for providing score file");
@@ -272,42 +280,38 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     if (!Bed || ch[0] != 0x6C || ch[1] != 0x1B || ch[2] != 0x01)
         LOGGER.e("PLINK BED file [" + bedFile + "] not in SNP-major mode, please check");
 
-    // move to the first reading position
-    int last_index = -1;
-
-    vector<char> buffer(bytes_per_snp);
-
     vector<vector<double>> geno_tls(thread_num, vector<double>(fam_indi_num, 0.0));
     vector<vector<int>> cnt_tls(thread_num, vector<int>(fam_indi_num, 0));
     vector<vector<int>> cnt2_tls(thread_num, vector<int>(fam_indi_num, 0));
 
-    #pragma omp parallel
-    {   
-        #pragma omp single nowait
-        {   
-            for (int j = 0; j < good_row.size(); j++) {
+    const size_t block_bytes = size_t(bed_block_mb) * 1024ULL * 1024ULL;
+    const size_t block_snps = std::max<size_t>(1, block_bytes / bytes_per_snp);
+    vector<char> block_buffer(block_snps * bytes_per_snp);
 
-                int delta = good_row[j] - last_index - 1;
-                if (delta > 0) 
-                    Bed.seekg(uint64_t(delta) * bytes_per_snp, ios::cur);
-                    
-                Bed.read(buffer.data(), bytes_per_snp);
+    size_t j = 0;
+    while (j < good_row.size()) {
+        int block_start = good_row[j];
+        size_t max_snps = std::min(block_snps, size_t(line_num - block_start));
+        size_t bytes_to_read = max_snps * bytes_per_snp;
 
-                // spawn decode task
-                auto local_buffer = buffer;
+        Bed.seekg(3 + uint64_t(block_start) * bytes_per_snp, ios::beg);
+        Bed.read(block_buffer.data(), bytes_to_read);
+        if (!Bed || Bed.gcount() != static_cast<std::streamsize>(bytes_to_read))
+            LOGGER.e("Failed to read expected BED block data");
 
-                #pragma omp task firstprivate(local_buffer) 
-                {   
-                    int tid = omp_get_thread_num();
-                    genotype.calc_single_genotype_prs(local_buffer, bed_swap[j], good_row_score[j], 
-                        geno_tls[tid], cnt_tls[tid], cnt2_tls[tid]);
-                }
+        int block_end = block_start + static_cast<int>(max_snps);
+        size_t start_idx = j;
+        while (j < good_row.size() && good_row[j] < block_end)
+            j++;
+        size_t end_idx = j;
 
-                last_index = good_row[j];
-            }
-
-            #pragma omp taskwait
-        } 
+        #pragma omp parallel for schedule(static)
+        for (size_t t = start_idx; t < end_idx; t++) {
+            size_t offset = size_t(good_row[t] - block_start) * bytes_per_snp;
+            size_t thread_id = omp_get_thread_num();
+            genotype.calc_single_genotype_prs(block_buffer.data() + offset, bytes_per_snp,
+                bed_swap[t], good_row_score[t], geno_tls[thread_id], cnt_tls[thread_id], cnt2_tls[thread_id]);
+        }
     }
 
     Bed.close();
@@ -325,27 +329,23 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     ofstream PRS_file((output_name + ".prs.profile").c_str());
     PRS_file << "FID\tIID\tCNT\tCNT2\tSCORE" << endl;
 
-    vector<int> X_mask_positions;
+    int total_allele_num = good_row.size() * 2;
+
     for (size_t w = 0; w < genotype.words_per_snp; w++) {
         uint64_t mask = genotype.X_mask[w];
         while (mask != 0ULL) {
             int bit = __builtin_ctzll(mask);
-            X_mask_positions.push_back(static_cast<int>(w * 64 + bit));
+            int n = static_cast<int>(w * 64 + bit);
+            string s = fam_ID_array[n];
+            auto pos = s.find(':');
+            double score_out = output_sum ? geno_vec(n) : (geno_vec(n) / total_allele_num);
+            PRS_file << s.substr(0, pos) << "\t" << s.substr(pos + 1) << "\t" 
+                << total_allele_num + geno_count_vec(n) << "\t" 
+                << geno_count2_vec(n) << "\t" 
+                << score_out << endl;
             mask &= (mask - 1ULL);
         }
     }
-
-    int total_allele_num = good_row.size() * 2;
-
-    for (int i = 0; i < X_mask_positions.size(); i++) {
-        string s = fam_ID_array[i];
-        int n = X_mask_positions[i];
-        auto pos = s.find(':');
-        PRS_file << s.substr(0, pos) << "\t" << s.substr(pos + 1) << "\t" 
-            << total_allele_num + geno_count_vec(n) << "\t" 
-            << geno_count2_vec(n) << "\t" 
-            << geno_vec(n) / total_allele_num << endl;
-    };
 
     PRS_file.close();
     LOGGER.i("Polygenic scores written to file [" + output_name + ".prs.profile]");

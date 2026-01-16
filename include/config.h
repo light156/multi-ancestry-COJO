@@ -20,6 +20,7 @@ struct HyperParams {
     double window_kb = 10000;
     int max_iter_num = 10000;
     int thread_num = 1;
+    int bed_block_mb = 64;
 
     double iter_collinear_threshold; // 1 / (1 - collinear)
     double window_size; // in bp, window_kb*1e3
@@ -79,4 +80,5 @@ struct SharedData {
     vector<string> A1_ref, A2_ref;
     vector<int> SNP_pos_ref;
     vector<pair<BadSnpReason, string>> bad_SNP_dict;
+    vector<int> bp_order;
 };
