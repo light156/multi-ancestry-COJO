@@ -196,16 +196,11 @@ void MACOJO::slct_loop()
         inverse_var_meta(bC, se2C, abs_zC);
         
         active_mask.assign(shared.goodSNP_table.size(), 1);
-        auto mark_inactive = [&](const vector<int>& indices) {
-            for (int idx : indices) {
-                active_mask[idx] = 0;
-                abs_zC(idx) = -1;
-            }
-        };
-        mark_inactive(candidate_SNP);
-        mark_inactive(collinear_SNP);
-        mark_inactive(backward_SNP);
-        mark_inactive(bad_SNP);
+        // active_mask is initialized once in read_files(); here we just mask inactive SNPs in abs_zC.
+        abs_zC(bad_SNP) = -1;
+        abs_zC(candidate_SNP) = -1;
+        abs_zC(collinear_SNP) = -1;
+        abs_zC(backward_SNP) = -1;
         
         while (true) {
             // forward: res==0: skip, res==1: success, res==-1: numerical issue, remove

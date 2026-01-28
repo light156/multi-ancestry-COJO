@@ -133,9 +133,6 @@ void MACOJO::entry_function()
             if (!check_candidate_SNP_collinearity(params.slct_mode))
                 LOGGER.i("valid fixed SNPs after checking collinearity", candidate_SNP.size());
 
-            active_mask.assign(shared.goodSNP_table.size(), 1);
-            for (int idx : bad_SNP)
-                active_mask[idx] = 0;
             for (int idx : candidate_SNP)
                 active_mask[idx] = 0;
 

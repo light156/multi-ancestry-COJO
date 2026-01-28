@@ -5,8 +5,6 @@
 #include <cmath>
 #include <algorithm>
 using std::vector;
-using std::sqrt;
-using std::swap;
 
 
 inline int popcnt64(uint64_t x) {
@@ -21,18 +19,18 @@ public:
         build_LUT();
     }
 
-    vector<vector<uint64_t>> X_A1, X_A2;
+    vector<vector<uint64_t>> X_bit1, X_bit2;
     vector<uint64_t> X_mask;
 
-    vector<double> X_avg, X_center_square;
+    vector<double> X_avg, X_std;
     vector<int> X_non_NA_indi_num;
     size_t words_per_snp;
     
     void resize(int geno_num) {
-        X_A1.resize(geno_num);
-        X_A2.resize(geno_num);
+        X_bit1.resize(geno_num);
+        X_bit2.resize(geno_num);
         X_avg.resize(geno_num);
-        X_center_square.resize(geno_num);
+        X_std.resize(geno_num);
         X_non_NA_indi_num.assign(geno_num, -1);
     };
 
@@ -51,10 +49,10 @@ public:
 
 
 private:
-    uint64_t LUT_A1[256];
-    uint64_t LUT_A2[256];
-    uint64_t LUT_A1_swap[256];
-    uint64_t LUT_A2_swap[256];
+    uint64_t LUT_bit1[256];
+    uint64_t LUT_bit2[256];
+    uint64_t LUT_bit1_swap[256];
+    uint64_t LUT_bit2_swap[256];
     void build_LUT();
 };
 
@@ -70,13 +68,13 @@ public:
     }
 
     double& operator()(uint64_t i, uint64_t j) {
-        if (i > j) swap(i, j);
+        if (i > j) std::swap(i, j);
         uint64_t idx = i*n_ - i*(i-1)/2 + (j - i);
         return data_[idx];
     }
 
     double operator()(uint64_t i, uint64_t j) const {
-        if (i > j) swap(i, j);
+        if (i > j) std::swap(i, j);
         uint64_t idx = i*n_ - i*(i-1)/2 + (j - i);
         return data_[idx];
     }

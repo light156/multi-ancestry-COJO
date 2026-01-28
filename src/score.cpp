@@ -26,7 +26,7 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     app.add_option("--extract-snp", extract_SNPs, "A list of SNPs to be included");
     app.add_option("--exclude-snp", exclude_SNPs, "A list of SNPs to be excluded");
     app.add_option("--thread-num", thread_num, "Number of threads to use")->default_val(1)->check(CLI::PositiveNumber);
-    app.add_option("--bed-block-mb", bed_block_mb, "BED read block size in MB")->default_val(64)->check(CLI::PositiveNumber);
+    app.add_option("--bed-block-mb", bed_block_mb, "BED read block size in MB")->default_val(128)->check(CLI::PositiveNumber);
     
     for (auto *opt : app.get_options())
         opt->multi_option_policy(CLI::MultiOptionPolicy::Throw);

@@ -58,7 +58,7 @@ int set_read_process_output_options(int argc, char** argv)
     auto *remove_option = app.add_option("--remove", params.remove_file_list, "File path of individuals to be excluded")->group(data_group);
     app.add_option("--chr", params.curr_chr, "Only include SNPs on a specific chromosome")->group(data_group)->check(CLI::Range(1, 22));
     app.add_option("--thread-num", params.thread_num, "Number of threads to use")->default_val(1)->check(CLI::PositiveNumber)->group(data_group);
-    app.add_option("--bed-block-mb", params.bed_block_mb, "BED read block size in MB")->default_val(64)->check(CLI::PositiveNumber)->group("");
+    app.add_option("--bed-block-mb", params.bed_block_mb, "BED read block size in MB")->default_val(128)->check(CLI::PositiveNumber)->group("");
     
     // multi-cohort specific options
     string manc_group = "Other Manc-COJO Options/Flags";
@@ -114,7 +114,7 @@ int set_read_process_output_options(int argc, char** argv)
     params.if_cond_mode = cond_option->count() > 0;
     params.if_LD_mode = ld->count() > 0;
 
-    params.window_size = (params.window_kb < 0 ? LLONG_MAX : params.window_kb * 1000);
+    params.window_size = (params.window_kb < 0 ? INT_MAX : params.window_kb * 1000);
     params.iter_collinear_threshold = 1.0 / (1.0 - params.collinear);
     LOGGER.open(params.output_name + ".log");
 

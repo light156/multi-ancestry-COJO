@@ -653,11 +653,13 @@ bool MACOJO::read_input_files()
         LOGGER << "Time taken: " << duration<double>(end-start).count() << " seconds" << endl << endl;
     }
 
-    // finalize SNP index lists
-    bad_SNP.clear();
+    // finalize SNP index lists; active_mask is initialized once and updated during selection
+    active_mask.assign(total_SNP_num, 1);
     for (int i = 0; i < total_SNP_num; i++) {
-        if (shared.goodSNP_table[i].second == -1)
+        if (shared.goodSNP_table[i].second == -1) {
             bad_SNP.push_back(i);
+            active_mask[i] = 0;
+        }
     }
 
     if (bad_SNP.size() == total_SNP_num) return false;
