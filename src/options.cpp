@@ -106,7 +106,7 @@ int set_read_process_output_options(int argc, char** argv)
         app.parse(argc, argv); 
     } catch (const CLI::CallForHelp &e) {
         LOGGER.i(app.help());
-        return -1;
+        return 0;
     } catch (const CLI::ParseError &e) {
         LOGGER.i(app.help());
         LOGGER.e(e.what());
