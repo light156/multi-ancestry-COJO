@@ -1,0 +1,55 @@
+name: Linux binary compatibility test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ubuntu:
+    name: Ubuntu 22.04 (host runner)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect binary
+        run: |
+          file ./manc_cojo
+          ldd ./manc_cojo || true
+
+      - name: Run binary
+        run: ./manc_cojo
+  containers:
+    name: Container tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - debian:bookworm
+          - fedora:latest
+          - almalinux:9
+          - alpine:latest
+
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install minimal runtime deps
+        run: |
+          if command -v apt-get >/dev/null; then
+            apt-get update && apt-get install -y ca-certificates
+          elif command -v dnf >/dev/null; then
+            dnf install -y ca-certificates
+          elif command -v apk >/dev/null; then
+            apk add --no-cache ca-certificates libc6-compat || true
+          fi
+
+      - name: Inspect binary
+        run: |
+          file ./manc_cojo
+          ldd ./manc_cojo || true
+
+      - name: Run binary
+        run: ./manc_cojo
