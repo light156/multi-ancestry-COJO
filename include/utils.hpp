@@ -5,45 +5,57 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
 
 using Eigen::PlainObjectBase;
 using Eigen::DenseBase;
-using std::invalid_argument;
 using std::vector;
 using std::string;
 using std::pair;
 
 
-// template functions for matrix manipulation   
-// Append a row: row must be 1 × N and match matrix.cols()
+// template functions for matrix manipulation
+// Insert a row at position index (-1 = append at end)
 template <typename MatDerived, typename RowDerived>
-inline void append_row(PlainObjectBase<MatDerived>& matrix, const DenseBase<RowDerived>& row_vec)
+inline void insert_row(PlainObjectBase<MatDerived>& matrix, const DenseBase<RowDerived>& row_vec,
+                       typename MatDerived::Index index = -1)
 {
     if (row_vec.rows() != 1)
-        throw invalid_argument("append_row: row must have 1 row (row vector).");
+        throw std::invalid_argument("insert_row: row must have 1 row (row vector).");
     if (matrix.rows() != 0 && matrix.cols() != row_vec.cols())
-        throw invalid_argument("append_row: column count mismatch.");
+        throw std::invalid_argument("insert_row: column count mismatch.");
 
     typename MatDerived::Index numRows = matrix.rows();
+    if (index == -1) index = numRows;
+    if (index < 0 || index > numRows)
+        throw std::invalid_argument("insert_row: index out of range.");
 
     matrix.conservativeResize(numRows + 1, row_vec.cols());
-    matrix.row(numRows) = row_vec.derived();
+    if (index < numRows)
+        matrix.bottomRows(numRows - index) = matrix.middleRows(index, numRows - index).eval();
+    matrix.row(index) = row_vec.derived();
 }
 
 
-// Append a column: col must be M × 1 and match matrix.rows()
+// Insert a column at position index (-1 = append at end)
 template <typename MatDerived, typename ColDerived>
-inline void append_column(PlainObjectBase<MatDerived>& matrix, const DenseBase<ColDerived>& col_vec)
+inline void insert_column(PlainObjectBase<MatDerived>& matrix, const DenseBase<ColDerived>& col_vec,
+                          typename MatDerived::Index index = -1)
 {
     if (col_vec.cols() != 1)
-        throw invalid_argument("append_column: col must have 1 column (column vector).");
+        throw std::invalid_argument("insert_column: col must have 1 column (column vector).");
     if (matrix.cols() != 0 && matrix.rows() != col_vec.rows())
-        throw invalid_argument("append_column: row count mismatch.");
+        throw std::invalid_argument("insert_column: row count mismatch.");
 
     typename MatDerived::Index numCols = matrix.cols();
+    if (index == -1) index = numCols;
+    if (index < 0 || index > numCols)
+        throw std::invalid_argument("insert_column: index out of range.");
 
     matrix.conservativeResize(col_vec.rows(), numCols + 1);
-    matrix.col(numCols) = col_vec.derived();
+    if (index < numCols)
+        matrix.rightCols(numCols - index) = matrix.middleCols(index, numCols - index).eval();
+    matrix.col(index) = col_vec.derived();
 }
 
 
@@ -85,7 +97,7 @@ inline void remove_column(PlainObjectBase<Derived> &matrix, typename Derived::In
 inline double median(std::vector<double>& v) {
     const size_t n = v.size();
     if (n == 0) 
-        throw invalid_argument("median: empty vector");
+        throw std::invalid_argument("median: empty vector");
 
     const size_t mid = n / 2;
 
@@ -104,8 +116,10 @@ inline double median(std::vector<double>& v) {
 
 
 inline double median(const Eigen::ArrayXd &eigen_vector)
-{
-    vector<double> v(eigen_vector.data(), eigen_vector.data() + eigen_vector.size());
+{   
+    vector<double> v(eigen_vector.size());
+    for (auto i = 0; i < eigen_vector.size(); i++)
+        v[i] = eigen_vector[i];
     return median(v);
 }
 

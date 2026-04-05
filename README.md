@@ -4,7 +4,7 @@
 
 GWAS tests for association between a trait and SNPs one at a time, giving marginal SNP effect estimates. 
 However, associations detected in GWAS are often not independent because of linkage disequilibrium (LD) between SNPs. 
-To address this challenge, [COJO](https://www.nature.com/articles/ng.2213) has been proposed and widely used for single-ancestry analyses, where it identifies independent association signals through iterative conditioning on significant SNPs while jointly modelling their effects to account for LD. 
+To address this challenge, [COJO](https://www.nature.com/articles/ng.2213) has been proposed and widely used for single-ancestry analyses, which identify independent association signals through iterative conditioning on significant SNPs while jointly modelling their effects to account for LD. 
 Building upon COJO, our multi-ancestry extension exploits population-specific LD differences to improve the detection of independent association signals and reduce false positives compared to single-ancestry COJO (and _ad hoc_ adaptations for multi-ancestry use).
 
 <br>
@@ -19,11 +19,13 @@ For example, for the analysis of high-density lipoprotein (HDL) cholesterol in o
 
 You can download our software directly from the links below:
 
-### [⬇️ Download link (Linux)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo)
+### [⬇️ Download link (Linux)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.1.0/manc_cojo)
 
-### [⬇️ Download link (Windows)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo_win.exe)
+### [⬇️ Download link (Windows)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.1.0/manc_cojo_win.exe)
 
-### [⬇️ Download link (macOS)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.0.0/manc_cojo_macOS)
+### [⬇️ Download link (macOS)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.1.0/manc_cojo_macOS)
+
+### [👉 Documentation website of Manc-COJO](https://light156.github.io/multi-ancestry-COJO-docs)
 
 <br>
 
@@ -40,8 +42,6 @@ To check that the software is working, run:
 ```
 
 This will print the available options and confirm that it runs correctly.
-
-If you have any problems running the software on your system, please feel free to contact us and we are happy to help.
 
 ## Usage
 
@@ -62,7 +62,7 @@ In general, you can replace the path to the GCTA executable with `manc_cojo` whi
 
 ### Multiple cohorts
 
-Append multiple file paths to `--bfile` and ``--cojo-file``. Please make sure that the files are provided in the same order for both options.
+Append multiple file paths to `--bfile` and `--cojo-file`. Please make sure that the files are provided in the same order for both options.
 
 ```bash
 ./manc_cojo \
@@ -76,14 +76,23 @@ Append multiple file paths to `--bfile` and ``--cojo-file``. Please make sure th
 
 Despite being largely similar, the following behaviours intentionally differ from GCTA-COJO:
 
-1. Our software excludes SNPs whose genotypes are identical across all individuals.
-2. In output files, both **A1** and **A2** are reported for each SNP. **A1** corresponds to **refA** in GCTA outputs.  
-3. By default, our software does **not** generate `.cma.cojo` and `.ldr.cojo` files, as they can be very large and are not required for most use cases. Use `--output-all` to enable all output files, which will also record unqualified SNPs in the corresponding `.badsnps` files.
+1. GCTA does not guard against numeric underflow, with p-values smaller than 1.7×10⁻³⁰⁸ stored as zero. This may lead to suboptimal SNPs being selected and affect subsequent steps. In comparison, our software uses absolute z-score instead of p-value for selection, which is mathematically equivalent but avoids numerical underflow. 
+
+2. Multiallelic SNPs sharing the same SNP ID are excluded due to the biallelic assumptions of the current model. If you really want to include them, you need to manually rename them to distinct SNP IDs in the input files. 
+
+3. SNPs with identical genotypes across all individuals (_i.e._, MAF=0 in genotype data) are excluded.
+
 4. When collinearity issues arise among user-provided SNPs during conditional analysis (`--cojo-cond`) or joint analysis (`--cojo-joint`), GCTA terminates without output. In contrast, our software iteratively removes problematic SNPs until the issue is resolved. Removed SNPs are recorded in the `.log` file.
+
+Output format differences:
+
+1. In output files, both **A1** and **A2** are reported for each SNP. **A1** corresponds to **refA** in GCTA outputs.  
+
+2. By default, our software does **not** generate `.cma.cojo` and `.ldr.cojo` files, as they can be very large and are not required for most use cases. Use `--output-all` to enable all output files, which will also record unqualified SNPs in the corresponding `.badsnps` files.
 
 <br>
 
-For advanced usage, a complete list of command-line options, and instructions for running on UKB-RAP, please refer to our documentation website: https://light156.github.io/multi-ancestry-COJO-docs
+For advanced usage, a complete list of command-line options, and instructions for running on UKB-RAP, please refer to our [documentation website](https://light156.github.io/multi-ancestry-COJO-docs).
 
 ## Citation
 
@@ -93,18 +102,20 @@ If you find our paper or software useful for your research, please consider citi
 
 ## Support
 
-Please contact Yong (yong.wang@psych.ox.ac.uk) for software-related enquries and bug reports, or Mark (xiaotong.wang@psych.ox.ac.uk) for algorithm-related questions. 
-We welcome GitHub issues, including usage feedback and new feature requests, so that discussions are visible to all users.
+- Contact Mark ([xiaotong.wang@psych.ox.ac.uk](mailto:xiaotong.wang@psych.ox.ac.uk)) for algorithm-related questions.
+
+- Contact Yong ([yong.wang@psych.ox.ac.uk](mailto:yong.wang@psych.ox.ac.uk)) for software-related enquiries and bug reports. 
+
+- We welcome GitHub issues, including usage feedback and new feature requests, so that discussions are visible to all users.
 
 ---
 
 ## License and Acknowledgments
 
-This project is released under the **MIT License** (see the `LICENSE` file for details).
+- This project is released under the **MIT License** (see the `LICENSE` file for details).
 
-This project includes or depends on the following third-party open-source libraries:
+- This project includes or depends on the following third-party open-source libraries: **[Eigen 3.4.1](https://eigen.tuxfamily.org)**, **[CLI11](https://github.com/CLIUtils/CLI11)**, **[fastfloat](https://github.com/fastfloat/fast_float)**, and **[doctest](https://github.com/doctest/doctest)** (tests only).
 
-- **[Eigen 3.4.1](https://eigen.tuxfamily.org)** – Used for all matrix computations (`external/Eigen`)
-- **[CLI11](https://github.com/CLIUtils/CLI11)** – Modified for parsing command-line options (`external/CLI11.hpp`)
-- **[fastfloat](https://github.com/fastfloat/fast_float)** - Used for number parsing (`external/fast_float.h`)
-- **[doctest](https://github.com/doctest/doctest)** - **Only** for unit tests, **not** linked or used by the main program (`test/doctest.h`)
+- We thank Dr. Lin Tian, Dr. Siqi Wang, and Dr. Ang Li for testing the software and providing feedback.
+
+- We thank Dr. Vince Forgetta for testing the software and valuable discussions on the comparison with GCTA-COJO.

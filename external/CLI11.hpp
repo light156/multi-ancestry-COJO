@@ -11446,7 +11446,9 @@ CLI11_INLINE std::string Formatter::make_option(const Option *opt, bool is_posit
 
         // Print long names
         if(longNames.length() > 0) {
-            longNames += std::string(18 - longNames.size(), ' ');  // added manually
+            if(longNames.length() < 18) {
+                longNames += std::string(18 - longNames.size(), ' ');
+            }
             if(opts.length() > 0)
                 longNames += opts;
             if(static_cast<int>(longNames.length()) >= adjustedLongNamesColumnWidth)

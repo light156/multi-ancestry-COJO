@@ -59,7 +59,7 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
 
     if (!extract_options.empty() || !extract_SNPs.empty()) {
         skim_SNP(extract_options, extract_SNPs);
-        if (extract_SNPs.size() == 0)
+        if (extract_SNPs.empty())
             LOGGER.e("Please provide valid SNPs for --extract and --extract-snp");
 
         LOGGER.i("user-specified SNPs to include", extract_SNPs.size());
@@ -67,7 +67,7 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
 
     if (!exclude_options.empty() || !exclude_SNPs.empty()) {
         skim_SNP(exclude_options, exclude_SNPs);
-        if (exclude_SNPs.size() == 0)
+        if (exclude_SNPs.empty())
             LOGGER.e("Please provide valid SNPs for --exclude and --exclude-snp");
             
         LOGGER.i("user-specified SNPs to exclude", exclude_SNPs.size());
@@ -132,7 +132,6 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
         const char* pt = str_buf.c_str();
         string SNP_buf, allele_buf;
         double score_val = 0.0;
-        int ref_index;
 
         for (int col = 0; col <= max_col; col++) {
             skip_delim(pt);
@@ -187,12 +186,12 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
         LOGGER.i("common SNPs after excluding user-specified SNPs\n", common_SNP.size());
     }
     
-    if (common_SNP.size() == 0) LOGGER.e("No SNPs remaining in score file after applying user-specified filters");
+    if (common_SNP.empty()) LOGGER.e("No SNPs remaining in score file after applying user-specified filters");
 
     vector<pair<string, int>> score_SNP_table;
     score_SNP_table.reserve(common_SNP.size());
 
-    for (int i = 0; i < score_SNP.size(); i++) {
+    for (size_t i = 0; i < score_SNP.size(); i++) {
         if (binary_search(common_SNP.begin(), common_SNP.end(), score_SNP[i]))
             score_SNP_table.emplace_back(score_SNP[i], i);
     }
@@ -253,7 +252,7 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     Bim.close();
 
     LOGGER.i("common SNPs after reading BIM file", good_row.size());
-    if (good_row.size() == 0) LOGGER.e("No common SNPs found after reading BIM file");
+    if (good_row.empty()) LOGGER.e("No common SNPs found after reading BIM file");
 
     // get participants in fam file
     read_fam();
@@ -326,6 +325,8 @@ void Cohort::calc_polygenic_score(int argc, char** argv)
     }
 
     ofstream PRS_file((output_name + ".prs.profile").c_str());
+    if (!PRS_file) LOGGER.e("Cannot open file [" + output_name + ".prs.profile] to write");
+    
     PRS_file << "FID\tIID\tCNT\tCNT2\tSCORE" << endl;
 
     int total_allele_num = good_row.size() * 2;

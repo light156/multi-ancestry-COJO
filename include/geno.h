@@ -4,13 +4,14 @@
 #include <cstdint>
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
 using std::vector;
 
 
 // Bit popcount helper used for genotype decoding.
 inline int popcnt64(uint64_t x) {
     return __builtin_popcountll(x);
-};
+}
 
 
 // Genotype storage and decoding for PLINK .bed (SNP-major).

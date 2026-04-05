@@ -11,64 +11,106 @@
 
 #include "../include/utils.hpp"
 
-TEST_CASE("append_row appends to empty and non-empty matrices") {
+TEST_CASE("insert_row appends to empty and non-empty matrices") {
     Eigen::MatrixXd m(0, 0);
     Eigen::RowVectorXd r1(3);
     r1 << 1.0, 2.0, 3.0;
-    append_row(m, r1);
+    insert_row(m, r1);
     CHECK(m.rows() == 1);
     CHECK(m.cols() == 3);
     CHECK(m.row(0).isApprox(r1));
 
     Eigen::RowVectorXd r2(3);
     r2 << 4.0, 5.0, 6.0;
-    append_row(m, r2);
+    insert_row(m, r2);
     CHECK(m.rows() == 2);
     CHECK(m.row(1).isApprox(r2));
 }
 
-TEST_CASE("append_row validates shape") {
+TEST_CASE("insert_row inserts at a given index") {
+    Eigen::MatrixXd m(2, 3);
+    m << 1.0, 2.0, 3.0,
+         7.0, 8.0, 9.0;
+    Eigen::RowVectorXd r(3);
+    r << 4.0, 5.0, 6.0;
+    insert_row(m, r, 1);
+    CHECK(m.rows() == 3);
+    CHECK(m.row(0).isApprox(Eigen::RowVectorXd{{1.0, 2.0, 3.0}}));
+    CHECK(m.row(1).isApprox(r));
+    CHECK(m.row(2).isApprox(Eigen::RowVectorXd{{7.0, 8.0, 9.0}}));
+}
+
+TEST_CASE("insert_row validates shape") {
     Eigen::MatrixXd m(0, 0);
     Eigen::VectorXd col(3);
     col << 1.0, 2.0, 3.0;
-    CHECK_THROWS_AS(append_row(m, col), std::invalid_argument);
+    CHECK_THROWS_AS(insert_row(m, col), std::invalid_argument);
 
     Eigen::RowVectorXd r1(2);
     r1 << 1.0, 2.0;
-    append_row(m, r1);
+    insert_row(m, r1);
     Eigen::RowVectorXd r_bad(3);
     r_bad << 1.0, 2.0, 3.0;
-    CHECK_THROWS_AS(append_row(m, r_bad), std::invalid_argument);
+    CHECK_THROWS_AS(insert_row(m, r_bad), std::invalid_argument);
 }
 
-TEST_CASE("append_column appends to empty and non-empty matrices") {
+TEST_CASE("insert_row rejects out-of-range index") {
+    Eigen::MatrixXd m(2, 2);
+    m << 1, 2, 3, 4;
+    Eigen::RowVectorXd r(2);
+    r << 5.0, 6.0;
+    CHECK_THROWS_AS(insert_row(m, r, 5), std::invalid_argument);
+}
+
+TEST_CASE("insert_column appends to empty and non-empty matrices") {
     Eigen::MatrixXd m(0, 0);
     Eigen::VectorXd c1(2);
     c1 << 1.0, 2.0;
-    append_column(m, c1);
+    insert_column(m, c1);
     CHECK(m.rows() == 2);
     CHECK(m.cols() == 1);
     CHECK(m.col(0).isApprox(c1));
 
     Eigen::VectorXd c2(2);
     c2 << 3.0, 4.0;
-    append_column(m, c2);
+    insert_column(m, c2);
     CHECK(m.cols() == 2);
     CHECK(m.col(1).isApprox(c2));
 }
 
-TEST_CASE("append_column validates shape") {
+TEST_CASE("insert_column inserts at a given index") {
+    Eigen::MatrixXd m(2, 2);
+    m << 1.0, 3.0,
+         2.0, 4.0;
+    Eigen::VectorXd c(2);
+    c << 9.0, 8.0;
+    insert_column(m, c, 1);
+    CHECK(m.cols() == 3);
+    CHECK(m.col(0).isApprox(Eigen::Vector2d{1.0, 2.0}));
+    CHECK(m.col(1).isApprox(c));
+    CHECK(m.col(2).isApprox(Eigen::Vector2d{3.0, 4.0}));
+}
+
+TEST_CASE("insert_column validates shape") {
     Eigen::MatrixXd m(0, 0);
     Eigen::RowVectorXd row(2);
     row << 1.0, 2.0;
-    CHECK_THROWS_AS(append_column(m, row), std::invalid_argument);
+    CHECK_THROWS_AS(insert_column(m, row), std::invalid_argument);
 
     Eigen::VectorXd c1(2);
     c1 << 1.0, 2.0;
-    append_column(m, c1);
+    insert_column(m, c1);
     Eigen::VectorXd c_bad(3);
     c_bad << 1.0, 2.0, 3.0;
-    CHECK_THROWS_AS(append_column(m, c_bad), std::invalid_argument);
+    CHECK_THROWS_AS(insert_column(m, c_bad), std::invalid_argument);
+}
+
+TEST_CASE("insert_column rejects out-of-range index") {
+    Eigen::MatrixXd m(2, 2);
+    m << 1, 2, 3, 4;
+    Eigen::VectorXd c(2);
+    c << 5.0, 6.0;
+    CHECK_THROWS_AS(insert_column(m, c, 5), std::invalid_argument);
 }
 
 TEST_CASE("remove_row removes correct index and handles last row") {

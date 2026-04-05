@@ -20,7 +20,7 @@ using chrono::duration;
 class Cohort 
 {    
 public:
-    Cohort(SharedData& s, int cohort_index) : shared(s), cohort_index(cohort_index) {};
+    Cohort(SharedData& s, int cohort_index) : cohort_index(cohort_index), shared(s) {};
     
     // Input readers for this cohort (sumstat/PLINK/LD).
     void read_sumstat();
@@ -33,16 +33,17 @@ public:
     void calc_polygenic_score(int argc, char** argv);
 
     // Incremental updates to R^{-1} during stepwise selection.
-    int calc_R_inv_forward(int append_index);
-    int calc_R_inv_backward(int remove_index);
+    int calc_R_inv_forward(int append_index, int fixed_candidate_num);
+    int calc_R_inv_backward(int remove_index, int fixed_candidate_num);
 
     // Append LD/geno correlations for a new candidate SNP.
     void append_r(const vector<char>& active_mask, int append_index, string mode);
     // Conditional and joint effect estimates for a candidate set.
     void calc_cond_effects(const vector<int>& candidate_SNP, string mode);
     int calc_joint_effects(const vector<int>& candidate_SNP, string mode);
+    bool fail_collinear_check(int fixed_candidate_num);
     // Build R^{-1} from scratch for a candidate SNP list.
-    int calc_R_inv_from_SNP_list(const vector<int>& SNP_list, string mode); 
+    int calc_R_inv_and_joint(const vector<int>& SNP_list, int fixed_candidate_num, string mode);
 
 // necessary information during calculation
 public:
@@ -67,32 +68,34 @@ private:
 
 public:
     // backup for temporary model during backward selection
+    // columns removed during the backward loop are saved so they can be re-inserted on restore.
     struct BackupState {
-        MatrixXd r, r_gcta;
+        vector<pair<int, VectorXd>> removed_r_cols, removed_r_gcta_cols;
         MatrixXd R_inv_pre, R_inv_pre_gcta;
-        double previous_R2;
     } backup;
 
     void save_state() {
-        backup.r                 = r;
-        backup.r_gcta            = r_gcta;
+        backup.removed_r_cols.clear();
+        backup.removed_r_gcta_cols.clear();
         backup.R_inv_pre         = R_inv_pre;
         backup.R_inv_pre_gcta    = R_inv_pre_gcta;
-        backup.previous_R2       = previous_R2;
     };
 
     void restore_state() {
-        r                 = backup.r;
-        r_gcta            = backup.r_gcta;
+        // reverse the backward column removals
+        for (auto it = backup.removed_r_cols.rbegin(); it != backup.removed_r_cols.rend(); ++it)
+            insert_column(r, it->second, it->first);
+        if (params.slct_mode == "GCTA")
+            for (auto it = backup.removed_r_gcta_cols.rbegin(); it != backup.removed_r_gcta_cols.rend(); ++it)
+                insert_column(r_gcta, it->second, it->first);
+
+        // remove the new candidate's column added by append_r after save_state()
+        // after reverse insertion above it is always the last column
+        remove_column(r);
+        if (params.slct_mode == "GCTA") remove_column(r_gcta);
+
         R_inv_pre         = backup.R_inv_pre;
         R_inv_pre_gcta    = backup.R_inv_pre_gcta;
-        previous_R2       = backup.previous_R2;
-    };
-
-    void save_temp_model() {
-        R_inv_pre = R_inv_post;
-        R_inv_pre_gcta = R_inv_post_gcta;
-        previous_R2 = R2;
     };
 };
 
@@ -102,7 +105,7 @@ class MACOJO
 {
 public:
     MACOJO() {
-        for (int i = 0; i < params.bfile_list.size(); i++) 
+        for (size_t i = 0; i < params.bfile_list.size(); i++)
             cohorts.emplace_back(shared, i);
     };
 
@@ -114,14 +117,16 @@ public:
     // Initialize candidate SNP indices from user-provided names.
     void initialize_candidate_SNP(const vector<string>& given_list);
     // Remove collinear SNPs and refresh R^{-1}.
-    bool check_candidate_SNP_collinearity(string mode);
+    void check_candidate_SNP_collinearity(string mode);
+    // Handle fixed candidate SNPs for stepwise selection.
+    void prepare_fixed_SNP();
     // Stepwise selection loop (forward add, optional backward selection).
     void slct_loop();
     // Inverse-variance meta-analysis across current cohorts.
     void inverse_var_meta(ArrayXd& bma, ArrayXd& se2ma, ArrayXd& abs_zma);
 
     // Output helpers for results.
-    void output_cma(string savename);
+    void output_cma(string savename, bool force_rebuild_r);
     void output_jma(string savename);
     void output_inverse_var_meta(string savename, const vector<pair<int, int>>& SNP_ref_order_pair, bool if_joint);
     void output_ld_matrix(string savename, const vector<pair<int, int>>& SNP_ref_order_pair);
@@ -132,9 +137,7 @@ private:
     SharedData shared;
 
     vector<Cohort> cohorts;
-    vector<int> current_list;
-    
-    vector<int> bad_SNP, candidate_SNP, collinear_SNP, backward_SNP, candidate_SNP_backup, backward_SNP_backup;
+    vector<int> bad_SNP, candidate_SNP, collinear_SNP, backward_SNP;
     vector<char> active_mask;
 
     int fixed_candidate_SNP_num = 0;

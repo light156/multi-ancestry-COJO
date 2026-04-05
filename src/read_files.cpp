@@ -12,9 +12,10 @@ void skim_SNP(const vector<string>& options, vector<string>& SNP_list)
 
         vector<string> options_copy = options;
         options_copy.erase(options_copy.begin()); // remove filename
-        
+
+        auto before_size = options_copy.size();
         options_copy.erase(remove(options_copy.begin(), options_copy.end(), "header"), options_copy.end());
-        if (options_copy.size() < options.size()) has_header = true;
+        if (options_copy.size() < before_size) has_header = true;
 
         if (options_copy.size() > 1) LOGGER.e("Invalid format for providing SNP file");
         
@@ -59,9 +60,9 @@ void skim_SNP(const vector<string>& options, vector<string>& SNP_list)
 
     sort(SNP_list.begin(), SNP_list.end());
 
-    for (int i = 1; i < SNP_list.size(); i++) {
+    for (size_t i = 1; i < SNP_list.size(); i++) {
         if (SNP_list[i] == SNP_list[i-1]) {
-            LOGGER.w("Duplicate SNP found", SNP_list[i]);
+            // LOGGER.w("Duplicate SNP found", SNP_list[i]);
             while (i+1 < SNP_list.size() && SNP_list[i+1] == SNP_list[i]) i++; // skip long runs of the same duplicate
         }
     }
@@ -116,9 +117,9 @@ void skim_bim(string filename, int chr, vector<string>& SNP_list)
     
     sort(SNP_list.begin(), SNP_list.end());
 
-    for (int i = 1; i < SNP_list.size(); i++) {
+    for (size_t i = 1; i < SNP_list.size(); i++) {
         if (SNP_list[i] == SNP_list[i-1]) {
-            LOGGER.w("Duplicate SNP found", SNP_list[i]);
+            // LOGGER.w("Duplicate SNP found", SNP_list[i]);
             while (i+1 < SNP_list.size() && SNP_list[i+1] == SNP_list[i]) i++; // skip long runs of the same duplicate
         }
     }
@@ -163,7 +164,7 @@ void Cohort::read_fam()
         LOGGER.i("individuals after removing individuals", sorted_ID.size());
     }
 
-    if (sorted_ID.size() == 0)
+    if (sorted_ID.empty())
         LOGGER.e("No individuals remaining after applying keep/remove individual files");
     
     valid_indi_num = sorted_ID.size();
@@ -179,7 +180,6 @@ void Cohort::read_fam()
     int bit_index = 0, word_index = 0;
     uint64_t word_mask = 0ULL;
 
-    // a coarse way to balance time and memory
     genotype.initialize_mask(fam_indi_num);
     
     for (const auto& full_ID : fam_ID_array) {
@@ -248,12 +248,15 @@ void Cohort::read_sumstat()
         } 
 
         if (freq < 1e-10 || freq > 1.0 - 1e-10) { 
-            if (iter != shared.goodSNP_table.end()) iter->second = -1;
+            if (iter != shared.goodSNP_table.end()) {
+                shared.bad_SNP_dict.emplace_back(BadSnpReason::RareVariant, SNP_buf);
+                iter->second = -1;
+            }
             Vp_gcta_list.push_back(0);
             continue;
         } 
 
-        if (!parse_num(pt, b) || !parse_num(pt, se) || !parse_num(pt, p) || !parse_num(pt, N)) {
+        if (!parse_num(pt, b) || !parse_num(pt, se) || !parse_num(pt, p) || !parse_num(pt, N) || se <= 0 || N <= 1) {
             if (iter != shared.goodSNP_table.end()) {
                 shared.bad_SNP_dict.emplace_back(BadSnpReason::InvalidNumericValue, SNP_buf);
                 iter->second = -1;
@@ -266,6 +269,12 @@ void Cohort::read_sumstat()
 
         if (iter == shared.goodSNP_table.end()) continue;
         ref_index = iter->second;
+
+        if (freq < params.maf_sumstat_list[cohort_index] || freq > 1.0 - params.maf_sumstat_list[cohort_index]) {
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::RareVariant, SNP_buf);
+            iter->second = -1;
+            continue;
+        }
 
         if (shared.A1_ref[ref_index] == A1_buf && shared.A2_ref[ref_index] == A2_buf) {}
         else if (shared.A1_ref[ref_index] == A2_buf && shared.A2_ref[ref_index] == A1_buf) {freq = 1 - freq; b = -b;}
@@ -282,12 +291,6 @@ void Cohort::read_sumstat()
     Meta.close();
 
     Vp = median(Vp_gcta_list);
-    sumstat.col(4) = (Vp / sumstat.col(5) - square(sumstat.col(0))) / sumstat.col(1) + 1;
-    sumstat.col(6) = sumstat.col(4) * sumstat.col(5);
-
-    if (params.if_infoscore)
-        sumstat.col(0) = sumstat.col(0) * sqrt(sumstat.col(4) / sumstat.col(4).maxCoeff());
-
     LOGGER << "Estimated phenotype variance Vp: " << Vp << endl;
 }
 
@@ -342,7 +345,13 @@ void Cohort::read_frq()
             continue;
         } 
 
-        if (abs(sumstat(ref_index, 3) - freq) > params.diff_freq) {
+        if (freq <= params.maf_list[cohort_index] || freq >= 1.0 - params.maf_list[cohort_index]) {
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::RareVariant, SNP_buf);
+            iter->second = -1;
+            continue;
+        }
+
+        if (abs(sumstat(ref_index, 3) - freq) >= params.diff_freq_list[cohort_index]) {
             shared.bad_SNP_dict.emplace_back(BadSnpReason::FreqDiffTooLarge, SNP_buf);
             iter->second = -1;
             continue;
@@ -434,7 +443,7 @@ void Cohort::read_bed()
     genotype.resize(shared.goodSNP_table.size());
 
     vector<pair<int, int>> selected;
-    for (int j = 0; j < bim_SNP_array.size(); j++) {
+    for (size_t j = 0; j < bim_SNP_array.size(); j++) {
         auto iter = fast_lookup(shared.goodSNP_table, bim_SNP_array[j]);
         if (iter == shared.goodSNP_table.end()) continue;
         
@@ -471,7 +480,7 @@ void Cohort::read_bed()
         }
     }
 
-    double missing_threshold = valid_indi_num * (1 - params.missingness);
+    double missing_threshold = valid_indi_num * (1 - params.missingness_list[cohort_index]);
 
     for (auto iter = shared.goodSNP_table.begin(); iter != shared.goodSNP_table.end(); iter++) {
         if (iter->second == -1) continue;
@@ -483,11 +492,22 @@ void Cohort::read_bed()
             continue;
         }
         
-        if (abs(sumstat(ref_index, 3) - genotype.X_avg[ref_index]/2) > params.diff_freq) {
+        double geno_freq = genotype.X_avg[ref_index] / 2;
+
+        if (geno_freq <= params.maf_list[cohort_index] || geno_freq >= 1.0 - params.maf_list[cohort_index]) {
+            shared.bad_SNP_dict.emplace_back(BadSnpReason::RareVariant, iter->first);
+            iter->second = -1;
+            continue;
+        }
+
+        if (abs(sumstat(ref_index, 3) - geno_freq) >= params.diff_freq_list[cohort_index]) {
             shared.bad_SNP_dict.emplace_back(BadSnpReason::FreqDiffTooLarge, iter->first);
             iter->second = -1;
             continue;
         }
+
+        if (params.if_var_from_ld)
+            sumstat(ref_index, 5) = genotype.X_std[ref_index] * genotype.X_std[ref_index] / (genotype.X_non_NA_indi_num[ref_index] - 1);
     }
 
     Bed.close();
@@ -551,7 +571,7 @@ bool MACOJO::read_input_files()
     vector<string> common_SNP;
 
     // Step 1: get common SNPs across all cohorts
-    for (int n = 0; n < cohorts.size(); n++) {
+    for (size_t n = 0; n < cohorts.size(); n++) {
         auto start = steady_clock::now();
 
         vector<string> SNP_PLINK, SNP_sumstat, temp;
@@ -594,11 +614,11 @@ bool MACOJO::read_input_files()
         LOGGER.i("common SNPs after excluding user-specified SNPs\n", common_SNP.size());
     }
 
-    if (common_SNP.size() == 0) return false;
+    if (common_SNP.empty()) return false;
     
     auto start = steady_clock::now();
 
-    int total_SNP_num = common_SNP.size();
+    auto total_SNP_num = common_SNP.size();
 
     shared.A1_ref.resize(total_SNP_num);
     shared.A2_ref.resize(total_SNP_num);
@@ -606,7 +626,7 @@ bool MACOJO::read_input_files()
     shared.bp_order.resize(total_SNP_num);
     shared.goodSNP_table.reserve(total_SNP_num);
 
-    for (int i = 0; i < total_SNP_num; i++) {
+    for (size_t i = 0; i < total_SNP_num; i++) {
         shared.bp_order[i] = i;
         shared.goodSNP_table.emplace_back(common_SNP[i], i);
     }
@@ -617,31 +637,9 @@ bool MACOJO::read_input_files()
         c.read_sumstat();
     }
 
-    // exclude rare SNPs based on freq_threshold
-    for (auto iter = shared.goodSNP_table.begin(); iter != shared.goodSNP_table.end(); iter++) {
-        int ref_index = iter->second;
-        bool erase_flag = !params.if_freq_mode_and;
-
-        if (params.if_freq_mode_and) {
-            for (auto &c : cohorts)
-                erase_flag |= (c.sumstat(ref_index, 3) < params.maf || c.sumstat(ref_index, 3) > 1-params.maf);
-        } else {
-            for (auto &c : cohorts) 
-                erase_flag &= (c.sumstat(ref_index, 3) < params.maf || c.sumstat(ref_index, 3) > 1-params.maf);
-        } 
-        
-        for (auto &c : cohorts)
-            erase_flag |= (c.sumstat(ref_index, 6) > 1e10);
-
-        if (erase_flag) {
-            shared.bad_SNP_dict.emplace_back(BadSnpReason::RareVariant, iter->first);
-            iter->second = -1;
-        }
-    }
-
     int goodSNP_num = 0;
     for (const auto& kv : shared.goodSNP_table) goodSNP_num += (kv.second != -1);
-    LOGGER.i("common SNPs after removing rare SNPs", goodSNP_num);
+    LOGGER.i("valid common SNPs after reading .bim and GWAS sumstat files", goodSNP_num);
     if (goodSNP_num == 0) return false;
 
     auto end = steady_clock::now();
@@ -663,9 +661,24 @@ bool MACOJO::read_input_files()
         LOGGER << "Time taken: " << duration<double>(end-start).count() << " seconds" << endl << endl;
     }
 
+    // calculate effective sample size for each SNP 
+    for (auto &c : cohorts) {
+        c.sumstat.col(4) = (c.Vp / c.sumstat.col(5) - square(c.sumstat.col(0))) / c.sumstat.col(1) + 1;
+        c.sumstat.col(6) = c.sumstat.col(4) * c.sumstat.col(5);
+        
+        // filter out SNPs with extremely large effective sample size, likely due to very small variance
+        for (auto& kv : shared.goodSNP_table) {
+            if (kv.second == -1) continue;
+            if (c.sumstat(kv.second, 6) > 1e10) {
+                shared.bad_SNP_dict.emplace_back(BadSnpReason::InvalidNumericValue, kv.first);
+                kv.second = -1;
+            }
+        }
+    }
+    
     // finalize SNP index lists; active_mask is initialized once and updated during selection
     active_mask.assign(total_SNP_num, 1);
-    for (int i = 0; i < total_SNP_num; i++) {
+    for (size_t i = 0; i < total_SNP_num; i++) {
         if (shared.goodSNP_table[i].second == -1) {
             bad_SNP.push_back(i);
             active_mask[i] = 0;

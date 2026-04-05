@@ -95,6 +95,9 @@ void Geno::decode_single_genotype(const char* buffer, size_t buffer_size, size_t
 
 double Geno::calc_inner_product(size_t idx1, size_t idx2, bool remove_NA) const
 {   
+    if (X_bit1[idx1].empty() || X_bit1[idx2].empty())
+        throw std::invalid_argument("genotypes not decoded for one or both SNP indices, which should not happen.");
+
     int N_both = 0, S12 = 0, S1 = 0, S2 = 0, S11 = 0, S22 = 0;
 
     for (size_t w = 0; w < words_per_snp; w++) {
@@ -210,7 +213,7 @@ void Geno::calc_single_genotype_prs(const char* buffer, size_t buffer_size, bool
     if (not_NA_indi_num == 0) return;
     double mu = double(SNP_sum) / not_NA_indi_num;
 
-    for (int w = 0; w < words_per_snp; w++) {
+    for (size_t w = 0; w < words_per_snp; w++) {
         uint64_t miss = (SNP_bit1_tls[w] & ~SNP_bit2_tls[w]) & X_mask[w];
 
         while (miss) {
