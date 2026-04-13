@@ -2,7 +2,11 @@ name: Linux binary compatibility test
 
 on:
   push:
+    paths:
+      - manc_cojo
   pull_request:
+    paths:
+      - manc_cojo
 
 jobs:
   ubuntu:

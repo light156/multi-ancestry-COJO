@@ -17,7 +17,13 @@ For example, for the analysis of high-density lipoprotein (HDL) cholesterol in o
 
 ## Installation
 
-You can download our software directly from the links below:
+Manc-COJO can be installed via Bioconda or Docker:
+
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](https://bioconda.github.io/recipes/manc_cojo/README.html)
+&nbsp;&nbsp;&nbsp;
+[![install with docker](https://img.shields.io/badge/install_with-docker-blue)](https://quay.io/repository/biocontainers/manc_cojo?tab=tags)
+
+Or you can directly download from the links below:
 
 ### [⬇️ Download link (Linux)](https://github.com/light156/multi-ancestry-COJO/releases/download/v1.1.0/manc_cojo)
 
@@ -119,3 +125,5 @@ If you find our paper or software useful for your research, please consider citi
 - We thank Dr. Lin Tian, Dr. Siqi Wang, and Dr. Ang Li for testing the software and providing feedback.
 
 - We thank Dr. Vince Forgetta for testing the software and valuable discussions on the comparison with GCTA-COJO.
+
+- We thank Peter Kruczkiewicz for making Manc-COJO available through Bioconda and Docker.
