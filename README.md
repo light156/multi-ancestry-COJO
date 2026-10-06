@@ -92,7 +92,7 @@ Despite being largely similar, the following behaviours intentionally differ fro
 
 Output format differences:
 
-1. In output files, both **A1** and **A2** are reported for each SNP. **A1** corresponds to **refA** in GCTA outputs.  
+1. In output files, both **A1** and **A2** are reported for each SNP. **A1** is the tested (effect) allele in the Manc-COJO software.  
 
 2. By default, our software does **not** generate `.cma.cojo` and `.ldr.cojo` files, as they can be very large and are not required for most use cases. Use `--output-all` to enable all output files, which will also record unqualified SNPs in the corresponding `.badsnps` files.
 
