@@ -104,7 +104,7 @@ For advanced usage, a complete list of command-line options, and instructions fo
 
 If you find our paper or software useful for your research, please consider citing our paper: 
 
-> Multi-ancestry conditional and joint analysis (Manc-COJO) applied to GWAS summary statistics. Xiaotong Wang, Yong Wang, Peter M Visscher, Naomi R Wray, Loic Yengo. bioRxiv 2026.01.30.702783; doi: [https://doi.org/10.64898/2026.01.30.702783](https://doi.org/10.64898/2026.01.30.702783) 
+> Xiaotong Wang, Yong Wang, Jian Yang, Peter M. Visscher, Naomi R. Wray & Loic Yengo. Multiancestry conditional and joint analysis applied to GWAS summary statistics. *Nature Genetics* (2026). <https://doi.org/10.1038/s41588-026-02799-1>
 
 ## Support
 
